@@ -1,8 +1,15 @@
-# -*- coding: utf-8 -*-
 """
-Created on Thu Apr 22 12:49:55 2021
+Read csv files with stock portfolio data from De Giro and visualize that data in the browser.
 
-@author: Robin en Theo
+Classes:
+
+    SharePosition
+    SharePortfolio
+
+Functions:
+
+    create_share_portfolios(folder: str, rename: bool = True) -> tuple[SharePortfolio]
+    analyse_trend(share_portfolios: tuple[SharePortfolio], totals: bool = False) -> None
 """
 from datetime import date, datetime
 import time
@@ -123,8 +130,8 @@ class SharePortfolio:
 
 def create_share_portfolios(folder: str, rename: bool = True) -> tuple[SharePortfolio]:
     """
-    This function creates the dated portfolios from the csv's found in the folder.
-    Make sure that the csv files are formatted as done by De Giro and named as follows:
+    Creates the dated portfolios from the csv's found in folder.
+    The csv files should be formatted as done by De Giro and should named as follows:
     yymmdd_Portfolio.csv
     """
 
@@ -184,11 +191,12 @@ def analyse_trend(
     share_portfolios: tuple[SharePortfolio], totals: bool = False
 ) -> None:
     """
-    function to plot the value of all positions in the portfolios through time
+    Plot the value of all positions in the portfolios through time
     """
     fig = go.Figure()
     # make sure the portfolios are sorted by date:
     sorted_portfolios = sorted(share_portfolios, key=lambda x: x.datum)
+    # horizontal axis to be the date
     hor = [share_pf.datum for share_pf in sorted_portfolios]
     all_isins_and_names = {}
     # first collect all position names / isins
@@ -197,12 +205,14 @@ def analyse_trend(
     else:
         for share_portfolio in share_portfolios:
             all_isins_and_names.update(share_portfolio.all_isins_and_names())
+    # sort for increasing value at final date, such that all zero values are at horizontal axis
     all_isins_and_names_list = all_isins_and_names.items()
     sorted_isins_and_names_list = sorted(
         all_isins_and_names_list, key=lambda x: share_portfolios[-1].value_of(x[0])
     )
     for (isin, name) in sorted_isins_and_names_list:
         if totals:
+            # vertical axis to be the portfolio value
             vert = [share_pf.total_value for share_pf in sorted_portfolios]
             fig.add_trace(
                 go.Scatter(
@@ -216,6 +226,7 @@ def analyse_trend(
                 )
             )
         else:
+            # vertical axis to be the value of each position in the portfolio
             vert = [share_pf.value_of(isin) for share_pf in sorted_portfolios]
             fig.add_trace(
                 go.Scatter(
