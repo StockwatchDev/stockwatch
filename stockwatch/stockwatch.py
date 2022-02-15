@@ -116,7 +116,7 @@ class SharePortfolio:
         """Return the ISIN codes and names of the share positions"""
         return {share_pos.isin: share_pos.name for share_pos in self.share_positions}
 
-    def date_is_consistent(self) -> bool:
+    def is_date_consistent(self) -> bool:
         """Return True if the datums of the share positions all match with self.datum, False otherwise"""
         return all(share_pos.datum == self.datum for share_pos in self.share_positions)
 
@@ -233,6 +233,9 @@ def analyse_trend(
 
 folder = r"c:\Users\tjade\Dropbox\tvs\prive\financien\robin\portfolio"
 share_portfolios = create_share_portfolios(folder=folder, rename=False)
-print("All consistent?", all(share_portfolio.date_is_consistent() for share_portfolio in share_portfolios))
+print(
+    "All consistent?",
+    all(share_portfolio.is_date_consistent() for share_portfolio in share_portfolios),
+)
 # analyse_trend(share_portfolios, totals = True)
 analyse_trend(share_portfolios)
