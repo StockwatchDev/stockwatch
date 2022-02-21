@@ -193,18 +193,19 @@ def analyse_trend(
     sorted_portfolios = sorted(share_portfolios, key=lambda x: x.datum)
     # horizontal axis to be the date
     hor = [share_pf.datum for share_pf in sorted_portfolios]
-    all_isins_and_names = {}
+    sorted_isins_and_names_list = []
     # first collect all position names / isins
     if totals:
-        all_isins_and_names.update({"no_isin": "Portfolio totals"})
+        sorted_isins_and_names_list = [("no_isin", "Portfolio totals")]
     else:
+        all_isins_and_names = {}
         for share_portfolio in share_portfolios:
             all_isins_and_names.update(share_portfolio.all_isins_and_names())
-    # sort for increasing value at final date, such that all zero values are at horizontal axis
-    all_isins_and_names_list = all_isins_and_names.items()
-    sorted_isins_and_names_list = sorted(
-        all_isins_and_names_list, key=lambda x: share_portfolios[-1].value_of(x[0])
-    )
+        # sort for increasing value at final date, such that all zero values are at horizontal axis
+        sorted_isins_and_names_list = sorted(
+            all_isins_and_names.items(),
+            key=lambda x: share_portfolios[-1].value_of(x[0]),
+        )
     for (isin, name) in sorted_isins_and_names_list:
         if totals:
             # vertical axis to be the portfolio value
@@ -232,5 +233,5 @@ print(
     "All consistent?",
     all(share_portfolio.is_date_consistent() for share_portfolio in share_portfolios),
 )
-# analyse_trend(share_portfolios, totals=True)
+analyse_trend(share_portfolios, totals=True)
 analyse_trend(share_portfolios)
