@@ -138,7 +138,7 @@ def create_share_portfolios(
     """
 
     files = sorted(Path(folder).glob("*.csv"))
-    print("Files:", files)
+    print("Number of files to process:", len(files))
     share_portfolios = []
 
     for file_path in files:
@@ -151,20 +151,14 @@ def create_share_portfolios(
             for row in csv_reader:
                 if line_count > 0:
                     isin = row["Symbool/ISIN"]
-                    print("stock:", isin)
                     # we're only interested in real stock positions (not cash)
                     if isin:
                         name = row["Product"]
-                        print("name:", name)
                         curr = row["Lokale waarde"].split()[0]
-                        print("curr:", curr)
                         investment = 0.0
                         nr = int(row["Aantal"])
-                        print("nr:", nr)
                         price = round(float(row["Slotkoers"].replace(",", ".")), 2)
-                        print("price:", price)
                         value = round(float(row["Waarde in EUR"].replace(",", ".")), 2)
-                        print("value:", value)
                         realized = 0.0
                         the_position = SharePosition(
                             name=name,
@@ -179,7 +173,6 @@ def create_share_portfolios(
                         )
                         sep_stocks.append(the_position)
                 line_count += 1
-            print(f"Processed {line_count} lines.")
         the_portfolio = SharePortfolio(share_positions=tuple(sep_stocks), datum=datum)
         share_portfolios.append(the_portfolio)
     if rename:
