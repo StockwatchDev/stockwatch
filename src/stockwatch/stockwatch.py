@@ -209,31 +209,20 @@ def analyse_trend(
         if totals:
             # vertical axis to be the portfolio value
             vert = [share_pf.total_value for share_pf in sorted_portfolios]
-            fig.add_trace(
-                go.Scatter(
-                    x=hor,
-                    y=vert,
-                    hoverinfo="name+x+y",
-                    name=name,
-                    mode="lines",
-                    line=dict(width=0.5),
-                    stackgroup="one",  # define stack group
-                )
-            )
         else:
             # vertical axis to be the value of each position in the portfolio
             vert = [share_pf.value_of(isin) for share_pf in sorted_portfolios]
-            fig.add_trace(
-                go.Scatter(
-                    x=hor,
-                    y=vert,
-                    hoverinfo="name+x+y",
-                    name=isin + ": " + name,
-                    mode="lines",
-                    line=dict(width=0.5),
-                    stackgroup="one",  # define stack group
-                )
+        fig.add_trace(
+            go.Scatter(
+                x=hor,
+                y=vert,
+                hoverinfo="name+x+y",
+                name=isin + ": " + name,
+                mode="lines",
+                line=dict(width=0.5),
+                stackgroup="one",  # define stack group
             )
+        )
     fig.show()
 
 
@@ -243,5 +232,5 @@ print(
     "All consistent?",
     all(share_portfolio.is_date_consistent() for share_portfolio in share_portfolios),
 )
-# analyse_trend(share_portfolios, totals = True)
+# analyse_trend(share_portfolios, totals=True)
 analyse_trend(share_portfolios)
