@@ -17,7 +17,7 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 import csv
-import plotly.graph_objects as go
+import plotly.graph_objects as go  # type: ignore
 
 
 @dataclass(frozen=True)
@@ -60,7 +60,7 @@ class SharePortfolio:
     datum           : the date of the registered share positions
     """
 
-    share_positions: tuple[SharePosition]
+    share_positions: tuple[SharePosition, ...]
     datum: date
 
     @property
@@ -115,9 +115,9 @@ class SharePortfolio:
             2,
         )
 
-    def all_isins(self) -> tuple[str]:
+    def all_isins(self) -> tuple[str, ...]:
         """Return the ISIN codes of the share positions"""
-        return (share_pos.isin for share_pos in self.share_positions)
+        return tuple(share_pos.isin for share_pos in self.share_positions)
 
     def all_isins_and_names(self) -> dict[str, str]:
         """Return the ISIN codes and names of the share positions"""
@@ -128,7 +128,9 @@ class SharePortfolio:
         return all(share_pos.datum == self.datum for share_pos in self.share_positions)
 
 
-def create_share_portfolios(folder: str, rename: bool = True) -> tuple[SharePortfolio]:
+def create_share_portfolios(
+    folder: str, rename: bool = True
+) -> tuple[SharePortfolio, ...]:
     """
     Creates the dated portfolios from the csv's found in folder.
     The csv files should be formatted as done by De Giro and should named as follows:
@@ -188,7 +190,7 @@ def create_share_portfolios(folder: str, rename: bool = True) -> tuple[SharePort
 
 
 def analyse_trend(
-    share_portfolios: tuple[SharePortfolio], totals: bool = False
+    share_portfolios: tuple[SharePortfolio, ...], totals: bool = False
 ) -> None:
     """
     Plot the value of all positions in the portfolios through time
