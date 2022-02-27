@@ -2,7 +2,8 @@
 README for Stockwatch
 =====================
 
-To be extended...
+Stockwatch is an application (in development) for visualizing and analyzing a stock portfolio. 
+The portfolio is loaded by reading csv files that have been downloaded from De Giro.
 
 Installation for development
 ============================
