@@ -8,7 +8,8 @@ Classes:
 
 Functions:
 
-    create_share_portfolios(folder: str, rename: bool = True) -> tuple[SharePortfolio]
+    create_share_portfolios(folder: str, 
+                            rename: bool = True) -> tuple[SharePortfolio, ...]
     analyse_trend(share_portfolios: tuple[SharePortfolio], totals: bool = False) -> None
 """
 from datetime import date, datetime
