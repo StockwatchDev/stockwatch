@@ -1,5 +1,5 @@
 """
-Read csv files with stock portfolio data from De Giro and visualize that data in the browser.
+Read csv files with stock portfolio data from De Giro and visualize in the browser.
 
 Classes:
 
@@ -52,7 +52,7 @@ class SharePosition:
 @dataclass(frozen=True)
 class SharePortfolio:
     """
-    For representing a stock shares portfolio (i.e., a set of positions) at a certain date
+    For representing a stock shares portfolio (i.e. multiple positions) at a certain date
 
     Attributes
     ----------
@@ -69,7 +69,7 @@ class SharePortfolio:
         return round(sum([share_pos.value for share_pos in self.share_positions]), 2)
 
     def contains(self, an_isin: str) -> bool:
-        """Return True of this portfolio has a share position with ISIN the_isin or False otherwise"""
+        """Return True if self has a share position with ISIN the_isin"""
         return an_isin in [share_pos.isin for share_pos in self.share_positions]
 
     def get_position(self, the_isin: str) -> SharePosition | None:
@@ -92,7 +92,7 @@ class SharePortfolio:
         )
 
     def investment_of(self, the_isin: str) -> float:
-        """Return the original investment in EUR of the share position with ISIN the_isin"""
+        """Return the investment in EUR of the share position with ISIN the_isin"""
         return round(
             sum(
                 [
@@ -124,7 +124,7 @@ class SharePortfolio:
         return {share_pos.isin: share_pos.name for share_pos in self.share_positions}
 
     def is_date_consistent(self) -> bool:
-        """Return True if the datums of the share positions all match with self.datum, False otherwise"""
+        """Return True if the datums of the share positions all match with self.datum"""
         return all(share_pos.datum == self.datum for share_pos in self.share_positions)
 
 
@@ -201,7 +201,8 @@ def analyse_trend(
         all_isins_and_names = {}
         for share_portfolio in share_portfolios:
             all_isins_and_names.update(share_portfolio.all_isins_and_names())
-        # sort for increasing value at final date, such that all zero values are at horizontal axis
+        # sort for increasing value at final date,
+        # such that all zero values are at the horizontal axis
         sorted_isins_and_names_list = sorted(
             all_isins_and_names.items(),
             key=lambda x: share_portfolios[-1].value_of(x[0]),

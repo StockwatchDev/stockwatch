@@ -2,8 +2,9 @@
 README for Stockwatch
 =====================
 
-Stockwatch is an application (in development) for visualizing and analyzing a stock portfolio. 
-The portfolio is loaded by reading csv files that have been downloaded from De Giro.
+Stockwatch is an application (in development) for visualizing and analyzing a stock
+portfolio. The portfolio is loaded by reading csv files that have been downloaded from
+De Giro.
 
 Installation for development
 ============================
@@ -12,7 +13,7 @@ Installation for development
    packages as possible.
 #. Make sure that you have `poetry`_ installed
 #. Clone the `Stockwatch repository`_
-#. Open a command prompt, go to the repo directory and run :code:`poetry install`. This 
+#. Open a command prompt, go to the repo directory and run :code:`poetry install`. This
    command will create a virtual environment and install all needed dependencies.
 
 Downloading data from De Giro
