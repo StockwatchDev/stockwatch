@@ -20,10 +20,11 @@ Installation for development
 
 Running and editing
 ===================
+
 #. Create a virtual env shell using :code:`poetry shell`.
 #. Start your prefered editor from this shell (ensure that the virtual env is still valid).
 #. Run the stockwatch executable using: :code:`python src/stockwatch/stockwatch.py`.
 
-#. Alternatively you can use :code:`poetry run python src/stockwatch/stockwatch.py` instead of creating the
-   virtual shell.
+Alternatively you can use :code:`poetry run python src/stockwatch/stockwatch.py` instead of creating the
+virtual shell.
 
