@@ -164,7 +164,7 @@ def create_share_portfolios(
                         name = row["Product"]
                         curr = row["Lokale waarde"].split()[0]
                         investment = 0.0
-                        nr = int(row["Aantal"])
+                        nr = int(float(row["Aantal"].replace(",", ".", 2)))
                         price = round(float(row["Slotkoers"].replace(",", ".")), 2)
                         value = round(float(row["Waarde in EUR"].replace(",", ".")), 2)
                         realized = 0.0
