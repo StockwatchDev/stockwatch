@@ -31,6 +31,17 @@ Downloading data from De Giro
    yymmdd_Portfolio.csv
 #. Repeat steps 5-9 for all dates that you want to visualize.
 
+Running and editing
+===================
+
+#. Create a virtual env shell using :code:`poetry shell`.
+#. Start your prefered editor from this shell (ensure that the virtual env is still
+   valid).
+#. Run the stockwatch executable using: :code:`python src/stockwatch/stockwatch.py`.
+
+Alternatively you can use :code:`poetry run python src/stockwatch/stockwatch.py` instead
+of creating the virtual shell.
+
 .. _python 3.10: https://www.python.org/downloads/
 .. _poetry: https://python-poetry.org/docs/#installation
 .. _Stockwatch repository: https://bitbucket.org/stockwatch-ws/stockwatch/src/develop/
