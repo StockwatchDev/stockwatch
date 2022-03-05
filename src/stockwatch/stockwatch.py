@@ -77,7 +77,7 @@ class SharePortfolio:
         return round(sum([share_pos.value for share_pos in self.share_positions]), 2)
 
     def contains(self, an_isin: str) -> bool:
-        """Return True if self has a share position with ISIN the_isin"""
+        """Return True if self has a share position with ISIN an_isin"""
         return an_isin in [share_pos.isin for share_pos in self.share_positions]
 
     def get_position(self, the_isin: str) -> SharePosition | None:
