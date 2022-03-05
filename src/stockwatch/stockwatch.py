@@ -12,11 +12,12 @@ Functions:
     create_share_portfolios(folder: Path,
                             rename: bool = True) -> tuple[SharePortfolio, ...]
     analyse_trend(share_portfolios: tuple[SharePortfolio], totals: bool = False) -> None
-    main(folder: Path)
+    main(folder: Path) -> int
 """
 import argparse
 import csv
 import os
+from sys import exit
 import time
 from dataclasses import dataclass
 from datetime import date, datetime
@@ -236,7 +237,7 @@ def analyse_trend(
     fig.show()
 
 
-def main(folder: Path):
+def main(folder: Path) -> int:
     """The main function to run the stockwatcher."""
 
     share_portfolios = create_share_portfolios(folder=folder, rename=False)
@@ -248,6 +249,7 @@ def main(folder: Path):
     )
     analyse_trend(share_portfolios, totals=True)
     analyse_trend(share_portfolios)
+    return 0
 
 
 if __name__ == "__main__":
@@ -270,4 +272,4 @@ if __name__ == "__main__":
         )
 
     print(f"Parsing the porfolio files in directory: '{folder}'")
-    main(folder)
+    exit(main(folder))
