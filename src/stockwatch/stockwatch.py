@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Read csv files with stock portfolio data from De Giro and visualize in the browser.
 
@@ -8,17 +9,24 @@ Classes:
 
 Functions:
 
-    create_share_portfolios(folder: str, 
+    create_share_portfolios(folder: Path,
                             rename: bool = True) -> tuple[SharePortfolio, ...]
     analyse_trend(share_portfolios: tuple[SharePortfolio], totals: bool = False) -> None
+    main(folder: Path) -> int
 """
-from datetime import date, datetime
-import time
-
-from dataclasses import dataclass
-from pathlib import Path
+import argparse
 import csv
+import os
+from sys import exit
+import time
+from dataclasses import dataclass
+from datetime import date, datetime
+from pathlib import Path
+from typing import Optional
+
 import plotly.graph_objects as go  # type: ignore
+
+STOCKWATCH_ENV_VAR = "STOCKWATCH_DIR"
 
 
 @dataclass(frozen=True)
@@ -130,7 +138,7 @@ class SharePortfolio:
 
 
 def create_share_portfolios(
-    folder: str, rename: bool = True
+    folder: Path, rename: bool = True
 ) -> tuple[SharePortfolio, ...]:
     """
     Creates the dated portfolios from the csv's found in folder.
@@ -138,7 +146,7 @@ def create_share_portfolios(
     yymmdd_Portfolio.csv
     """
 
-    files = sorted(Path(folder).glob("*.csv"))
+    files = sorted(folder.glob("*.csv"))
     print("Number of files to process:", len(files))
     share_portfolios = []
 
@@ -157,7 +165,7 @@ def create_share_portfolios(
                         name = row["Product"]
                         curr = row["Lokale waarde"].split()[0]
                         investment = 0.0
-                        nr = int(row["Aantal"])
+                        nr = int(float(row["Aantal"].replace(",", ".", 2)))
                         price = round(float(row["Slotkoers"].replace(",", ".")), 2)
                         value = round(float(row["Waarde in EUR"].replace(",", ".")), 2)
                         realized = 0.0
@@ -229,11 +237,39 @@ def analyse_trend(
     fig.show()
 
 
-folder = r"c:\Users\tjade\Dropbox\tvs\prive\financien\robin\portfolio"
-share_portfolios = create_share_portfolios(folder=folder, rename=False)
-print(
-    "All consistent?",
-    all(share_portfolio.is_date_consistent() for share_portfolio in share_portfolios),
-)
-analyse_trend(share_portfolios, totals=True)
-analyse_trend(share_portfolios)
+def main(folder: Path) -> int:
+    """The main function to run the stockwatcher."""
+
+    share_portfolios = create_share_portfolios(folder=folder, rename=False)
+    print(
+        "All consistent?",
+        all(
+            share_portfolio.is_date_consistent() for share_portfolio in share_portfolios
+        ),
+    )
+    analyse_trend(share_portfolios, totals=True)
+    analyse_trend(share_portfolios)
+    return 0
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("dir", nargs="?", default=None, type=Path)
+
+    args = parser.parse_args()
+    folder: Optional[Path] = args.dir
+
+    if not folder or not folder.is_dir():
+        # Let's try to read from the environment variables.
+        env_path = os.environ.get(STOCKWATCH_ENV_VAR, "")
+        if env_path:
+            folder = Path(env_path)
+
+    if not folder or not folder.is_dir():
+        parser.error(
+            f"Folder: '{folder}' does not exist, please pass as commandline argument, or define the"
+            f" '{STOCKWATCH_ENV_VAR}' environment variable."
+        )
+
+    print(f"Parsing the porfolio files in directory: '{folder}'")
+    exit(main(folder))

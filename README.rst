@@ -20,16 +20,15 @@ Downloading data from De Giro
 =============================
 
 #. If not done before, create a folder where you want to store your portfolio files
-#. Substitute the path of this folder in the file src\\stockwatch.py
 #. Log in with De Giro
 #. Select the Portfolio tab (Dutch: Portefeuille)
 #. Hit the Export button
 #. In the dialog that appears, select the date for which you want to download the data
 #. Click CSV - as a result, a file Portfolio.csv will be downloaded to your computer
 #. Move the downloaded file to the folder for storing portfolio files
-#. Use the selected date info (step 6) to rename the relocated file to 
+#. Use the selected date info (step 5) to rename the relocated file to
    yymmdd_Portfolio.csv
-#. Repeat steps 5-9 for all dates that you want to visualize.
+#. Repeat steps 4-8 for all dates that you want to visualize.
 
 Running and editing
 ===================
@@ -37,7 +36,10 @@ Running and editing
 #. Create a virtual env shell using :code:`poetry shell`.
 #. Start your prefered editor from this shell (ensure that the virtual env is still
    valid).
-#. Run the stockwatch executable using: :code:`python src/stockwatch/stockwatch.py`.
+#. Run the stockwatch executable using:
+   :code:`python src/stockwatch/stockwatch.py PATH/TO/FOLDER/WITH/DATA` or to avoid
+   adding the same path when running, export it in the `STOCKWATCH_DIR` environment
+   variable.
 
 Alternatively you can use :code:`poetry run python src/stockwatch/stockwatch.py` instead
 of creating the virtual shell.
