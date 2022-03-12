@@ -28,10 +28,11 @@ from typing import Optional
 
 import plotly.graph_objects as go  # type: ignore
 
-STOCKWATCH_ENV_VAR = "STOCKWATCH_DIR"
+# TODO: create proper package architecture (clean) and split this file
+
+STOCKWATCH_ENV_VAR = "STOCKWATCH_PATH"
 
 
-# @dataclass(frozen=True)
 @dataclass(frozen=False)
 class SharePosition:
     """
@@ -47,7 +48,7 @@ class SharePosition:
     price           : the current price of the shares, in curr
     value           : the current value of the shares, in EUR
     realized        : the realized result in EUR (including trading costs)
-    datum           : the date for which the value of the share position is registered
+    position_date           : the date for which the value of the share position is registered
     """
 
     name: str
@@ -58,7 +59,7 @@ class SharePosition:
     price: float
     value: float
     realized: float
-    datum: date
+    position_date: date
 
 
 @dataclass(frozen=True)
@@ -69,11 +70,11 @@ class SharePortfolio:
     Attributes
     ----------
     share_positions : the collection of share positions
-    datum           : the date of the registered share positions
+    portfolio_date           : the date of the registered share positions
     """
 
     share_positions: tuple[SharePosition, ...]
-    datum: date
+    portfolio_date: date
 
     @property
     def total_value(self) -> float:
@@ -143,8 +144,11 @@ class SharePortfolio:
         return {share_pos.isin: share_pos.name for share_pos in self.share_positions}
 
     def is_date_consistent(self) -> bool:
-        """Return True if the datums of the share positions all match with self.datum"""
-        return all(share_pos.datum == self.datum for share_pos in self.share_positions)
+        """Return True if the share positions dates all match self.portfolio_date"""
+        return all(
+            share_pos.position_date == self.portfolio_date
+            for share_pos in self.share_positions
+        )
 
 
 def create_share_portfolios(
@@ -156,14 +160,15 @@ def create_share_portfolios(
     yymmdd_Portfolio.csv
     """
 
-    files = sorted(folder.glob("*Portfolio.csv"))
-    print("Number of files to process:", len(files))
+    portfolio_folder = folder.joinpath("Portfolio")
+    files = sorted(portfolio_folder.glob("*.csv"))
+    print(f"Number of files to process: {len(files)}")
     share_portfolios = []
 
     for file_path in files:
         filename = file_path.name
-        datum = datetime.strptime(filename[:6], "%y%m%d").date()
-        with file_path.open(mode="r+") as csv_file:
+        file_date = datetime.strptime(filename[:6], "%y%m%d").date()
+        with file_path.open(mode="r") as csv_file:
             csv_reader = csv.DictReader(csv_file)
             line_count = 0
             sep_stocks = []
@@ -188,11 +193,13 @@ def create_share_portfolios(
                             price=price,
                             value=value,
                             realized=realized,
-                            datum=datum,
+                            position_date=file_date,
                         )
                         sep_stocks.append(the_position)
                 line_count += 1
-        the_portfolio = SharePortfolio(share_positions=tuple(sep_stocks), datum=datum)
+        the_portfolio = SharePortfolio(
+            share_positions=tuple(sep_stocks), portfolio_date=file_date
+        )
         share_portfolios.append(the_portfolio)
     if rename:
         time.sleep(1)
@@ -204,26 +211,27 @@ def create_share_portfolios(
 def _add_investment_realization(
     investment: float,
     realization: float,
-    datum: date,
+    transaction_date: date,
     isin: str,
     sorted_portfolios: tuple[SharePortfolio, ...],
 ):
-    index_first_change = next(
-        (x[0] for x in enumerate(sorted_portfolios) if x[1].datum > datum), -1
-    )
-    if index_first_change > -1:
-        for cnt in range(index_first_change, len(sorted_portfolios)):
-            pos = sorted_portfolios[cnt].get_position(isin)
-            if pos:
-                pos.investment = round(pos.investment + investment, 2)
-                pos.realized = round(pos.realized + realization, 2)
-                if cnt == index_first_change:
-                    print("Total investment:", pos.investment)
-                    print("Total realization:", pos.realized, "\n")
+    portfolios_to_modify = [
+        spf for spf in sorted_portfolios if spf.portfolio_date > transaction_date
+    ]
+    for spf in portfolios_to_modify:
+        pos = spf.get_position(isin)
+        if pos:
+            pos.investment = round(pos.investment + investment, 2)
+            pos.realized = round(pos.realized + realization, 2)
+    if len(portfolios_to_modify) > 0 and (
+        pos := portfolios_to_modify[0].get_position(isin)
+    ):
+        print(f"Total investment: {pos.investment}")
+        print(f"Total realization: {pos.realized}\n")
 
 
 def _process_buy_transaction_row(
-    datum: date,
+    transaction_date: date,
     isin: str,
     sorted_portfolios: tuple[SharePortfolio, ...],
     row: dict[str, str],
@@ -234,19 +242,19 @@ def _process_buy_transaction_row(
     buy_price = float(descr[key_index + 3].replace(",", "."))
     investment = nr * buy_price
     realization = 0.0
-    print("Buy transaction date:", datum, "for ISIN", isin)
-    print("Transaction amount:", -nr * buy_price)
+    print(f"Buy transaction date: {transaction_date} for ISIN {isin}")
+    print(f"Transaction amount: {-nr * buy_price}")
     _add_investment_realization(
         investment=investment,
         realization=realization,
-        datum=datum,
+        transaction_date=transaction_date,
         isin=isin,
         sorted_portfolios=sorted_portfolios,
     )
 
 
 def _process_sell_transaction_row(
-    datum: date,
+    transaction_date: date,
     isin: str,
     sorted_portfolios: tuple[SharePortfolio, ...],
     row: dict[str, str],
@@ -258,7 +266,12 @@ def _process_sell_transaction_row(
     investment = 0.0
     realization = 0.0
     index_first_change = next(
-        (x[0] for x in enumerate(sorted_portfolios) if x[1].datum > datum), None
+        (
+            x[0]
+            for x in enumerate(sorted_portfolios)
+            if x[1].portfolio_date > transaction_date
+        ),
+        None,
     )
     current_pos = None
     next_pos = None
@@ -276,9 +289,9 @@ def _process_sell_transaction_row(
             # does not have this share because we sell all
             # so let's create a position with the realization
             if index_first_change:
-                next_datum = sorted_portfolios[index_first_change].datum
+                next_date = sorted_portfolios[index_first_change].portfolio_date
             else:
-                next_datum = datum
+                next_date = transaction_date
             next_pos = SharePosition(
                 name=current_pos.name,
                 isin=current_pos.isin,
@@ -288,34 +301,30 @@ def _process_sell_transaction_row(
                 price=1.0,
                 value=0.0,
                 realized=round(current_pos.realized + nr * (price - buy_price), 2),
-                datum=next_datum,
+                position_date=next_date,
             )
             # and now... what to do with it??
             print(
-                "ISIN",
-                isin,
-                "has been sold, total realization:",
-                next_pos.realized,
-                "\n",
+                f"ISIN {isin} has been sold, total realization: {next_pos.realized}\n"
             )
     if not buy_price:
         print("Error: we can't determine the buy price for this sell transaction")
         buy_price = 0.0
     investment = -nr * buy_price
     realization = nr * (price - buy_price)
-    print("Sell transaction date:", datum, "for ISIN", isin)
-    print("Transaction amount:", nr * price)
+    print(f"Sell transaction date: {transaction_date} for ISIN {isin}")
+    print(f"Transaction amount: {nr * price}")
     _add_investment_realization(
         investment=investment,
         realization=realization,
-        datum=datum,
+        transaction_date=transaction_date,
         isin=isin,
         sorted_portfolios=sorted_portfolios,
     )
 
 
 def _process_dividend_transaction_row(
-    datum: date,
+    transaction_date: date,
     isin: str,
     sorted_portfolios: tuple[SharePortfolio, ...],
     row: dict[str, str],
@@ -326,19 +335,19 @@ def _process_dividend_transaction_row(
     # for now, we do as if amount is always EUR
     # TODO: take currency into account
     realization = amount
-    print("Dividend transaction date:", datum, "for ISIN", isin)
-    print("Dividend amount:", curr, amount)
+    print(f"Dividend transaction date: {transaction_date} for ISIN {isin}")
+    print(f"Dividend amount: {curr} {amount}")
     _add_investment_realization(
         investment=investment,
         realization=realization,
-        datum=datum,
+        transaction_date=transaction_date,
         isin=isin,
         sorted_portfolios=sorted_portfolios,
     )
 
 
 def _process_transaction_row(
-    datum: date,
+    transaction_date: date,
     isin: str,
     sorted_portfolios: tuple[SharePortfolio, ...],
     row: dict[str, str],
@@ -346,21 +355,21 @@ def _process_transaction_row(
     descr = row["Omschrijving"].split()
     if "Koop" in descr:
         _process_buy_transaction_row(
-            datum=datum,
+            transaction_date=transaction_date,
             isin=isin,
             sorted_portfolios=sorted_portfolios,
             row=row,
         )
     if "Verkoop" in descr:
         _process_sell_transaction_row(
-            datum=datum,
+            transaction_date=transaction_date,
             isin=isin,
             sorted_portfolios=sorted_portfolios,
             row=row,
         )
     if "Dividend" in descr:
         _process_dividend_transaction_row(
-            datum=datum,
+            transaction_date=transaction_date,
             isin=isin,
             sorted_portfolios=sorted_portfolios,
             row=row,
@@ -378,7 +387,7 @@ def process_transactions(
     """
 
     # preparation: make sure the portfolios are sorted by date:
-    sorted_portfolios = tuple(sorted(share_portfolios, key=lambda x: x.datum))
+    sorted_portfolios = tuple(sorted(share_portfolios, key=lambda x: x.portfolio_date))
 
     # preparation: collect all ISINs in the portfolio, so that we can easily
     # check if a transaction is related to our stocks
@@ -386,8 +395,9 @@ def process_transactions(
     for share_portfolio in sorted_portfolios:
         isins_in_portfolio.update(share_portfolio.all_isins())
 
-    files = sorted(folder.glob("*Account.csv"))
-    print("Number of files to process:", len(files))
+    account_folder = folder.joinpath("Account")
+    files = sorted(account_folder.glob("*.csv"))
+    print(f"Number of files to process: {len(files)}")
     for file_path in files:
         with file_path.open(mode="r") as csv_file:
             contents = csv_file.readlines()
@@ -402,9 +412,11 @@ def process_transactions(
                     isin = row["ISIN"]
                     # we're only interested in real stock positions (not cash)
                     if isin in isins_in_portfolio:
-                        datum = datetime.strptime(row["Datum"], "%d-%m-%Y").date()
+                        transaction_date = datetime.strptime(
+                            row["Datum"], "%d-%m-%Y"
+                        ).date()
                         _process_transaction_row(
-                            datum=datum,
+                            transaction_date=transaction_date,
                             isin=isin,
                             sorted_portfolios=sorted_portfolios,
                             row=row,
@@ -425,9 +437,9 @@ def analyse_trend(
     """
     fig = go.Figure()
     # make sure the portfolios are sorted by date:
-    sorted_portfolios = sorted(share_portfolios, key=lambda x: x.datum)
+    sorted_portfolios = sorted(share_portfolios, key=lambda x: x.portfolio_date)
     # horizontal axis to be the date
-    hor = [share_pf.datum for share_pf in sorted_portfolios]
+    hor = [share_pf.portfolio_date for share_pf in sorted_portfolios]
     sorted_isins_and_names_list = []
     # first collect all position names / isins
     if totals:
