@@ -36,7 +36,7 @@ def _update_portfolios(_clicks: int, folder: str, refresh_clicks: int):
 def _draw_portfolio_graph(_clicks: int) -> dcc.Graph:
     if not _PORTOS:
         return go.Figure()
-    return analysis.analyse_trend(_PORTOS)
+    return analysis.plot_positions(_PORTOS)
 
 
 @_APP.callback(
@@ -47,7 +47,7 @@ def _draw_portfolio_graph(_clicks: int) -> dcc.Graph:
 def _draw_portfolio_graph_total(_clicks: int) -> dcc.Graph:
     if not _PORTOS:
         return go.Figure()
-    return analysis.analyse_trend(_PORTOS, totals=True)
+    return analysis.plot_returns(_PORTOS)
 
 
 def run_blocking(folder: Path):

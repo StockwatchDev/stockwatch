@@ -3,6 +3,7 @@ import time
 from dataclasses import dataclass
 from datetime import date, datetime
 from pathlib import Path
+from typing import List, Optional
 
 import plotly.graph_objects as go  # type: ignore
 
@@ -403,61 +404,95 @@ def process_transactions(
     return tuple(share_portfolios)
 
 
-def analyse_trend(
-    share_portfolios: tuple[SharePortfolio, ...], totals: bool = False
-) -> go.Figure:
+def plot_returns(share_portfolios: tuple[SharePortfolio]) -> go.Figure:
+    # make sure the portfolios are sorted by date:
+    sorted_portfolios = sorted(share_portfolios, key=lambda x: x.portfolio_date)
+
+    # horizontal axis to be the date
+    dates = [share_pf.portfolio_date for share_pf in sorted_portfolios]
+
+    investments = []
+    returns = []
+    totals = []
+    for share_pf in sorted_portfolios:
+        investments.append(share_pf.total_investment)
+        totals.append(share_pf.total_value)
+        returns.append(share_pf.total_value - share_pf.total_investment)
+
+    fig = go.Figure()
+    fig.add_trace(
+        go.Scatter(
+            x=dates,
+            y=investments,
+            hovertemplate="<b>invested: </b>€%{y:0.2f}<extra></extra>",
+            name="Investments",
+            mode="none",
+            fill="tozeroy",
+            line=dict(width=0.5),
+            legendrank=2,
+        )
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=dates,
+            y=totals,
+            hovertemplate="<b>total: </b>€%{y:0.2f}<extra></extra>",
+            name="Totals",
+            mode="none",
+            fill="tonexty",
+            line=dict(width=0.5),
+            legendrank=3,
+        )
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=dates,
+            y=returns,
+            hovertemplate="<b>returns: </b>€%{y:0.2f}<extra></extra>",
+            name="Returns",
+            line=dict(color="black", width=2.0),
+            legendrank=1,
+        )
+    )
+    fig.update_layout(hovermode="x unified")
+    return fig
+
+
+def plot_positions(share_portfolios: tuple[SharePortfolio, ...]) -> go.Figure:
     """
     Plot the value of all positions in the portfolios through time
     """
-    fig = go.Figure()
+
     # make sure the portfolios are sorted by date:
     sorted_portfolios = sorted(share_portfolios, key=lambda x: x.portfolio_date)
     # horizontal axis to be the date
-    hor = [share_pf.portfolio_date for share_pf in sorted_portfolios]
+    dates = [share_pf.portfolio_date for share_pf in sorted_portfolios]
+
     sorted_isins_and_names_list = []
     # first collect all position names / isins
-    if totals:
-        sorted_isins_and_names_list = [("no_isin", "Portfolio totals")]
-    else:
-        all_isins_and_names = {}
-        for share_portfolio in share_portfolios:
-            all_isins_and_names.update(share_portfolio.all_isins_and_names())
-        # sort for increasing value at final date,
-        # such that all zero values are at the horizontal axis
-        sorted_isins_and_names_list = sorted(
-            all_isins_and_names.items(),
-            key=lambda x: share_portfolios[-1].value_of(x[0]),
-        )
+    all_isins_and_names = {}
+    for share_portfolio in share_portfolios:
+        all_isins_and_names.update(share_portfolio.all_isins_and_names())
+    # sort for increasing value at final date,
+    # such that all zero values are at the horizontal axis
+    sorted_isins_and_names_list = sorted(
+        all_isins_and_names.items(),
+        key=lambda x: share_portfolios[-1].value_of(x[0]),
+    )
+
+    fig = go.Figure()
     for (isin, name) in sorted_isins_and_names_list:
-        if totals:
-            # vertical axis to be the portfolio value
-            vert1 = [share_pf.total_investment for share_pf in sorted_portfolios]
-            vert2 = [share_pf.total_value for share_pf in sorted_portfolios]
-        else:
-            # vertical axis to be the value of each position in the portfolio
-            vert1 = [0.0 for share_pf in sorted_portfolios]
-            vert2 = [share_pf.value_of(isin) for share_pf in sorted_portfolios]
+        hovertemplate = f"<b>{name} - {isin}</b><br>value €%{{y:0.2f}}<br>date: %{{x}}<extra></extra>"
+        # vertical axis to be the value of each position in the portfolio
         fig.add_trace(
             go.Scatter(
-                x=hor,
-                y=vert1,
-                hoverinfo="name+x+y",
-                name=isin + ": " + name,
+                x=dates,
+                y=[share_pf.value_of(isin) for share_pf in sorted_portfolios],
+                hovertemplate=hovertemplate,
+                name=isin,
                 mode="lines",
                 line=dict(width=0.5),
-                stackgroup="one",  # define stack group
-            )
-        )
-        fig.add_trace(
-            go.Scatter(
-                x=hor,
-                y=vert2,
-                hoverinfo="name+x+y",
-                name=isin + ": " + name,
-                mode="lines",
-                line=dict(width=0.5),
-                stackgroup="two",  # define stack group
+                stackgroup="one",
             )
         )
     return fig
-
