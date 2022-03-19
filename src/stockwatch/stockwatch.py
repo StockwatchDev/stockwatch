@@ -160,7 +160,7 @@ def create_share_portfolios(
     yymmdd_Portfolio.csv
     """
 
-    portfolio_folder = folder.joinpath("Portfolio")
+    portfolio_folder = folder.joinpath("portfolio")
     files = sorted(portfolio_folder.glob("*.csv"))
     print(f"Number of files to process: {len(files)}")
     share_portfolios = []
@@ -395,7 +395,7 @@ def process_transactions(
     for share_portfolio in sorted_portfolios:
         isins_in_portfolio.update(share_portfolio.all_isins())
 
-    account_folder = folder.joinpath("Account")
+    account_folder = folder.joinpath("account")
     files = sorted(account_folder.glob("*.csv"))
     print(f"Number of files to process: {len(files)}")
     for file_path in files:

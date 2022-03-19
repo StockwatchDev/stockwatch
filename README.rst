@@ -19,7 +19,7 @@ Installation for development
 Importing files downloaded from De Giro
 =======================================
 
-#. Create a folder that will be used to store files downloaded from De GIROand nothing
+#. Create a folder that will be used to store files downloaded from De GIRO and nothing
    else. We will refer to this as our STOCKWATCH_DIR hereafter
 #. Create two subfolders in STOCKWATCH_DIR: Portfolio and Account
 
