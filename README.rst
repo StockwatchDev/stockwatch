@@ -64,6 +64,7 @@ Running and editing
    :code:`python src/stockwatch/stockwatch.py PATH/TO/STOCKWATCH_DIR` or to avoid
    adding the same path when running, export it in the `STOCKWATCH_PATH` environment
    variable.
+#. There is also the option of running a webserver version using the `--dash` option
 
 Alternatively you can use :code:`poetry run python src/stockwatch/stockwatch.py` instead
 of creating the virtual shell.

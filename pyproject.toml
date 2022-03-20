@@ -7,6 +7,7 @@ authors = ["Theo de Vries <t.j.a.devries@gmail.com>"]
 [tool.poetry.dependencies]
 python = "^3.10"
 plotly = "^5.6.0"
+dash = "^2.2.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.0"
