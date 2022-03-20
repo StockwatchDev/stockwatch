@@ -60,7 +60,7 @@ class SharePosition:
     isin: str
     curr: str
     investment: float
-    nr: int
+    nr: float
     price: float
     value: float
     realized: float
@@ -195,7 +195,9 @@ def _add_investment_realization(
     isin: str,
     portfolios: tuple[SharePortfolio, ...],
 ) -> None:
-    """Add a realization and/or investment amount to each portfolio dated later than transaction_date"""
+    """
+    Add a realization and/or investment amount to each portfolio dated later than transaction_date
+    """
     portfolios_to_modify = [
         spf for spf in portfolios if spf.portfolio_date > transaction_date
     ]
@@ -206,7 +208,30 @@ def _add_investment_realization(
             pos.realized = round(pos.realized + realization, 2)
 
 
-def process_buy_transaction(
+def apply_transactions(
+    transactions: tuple[ShareTransaction, ...], portfolios: tuple[SharePortfolio, ...]
+) -> None:
+    """
+    Process a list of transactions to determine the investment and realization of a complete
+    portfolio.
+    """
+    matching = {
+        ShareTransactionKind.BUY: _process_buy_transaction,
+        ShareTransactionKind.SELL: _process_sell_transaction,
+        ShareTransactionKind.DIVIDEND: _process_dividend_transaction,
+    }
+
+    for transaction in transactions:
+        process_func = matching.get(transaction.kind, None)
+        if process_func is None:
+            print(f"Cannot process unknown transaction kind {transaction.kind}")
+            continue
+        # For now we assume that all transactions are in euros
+        # TODO: Properly account for different currencies.
+        process_func(transaction, portfolios)
+
+
+def _process_buy_transaction(
     transaction: ShareTransaction, portfolios: tuple[SharePortfolio, ...]
 ) -> None:
     assert (
@@ -224,7 +249,7 @@ def process_buy_transaction(
     )
 
 
-def process_sell_transaction(
+def _process_sell_transaction(
     transaction: ShareTransaction, portfolios: tuple[SharePortfolio, ...]
 ) -> None:
     assert (
@@ -253,7 +278,8 @@ def process_sell_transaction(
     current_pos = last_unchanged_portfolio.get_position(transaction.isin)
     if not current_pos:
         print(
-            "Cannot process sell transaction, position not present in last portfolio before transaction date"
+            "Cannot process sell transaction, position not present in last portfolio before"
+            f" the transaction date: {transaction.transaction_date}"
         )
         return
 
@@ -286,7 +312,7 @@ def process_sell_transaction(
     )
 
 
-def process_dividend_transaction(
+def _process_dividend_transaction(
     transaction: ShareTransaction, portfolios: tuple[SharePortfolio, ...]
 ) -> None:
     assert (

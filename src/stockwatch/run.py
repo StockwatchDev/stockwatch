@@ -7,9 +7,10 @@ Functions:
 """
 from pathlib import Path
 
-from .use_cases import process_portfolios, process_transactions
-from .analysis import plot_returns, plot_positions
+from .analysis import plot_positions, plot_returns
 from .dashboard import run_blocking
+from .entities import apply_transactions
+from .use_cases import process_portfolios, process_transactions
 
 
 def main(folder: Path) -> int:
@@ -22,14 +23,21 @@ def main(folder: Path) -> int:
             share_portfolio.is_date_consistent() for share_portfolio in share_portfolios
         ),
     )
-    process_transactions(share_portfolios=share_portfolios, folder=folder, rename=False)
+    all_isins: set[str] = set()
+    for portfolio in share_portfolios:
+        all_isins.update(portfolio.all_isins())
+
+    transactions = process_transactions(isins=all_isins, folder=folder, rename=False)
+    apply_transactions(transactions, share_portfolios)
     fig1 = plot_returns(share_portfolios)
     fig2 = plot_positions(share_portfolios)
+
     fig1.show()
     fig2.show()
     return 0
 
 
 def dash(folder: Path) -> int:
+    """Run the visualisation using the Dash web interface."""
     run_blocking(folder)
     return 0

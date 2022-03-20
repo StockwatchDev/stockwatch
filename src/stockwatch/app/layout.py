@@ -1,7 +1,7 @@
 """
 This module defines the visual layout of the share portfolios dashboard.
 
-This package has a clean architecture. This module should not contain any business- or 
+This package has a clean architecture. This module should not contain any business- or
 application logic, nor any adapters.
 """
 from pathlib import Path
