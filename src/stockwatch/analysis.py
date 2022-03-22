@@ -404,7 +404,7 @@ def process_transactions(
     return tuple(share_portfolios)
 
 
-def plot_returns(share_portfolios: tuple[SharePortfolio]) -> go.Figure:
+def plot_returns(share_portfolios: tuple[SharePortfolio, ...]) -> go.Figure:
     # make sure the portfolios are sorted by date:
     sorted_portfolios = sorted(share_portfolios, key=lambda x: x.portfolio_date)
 
