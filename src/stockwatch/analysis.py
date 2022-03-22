@@ -5,7 +5,7 @@ from datetime import date, datetime
 from pathlib import Path
 from typing import List, Optional
 
-import plotly.graph_objects as go  # type: ignore
+import plotly.graph_objects as go
 
 
 @dataclass(frozen=False)
@@ -189,7 +189,7 @@ def _add_investment_realization(
     transaction_date: date,
     isin: str,
     sorted_portfolios: tuple[SharePortfolio, ...],
-):
+) -> None:
     portfolios_to_modify = [
         spf for spf in sorted_portfolios if spf.portfolio_date > transaction_date
     ]
@@ -210,7 +210,7 @@ def _process_buy_transaction_row(
     isin: str,
     sorted_portfolios: tuple[SharePortfolio, ...],
     row: dict[str, str],
-):
+) -> None:
     descr = row["Omschrijving"].split()
     key_index = descr.index("Koop")
     nr = float(descr[key_index + 1].replace(",", "."))
@@ -233,7 +233,7 @@ def _process_sell_transaction_row(
     isin: str,
     sorted_portfolios: tuple[SharePortfolio, ...],
     row: dict[str, str],
-):
+) -> None:
     descr = row["Omschrijving"].split()
     key_index = descr.index("Verkoop")
     nr = float(descr[key_index + 1].replace(",", "."))
@@ -303,7 +303,7 @@ def _process_dividend_transaction_row(
     isin: str,
     sorted_portfolios: tuple[SharePortfolio, ...],
     row: dict[str, str],
-):
+) -> None:
     amount = float(row["Bedrag"].replace(",", "."))
     curr = row["Mutatie"]
     investment = 0.0
@@ -326,7 +326,7 @@ def _process_transaction_row(
     isin: str,
     sorted_portfolios: tuple[SharePortfolio, ...],
     row: dict[str, str],
-):
+) -> None:
     descr = row["Omschrijving"].split()
     if "Koop" in descr:
         _process_buy_transaction_row(

@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Optional, Tuple
 
-import plotly.graph_objects as go  # type: ignore
+import plotly.graph_objects as go
 from dash import Dash, dcc, html
 from dash.dependencies import Input, Output, State
 
@@ -19,7 +19,7 @@ _PORTOS: Optional[Tuple[analysis.SharePortfolio, ...]] = None
     State("portfolio-refresh", "n_clicks"),
     prevent_initial_callback=True,
 )
-def _update_portfolios(_clicks: int, folder: str, refresh_clicks: int):
+def _update_portfolios(_clicks: int, folder: str, refresh_clicks: int) -> int:
     global _PORTOS
     path = Path(folder)
     _PORTOS = analysis.create_share_portfolios(folder=path, rename=False)
@@ -50,6 +50,6 @@ def _draw_portfolio_graph_total(_clicks: int) -> dcc.Graph:
     return analysis.plot_returns(_PORTOS)
 
 
-def run_blocking(folder: Path):
+def run_blocking(folder: Path) -> None:
     _APP.layout = get_layout(folder)
     _APP.run_server(debug=True)
