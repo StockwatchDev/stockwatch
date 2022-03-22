@@ -1,15 +1,15 @@
 from pathlib import Path
 from typing import Optional, Tuple
 
-import plotly.graph_objects as go  # type: ignore
+import plotly.graph_objects as go
 from dash import Dash, dcc, html
 from dash.dependencies import Input, Output, State
 
-from analysis import SharePortfolio, analyse_trend, create_share_portfolios, process_transactions
-from app.layout import get_layout
+from . import analysis
+from .app.layout import get_layout
 
 _APP = Dash("StockWatcher")
-_PORTOS: Optional[Tuple[SharePortfolio, ...]] = None
+_PORTOS: Optional[Tuple[analysis.SharePortfolio, ...]] = None
 
 
 @_APP.callback(
@@ -19,12 +19,12 @@ _PORTOS: Optional[Tuple[SharePortfolio, ...]] = None
     State("portfolio-refresh", "n_clicks"),
     prevent_initial_callback=True,
 )
-def _update_portfolios(_clicks: int, folder: str, refresh_clicks: int):
+def _update_portfolios(_clicks: int, folder: str, refresh_clicks: int) -> int:
     global _PORTOS
     path = Path(folder)
-    _PORTOS = create_share_portfolios(folder=path, rename=False)
+    _PORTOS = analysis.create_share_portfolios(folder=path, rename=False)
 
-    process_transactions(share_portfolios=_PORTOS, folder=path, rename=False)
+    analysis.process_transactions(share_portfolios=_PORTOS, folder=path, rename=False)
     return refresh_clicks + 1
 
 
@@ -36,7 +36,7 @@ def _update_portfolios(_clicks: int, folder: str, refresh_clicks: int):
 def _draw_portfolio_graph(_clicks: int) -> dcc.Graph:
     if not _PORTOS:
         return go.Figure()
-    return analyse_trend(_PORTOS)
+    return analysis.analyse_trend(_PORTOS)
 
 
 @_APP.callback(
@@ -47,9 +47,9 @@ def _draw_portfolio_graph(_clicks: int) -> dcc.Graph:
 def _draw_portfolio_graph_total(_clicks: int) -> dcc.Graph:
     if not _PORTOS:
         return go.Figure()
-    return analyse_trend(_PORTOS, totals=True)
+    return analysis.analyse_trend(_PORTOS, totals=True)
 
 
-def run_blocking(folder: Path):
+def run_blocking(folder: Path) -> None:
     _APP.layout = get_layout(folder)
     _APP.run_server(debug=True)
