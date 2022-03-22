@@ -23,8 +23,8 @@ def main(folder: Path) -> int:
     analysis.process_transactions(
         share_portfolios=share_portfolios, folder=folder, rename=False
     )
-    fig1 = analysis.analyse_trend(share_portfolios, totals=True)
-    fig2 = analysis.analyse_trend(share_portfolios)
+    fig1 = analysis.plot_returns(share_portfolios)
+    fig2 = analysis.plot_positions(share_portfolios)
     fig1.show()
     fig2.show()
     return 0
