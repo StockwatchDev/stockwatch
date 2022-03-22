@@ -2,14 +2,16 @@ from pathlib import Path
 from typing import Optional, Tuple
 
 import plotly.graph_objects as go
-from dash import Dash, dcc, html
+from dash import Dash, dcc
 from dash.dependencies import Input, Output, State
 
-from . import analysis
 from .app.layout import get_layout
+from .entities import *
+from .use_cases import *
+from .analysis import *
 
 _APP = Dash("StockWatcher")
-_PORTOS: Optional[Tuple[analysis.SharePortfolio, ...]] = None
+_PORTOS: Optional[Tuple[SharePortfolio, ...]] = None
 
 
 @_APP.callback(
@@ -22,9 +24,9 @@ _PORTOS: Optional[Tuple[analysis.SharePortfolio, ...]] = None
 def _update_portfolios(_clicks: int, folder: str, refresh_clicks: int) -> int:
     global _PORTOS
     path = Path(folder)
-    _PORTOS = analysis.create_share_portfolios(folder=path, rename=False)
+    _PORTOS = process_portfolios(folder=path, rename=False)
 
-    analysis.process_transactions(share_portfolios=_PORTOS, folder=path, rename=False)
+    process_transactions(share_portfolios=_PORTOS, folder=path, rename=False)
     return refresh_clicks + 1
 
 
@@ -36,7 +38,7 @@ def _update_portfolios(_clicks: int, folder: str, refresh_clicks: int) -> int:
 def _draw_portfolio_graph(_clicks: int) -> dcc.Graph:
     if not _PORTOS:
         return go.Figure()
-    return analysis.plot_positions(_PORTOS)
+    return plot_positions(_PORTOS)
 
 
 @_APP.callback(
@@ -47,7 +49,7 @@ def _draw_portfolio_graph(_clicks: int) -> dcc.Graph:
 def _draw_portfolio_graph_total(_clicks: int) -> dcc.Graph:
     if not _PORTOS:
         return go.Figure()
-    return analysis.plot_returns(_PORTOS)
+    return plot_returns(_PORTOS)
 
 
 def run_blocking(folder: Path) -> None:

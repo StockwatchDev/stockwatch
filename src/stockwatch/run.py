@@ -7,20 +7,20 @@ Functions:
 """
 from pathlib import Path
 
-from . import analysis, dashboard
+from . import use_cases, analysis, dashboard
 
 
 def main(folder: Path) -> int:
     """The main function to run the stockwatcher."""
 
-    share_portfolios = analysis.create_share_portfolios(folder=folder, rename=False)
+    share_portfolios = use_cases.process_portfolios(folder=folder, rename=False)
     print(
         "All consistent?",
         all(
             share_portfolio.is_date_consistent() for share_portfolio in share_portfolios
         ),
     )
-    analysis.process_transactions(
+    use_cases.process_transactions(
         share_portfolios=share_portfolios, folder=folder, rename=False
     )
     fig1 = analysis.plot_returns(share_portfolios)
