@@ -5,13 +5,13 @@ import plotly.graph_objects as go
 
 
 def plot_returns(share_portfolios: tuple[SharePortfolio, ...]) -> go.Figure:
-    dates, investments, totals, returns = returns_plotdata(share_portfolios)
+    returns_data = returns_plotdata(share_portfolios)
 
     fig = go.Figure()
     fig.add_trace(
         go.Scatter(
-            x=dates,
-            y=investments,
+            x=returns_data.dates,
+            y=returns_data.investments,
             hovertemplate="<b>invested: </b>€%{y:0.2f}<extra></extra>",
             name="Investments",
             mode="none",
@@ -22,8 +22,8 @@ def plot_returns(share_portfolios: tuple[SharePortfolio, ...]) -> go.Figure:
     )
     fig.add_trace(
         go.Scatter(
-            x=dates,
-            y=totals,
+            x=returns_data.dates,
+            y=returns_data.totals,
             hovertemplate="<b>total: </b>€%{y:0.2f}<extra></extra>",
             name="Totals",
             mode="none",
@@ -34,8 +34,8 @@ def plot_returns(share_portfolios: tuple[SharePortfolio, ...]) -> go.Figure:
     )
     fig.add_trace(
         go.Scatter(
-            x=dates,
-            y=returns,
+            x=returns_data.dates,
+            y=returns_data.returns,
             hovertemplate="<b>returns: </b>€%{y:0.2f}<extra></extra>",
             name="Returns",
             line=dict(color="black", width=2.0),
@@ -51,18 +51,16 @@ def plot_positions(share_portfolios: tuple[SharePortfolio, ...]) -> go.Figure:
     Plot the value of all positions in the portfolios through time
     """
 
-    dates, sorted_isins_and_names_list, values_dict = positions_plotdata(
-        share_portfolios
-    )
+    positions_data = positions_plotdata(share_portfolios)
 
     fig = go.Figure()
-    for (isin, name) in sorted_isins_and_names_list:
+    for (isin, name) in positions_data.isins_and_names:
         hovertemplate = f"<b>{name} - {isin}</b><br>value €%{{y:0.2f}}<br>date: %{{x}}<extra></extra>"
         # vertical axis to be the value of each position in the portfolio
         fig.add_trace(
             go.Scatter(
-                x=dates,
-                y=values_dict[isin],
+                x=positions_data.dates,
+                y=positions_data.isins_and_values[isin],
                 hovertemplate=hovertemplate,
                 name=isin,
                 mode="lines",

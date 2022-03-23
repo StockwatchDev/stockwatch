@@ -1,51 +1,72 @@
+from dataclasses import dataclass, field
 from datetime import date
 from .entities import *
 
 
-def returns_plotdata(
-    share_portfolios: tuple[SharePortfolio, ...]
-) -> tuple[list[date], list[float], list[float], list[float]]:
+@dataclass(frozen=True)
+class ReturnsData:
+    dates: list[date] = field(default_factory=list)
+    investments: list[float] = field(default_factory=list)
+    totals: list[float] = field(default_factory=list)
+    returns: list[float] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class PositionsData:
+    dates: list[date] = field(default_factory=list)
+    isins_and_names: list[tuple[str, str]] = field(default_factory=list)
+    isins_and_values: dict[str, list[float]] = field(default_factory=dict)
+
+
+def returns_plotdata(share_portfolios: tuple[SharePortfolio, ...]) -> ReturnsData:
     # make sure the portfolios are sorted by date:
     sorted_portfolios = sorted(share_portfolios, key=lambda x: x.portfolio_date)
 
+    returns_data = ReturnsData()
     # horizontal axis to be the date
-    dates = [share_pf.portfolio_date for share_pf in sorted_portfolios]
+    returns_data.dates.extend(
+        [share_pf.portfolio_date for share_pf in sorted_portfolios]
+    )
 
-    investments = []
-    returns = []
-    totals = []
-    for share_pf in sorted_portfolios:
-        investments.append(share_pf.total_investment)
-        totals.append(share_pf.total_value)
-        returns.append(share_pf.total_value - share_pf.total_investment)
+    returns_data.investments.extend(
+        [share_pf.total_investment for share_pf in sorted_portfolios]
+    )
+    returns_data.totals.extend([share_pf.total_value for share_pf in sorted_portfolios])
+    returns_data.returns.extend(
+        [
+            share_pf.total_value - share_pf.total_investment
+            for share_pf in sorted_portfolios
+        ]
+    )
 
-    return dates, investments, totals, returns
+    return returns_data
 
 
-def positions_plotdata(
-    share_portfolios: tuple[SharePortfolio, ...]
-) -> tuple[list[date], list[tuple[str, str]], dict[str, list[float]]]:
+def positions_plotdata(share_portfolios: tuple[SharePortfolio, ...]) -> PositionsData:
 
+    positions_data = PositionsData()
     # make sure the portfolios are sorted by date:
     sorted_portfolios = sorted(share_portfolios, key=lambda x: x.portfolio_date)
     # horizontal axis to be the date
-    dates = [share_pf.portfolio_date for share_pf in sorted_portfolios]
+    positions_data.dates.extend(
+        [share_pf.portfolio_date for share_pf in sorted_portfolios]
+    )
 
-    sorted_isins_and_names_list = []
     # first collect all position names / isins
     all_isins_and_names = {}
     for share_portfolio in share_portfolios:
         all_isins_and_names.update(share_portfolio.all_isins_and_names())
     # sort for increasing value at final date,
     # such that all zero values are at the horizontal axis
-    sorted_isins_and_names_list = sorted(
-        all_isins_and_names.items(),
-        key=lambda x: share_portfolios[-1].value_of(x[0]),
+    positions_data.isins_and_names.extend(
+        sorted(
+            all_isins_and_names.items(),
+            key=lambda x: share_portfolios[-1].value_of(x[0]),
+        )
     )
 
-    values_dict = {}
-    for (isin, _) in sorted_isins_and_names_list:
+    for (isin, _) in positions_data.isins_and_names:
         # vertical axis to be the value of each position in the portfolio
         values = [share_pf.value_of(isin) for share_pf in sorted_portfolios]
-        values_dict[isin] = values
-    return dates, sorted_isins_and_names_list, values_dict
+        positions_data.isins_and_values[isin] = values
+    return positions_data
