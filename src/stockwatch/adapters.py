@@ -1,3 +1,10 @@
+"""
+Adapters for mapping entities and use cases to data formats required by frameworks that are used.
+
+This package has a clean architecture. Hence, this module should only depend on the
+entities and the use_cases module (apart from plain Python). It should specifically not
+depend on external frameworks and also not contain any business- or application logic.
+"""
 from dataclasses import dataclass, field
 from datetime import date
 from .entities import SharePortfolio

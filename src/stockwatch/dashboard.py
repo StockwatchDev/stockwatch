@@ -1,3 +1,12 @@
+"""
+This module provides a dashboard for analysis of share portfolios.
+
+The dashboard is defined by connecting widgets, events, etc. as defined in layout
+to methods provided by analysis and use_cases.
+
+This package has a clean architecture. This module should not contain any business- or 
+application logic, nor any adapters.
+"""
 from pathlib import Path
 from typing import Optional, Tuple
 

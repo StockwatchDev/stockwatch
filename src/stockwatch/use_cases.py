@@ -1,3 +1,9 @@
+"""
+This module contains the application logic for holding a stock portfolio with DeGiro.
+
+This package has a clean architecture. Hence, this module should only depend on the
+entities module (apart from plain Python).
+"""
 import time
 from datetime import date, datetime
 from pathlib import Path

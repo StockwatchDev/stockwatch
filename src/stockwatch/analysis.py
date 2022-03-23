@@ -1,3 +1,9 @@
+"""
+This module provides methods for visualizing various aspects of share portfolios.
+
+This package has a clean architecture. This module should not contain any business- or 
+application logic, nor any adapters.
+"""
 from .entities import SharePortfolio
 from .adapters import returns_plotdata, positions_plotdata
 
