@@ -7,29 +7,29 @@ Functions:
 """
 from pathlib import Path
 
-from . import analysis, dashboard
+from .use_cases import process_portfolios, process_transactions
+from .analysis import plot_returns, plot_positions
+from .dashboard import run_blocking
 
 
 def main(folder: Path) -> int:
     """The main function to run the stockwatcher."""
 
-    share_portfolios = analysis.create_share_portfolios(folder=folder, rename=False)
+    share_portfolios = process_portfolios(folder=folder, rename=False)
     print(
         "All consistent?",
         all(
             share_portfolio.is_date_consistent() for share_portfolio in share_portfolios
         ),
     )
-    analysis.process_transactions(
-        share_portfolios=share_portfolios, folder=folder, rename=False
-    )
-    fig1 = analysis.plot_returns(share_portfolios)
-    fig2 = analysis.plot_positions(share_portfolios)
+    process_transactions(share_portfolios=share_portfolios, folder=folder, rename=False)
+    fig1 = plot_returns(share_portfolios)
+    fig2 = plot_positions(share_portfolios)
     fig1.show()
     fig2.show()
     return 0
 
 
 def dash(folder: Path) -> int:
-    dashboard.run_blocking(folder)
+    run_blocking(folder)
     return 0

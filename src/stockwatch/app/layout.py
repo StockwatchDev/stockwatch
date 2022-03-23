@@ -1,3 +1,9 @@
+"""
+This module defines the visual layout of the share portfolios dashboard.
+
+This package has a clean architecture. This module should not contain any business- or 
+application logic, nor any adapters.
+"""
 from pathlib import Path
 
 from dash import dcc, html
@@ -16,16 +22,23 @@ def get_layout(folder: Path) -> html.Div:
             dcc.Input(id="folder-selected", type="text", value=f"{folder}"),
             html.Button("refresh", n_clicks=0, id="portfolio-refresh-folder"),
             html.Button("", n_clicks=0, id="portfolio-refresh", hidden=True),
-            html.Div([
-                html.Hr(),
-                html.H2("Portfolio"),
-                dcc.Graph(id="portfolio-graph", style={"width": "100%", "height": "700px"}),
+            html.Div(
+                [
+                    html.Hr(),
+                    html.H2("Portfolio"),
+                    dcc.Graph(
+                        id="portfolio-graph", style={"width": "100%", "height": "700px"}
+                    ),
                 ],
             ),
-            html.Div([
-                html.Hr(),
-                html.H2("Portfolio (Totals)"),
-                dcc.Graph(id="portfolio-graph-total", style={"width": "100%", "height": "700px"}),
+            html.Div(
+                [
+                    html.Hr(),
+                    html.H2("Portfolio (Totals)"),
+                    dcc.Graph(
+                        id="portfolio-graph-total",
+                        style={"width": "100%", "height": "700px"},
+                    ),
                 ],
             ),
         ]
