@@ -2,7 +2,15 @@ import time
 from datetime import date, datetime
 from pathlib import Path
 import csv
-from .entities import *
+from .entities import (
+    SharePosition,
+    SharePortfolio,
+    ShareTransactionKind,
+    ShareTransaction,
+    process_buy_transaction,
+    process_sell_transaction,
+    process_dividend_transaction,
+)
 
 
 def _process_buy_transaction_row(

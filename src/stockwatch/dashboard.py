@@ -6,9 +6,9 @@ from dash import Dash, dcc
 from dash.dependencies import Input, Output, State
 
 from .app.layout import get_layout
-from .entities import *
-from .use_cases import *
-from .analysis import *
+from .entities import SharePortfolio
+from .use_cases import process_portfolios, process_transactions
+from .analysis import plot_positions, plot_returns
 
 _APP = Dash("StockWatcher")
 _PORTOS: Optional[Tuple[SharePortfolio, ...]] = None

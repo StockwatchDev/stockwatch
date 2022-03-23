@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from datetime import date
-from .entities import *
+from .entities import SharePortfolio
 
 
 @dataclass(frozen=True)

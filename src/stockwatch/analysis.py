@@ -1,5 +1,5 @@
-from .entities import *
-from .adapters import *
+from .entities import SharePortfolio
+from .adapters import returns_plotdata, positions_plotdata
 
 import plotly.graph_objects as go
 
