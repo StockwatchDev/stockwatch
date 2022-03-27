@@ -92,6 +92,7 @@ def process_transactions(
 ) -> tuple[ShareTransaction, ...]:
     """
     Get a list of all the transactions from the CSV files in the account folder.
+
     The csv files should be formatted as done by De Giro and should named as follows:
     yymmdd_Account.csv, where the date is from the Einddatum that was selected.
     """
@@ -136,11 +137,11 @@ def process_transactions(
 
 def process_portfolios(folder: Path, rename: bool = True) -> tuple[SharePortfolio, ...]:
     """
-    Creates the dated portfolios from the Portfolio csv's found in folder.
+    Create the dated portfolios from the Portfolio csv's found in folder.
+
     The csv files should be formatted as done by De Giro and should named as follows:
     yymmdd_Portfolio.csv
     """
-
     portfolio_folder = folder.joinpath("portfolio")
     files = sorted(portfolio_folder.glob("*.csv"))
     print(f"Number of files to process: {len(files)}")
@@ -202,9 +203,24 @@ def process_indices(
     transactions: tuple[ShareTransaction, ...],
     dates: list[date],
 ) -> list[tuple[SharePosition, ...]]:
+    """Create the positions for the indices in the dict, given the transactions done."""
     ret_val = []
+
     for index_name, prices in indices.items():
         index_positions = []
+
+        # Let's create the index prices at all the transaction dates.
+        index_prices = {}
+        for transaction in transactions:
+            index_price = _get_first_valid_price(prices, transaction.transaction_date)
+            if index_price is None:
+                print(
+                    f"Could not find an index price of '{index_name}' within 10 days "
+                    f"for {transaction.transaction_date}"
+                )
+                continue
+            index_prices[transaction.transaction_date] = index_price
+
         for position_date in dates:
             invested = 0.0
             realized = 0.0
@@ -223,15 +239,10 @@ def process_indices(
                     )
                     continue
 
-                index_price = _get_first_valid_price(
-                    prices, transaction.transaction_date
-                )
+                index_price = index_prices.get(transaction.transaction_date, None)
                 if index_price is None:
-                    print(
-                        f"Could not find an index price within 10 days for "
-                        f"{transaction.transaction_date}"
-                    )
                     continue
+
                 value = transaction.nr * transaction.price
                 index_change = value / index_price
 

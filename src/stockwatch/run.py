@@ -9,7 +9,7 @@ from pathlib import Path
 
 from .analysis import plot_positions, plot_returns
 from .dashboard import run_blocking
-from .entities import apply_transactions
+from .entities import apply_transactions, get_all_isins
 from .use_cases import process_portfolios, process_transactions
 
 
@@ -23,11 +23,9 @@ def main(folder: Path) -> int:
             share_portfolio.is_date_consistent() for share_portfolio in share_portfolios
         ),
     )
-    all_isins: set[str] = set()
-    for portfolio in share_portfolios:
-        all_isins.update(portfolio.all_isins())
-
-    transactions = process_transactions(isins=all_isins, folder=folder, rename=False)
+    transactions = process_transactions(
+        isins=get_all_isins(share_portfolios), folder=folder, rename=False
+    )
     apply_transactions(transactions, share_portfolios)
     fig1 = plot_returns(share_portfolios)
     fig2 = plot_positions(share_portfolios)

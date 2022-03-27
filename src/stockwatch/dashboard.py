@@ -4,7 +4,7 @@ This module provides a dashboard for analysis of share portfolios.
 The dashboard is defined by connecting widgets, events, etc. as defined in layout
 to methods provided by analysis and use_cases.
 
-This package has a clean architecture. This module should not contain any business- or 
+This package has a clean architecture. This module should not contain any business- or
 application logic, nor any adapters.
 """
 from datetime import date
@@ -16,7 +16,12 @@ from dash.dependencies import Input, Output, State
 
 from .analysis import plot_positions, plot_returns
 from .app.layout import get_layout
-from .entities import SharePortfolio, ShareTransaction, apply_transactions
+from .entities import (
+    SharePortfolio,
+    ShareTransaction,
+    apply_transactions,
+    get_all_isins,
+)
 from .use_cases import (
     process_index_prices,
     process_indices,
@@ -45,11 +50,9 @@ def _update_portfolios(_clicks: int, folder: str, refresh_clicks: int) -> int:
     path = Path(folder)
     _PORTOS = process_portfolios(folder=path, rename=False)
 
-    all_isins: set[str] = set()
-    for porto in _PORTOS:
-        all_isins.update(porto.all_isins())
-
-    _TRANSACTIONS = process_transactions(isins=all_isins, folder=path, rename=False)
+    _TRANSACTIONS = process_transactions(
+        isins=get_all_isins(_PORTOS), folder=path, rename=False
+    )
     apply_transactions(_TRANSACTIONS, _PORTOS)
 
     _INDICES = process_index_prices(path)
