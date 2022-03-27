@@ -1,16 +1,19 @@
 """
 This module provides methods for visualizing various aspects of share portfolios.
 
-This package has a clean architecture. This module should not contain any business- or 
+This package has a clean architecture. This module should not contain any business- or
 application logic, nor any adapters.
 """
-from .entities import SharePortfolio
-from .adapters import returns_plotdata, positions_plotdata
-
 import plotly.graph_objects as go
 
+from .adapters import positions_plotdata, returns_plotdata
+from .entities import SharePortfolio, SharePosition
 
-def plot_returns(share_portfolios: tuple[SharePortfolio, ...]) -> go.Figure:
+
+def plot_returns(
+    share_portfolios: tuple[SharePortfolio, ...],
+    indices: list[tuple[SharePosition, ...]] | None = None,
+) -> go.Figure:
     returns_data = returns_plotdata(share_portfolios)
 
     fig = go.Figure()
@@ -24,6 +27,8 @@ def plot_returns(share_portfolios: tuple[SharePortfolio, ...]) -> go.Figure:
             fill="tozeroy",
             line=dict(width=0.5),
             legendrank=2,
+            legendgroup="portfolio",
+            legendgrouptitle_text="Portfolio",
         )
     )
     fig.add_trace(
@@ -36,6 +41,8 @@ def plot_returns(share_portfolios: tuple[SharePortfolio, ...]) -> go.Figure:
             fill="tonexty",
             line=dict(width=0.5),
             legendrank=3,
+            legendgroup="portfolio",
+            legendgrouptitle_text="Portfolio",
         )
     )
     fig.add_trace(
@@ -45,9 +52,27 @@ def plot_returns(share_portfolios: tuple[SharePortfolio, ...]) -> go.Figure:
             hovertemplate="<b>returns: </b>€%{y:0.2f}<extra></extra>",
             name="Returns",
             line=dict(color="black", width=2.0),
-            legendrank=1,
+            legendrank=2,
+            legendgroup="indexes",
+            legendgrouptitle_text="Indexes",
         )
     )
+
+    if indices:
+        for index in indices:
+            index_name = index[0].name
+            fig.add_trace(
+                go.Scatter(
+                    x=[x.position_date for x in index],
+                    y=[p.value - p.investment for p in index],
+                    hovertemplate=f"<b>{index_name}: </b>€%{{y:0.2f}}<extra></extra>",
+                    name=index_name,
+                    line=dict(width=2.0),
+                    legendrank=1,
+                    legendgroup="indexes",
+                    legendgrouptitle_text="Indexes",
+                )
+            )
     fig.update_layout(hovermode="x unified")
     return fig
 

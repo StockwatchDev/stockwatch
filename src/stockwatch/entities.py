@@ -10,6 +10,8 @@ from enum import Enum, auto
 
 
 class ShareTransactionKind(Enum):
+    """Enum with the type of possible transactions."""
+
     BUY = auto()
     SELL = auto()
     DIVIDEND = auto()
@@ -18,7 +20,7 @@ class ShareTransactionKind(Enum):
 @dataclass(frozen=False)
 class ShareTransaction:
     """
-    For representing a stock shares transaction at a certain date
+    For representing a stock shares transaction at a certain date.
 
     Attributes
     ----------
@@ -41,7 +43,7 @@ class ShareTransaction:
 @dataclass(frozen=False)
 class SharePosition:
     """
-    For representing a stock shares position at a certain date
+    For representing a stock shares position at a certain date.
 
     Attributes
     ----------
@@ -60,7 +62,7 @@ class SharePosition:
     isin: str
     curr: str
     investment: float
-    nr: int
+    nr: float
     price: float
     value: float
     realized: float
@@ -70,7 +72,7 @@ class SharePosition:
 @dataclass(frozen=True)
 class SharePortfolio:
     """
-    For representing a stock shares portfolio (i.e. multiple positions) at a certain date
+    For representing a stock shares portfolio (i.e. multiple positions) at a certain date.
 
     Attributes
     ----------
@@ -83,29 +85,29 @@ class SharePortfolio:
 
     @property
     def total_value(self) -> float:
-        """The total value of this portfolio"""
+        """Return the total value of this portfolio."""
         return round(sum([share_pos.value for share_pos in self.share_positions]), 2)
 
     @property
     def total_investment(self) -> float:
-        """The total iinvestment of this portfolio"""
+        """Return the total investment of this portfolio."""
         return round(
             sum([share_pos.investment for share_pos in self.share_positions]), 2
         )
 
     def contains(self, an_isin: str) -> bool:
-        """Return True if self has a share position with ISIN an_isin"""
+        """Return True if self has a share position with ISIN an_isin."""
         return an_isin in [share_pos.isin for share_pos in self.share_positions]
 
     def get_position(self, the_isin: str) -> SharePosition | None:
-        """Return the share position with ISIN the_isin or None if not present"""
+        """Return the share position with ISIN the_isin or None if not present."""
         for share_pos in self.share_positions:
             if share_pos.isin == the_isin:
                 return share_pos
         return None
 
     def value_of(self, the_isin: str) -> float:
-        """Return the value in EUR of the share position with ISIN the_isin"""
+        """Return the value in EUR of the share position with ISIN the_isin."""
         return round(
             sum(
                 [
@@ -117,7 +119,7 @@ class SharePortfolio:
         )
 
     def investment_of(self, the_isin: str) -> float:
-        """Return the investment in EUR of the share position with ISIN the_isin"""
+        """Return the investment in EUR of the share position with ISIN the_isin."""
         return round(
             sum(
                 [
@@ -129,7 +131,7 @@ class SharePortfolio:
         )
 
     def realized_return_of(self, the_isin: str) -> float:
-        """Return the realized return in EUR of the share position with ISIN the_isin"""
+        """Return the realized return in EUR of the share position with ISIN the_isin."""
         return round(
             sum(
                 [
@@ -141,15 +143,15 @@ class SharePortfolio:
         )
 
     def all_isins(self) -> tuple[str, ...]:
-        """Return the ISIN codes of the share positions"""
+        """Return the ISIN codes of the share positions."""
         return tuple(share_pos.isin for share_pos in self.share_positions)
 
     def all_isins_and_names(self) -> dict[str, str]:
-        """Return the ISIN codes and names of the share positions"""
+        """Return the ISIN codes and names of the share positions."""
         return {share_pos.isin: share_pos.name for share_pos in self.share_positions}
 
     def is_date_consistent(self) -> bool:
-        """Return True if the share positions dates all match self.portfolio_date"""
+        """Return True if the share positions dates all match self.portfolio_date."""
         return all(
             share_pos.position_date == self.portfolio_date
             for share_pos in self.share_positions
@@ -159,7 +161,7 @@ class SharePortfolio:
 def closest_portfolio_after_date(
     share_portfolios: tuple[SharePortfolio, ...], date: date
 ) -> SharePortfolio | None:
-    """Return the share portfolio on or closest after date or None if no portfolio matches that"""
+    """Return the share portfolio on or closest after date or None if no portfolio matches that."""
     portfolios_after_date = [
         spf for spf in share_portfolios if spf.portfolio_date >= date
     ]
@@ -175,7 +177,7 @@ def closest_portfolio_after_date(
 def closest_portfolio_before_date(
     share_portfolios: tuple[SharePortfolio, ...], date: date
 ) -> SharePortfolio | None:
-    """Return the share portfolio closest before date or None if no portfolio matches that"""
+    """Return the share portfolio closest before date or None if no portfolio matches that."""
     portfolios_before_date = [
         spf for spf in share_portfolios if spf.portfolio_date < date
     ]
@@ -195,7 +197,9 @@ def _add_investment_realization(
     isin: str,
     portfolios: tuple[SharePortfolio, ...],
 ) -> None:
-    """Add a realization and/or investment amount to each portfolio dated later than transaction_date"""
+    """
+    Add a realization and/or investment amount to each portfolio dated later than transaction_date.
+    """
     portfolios_to_modify = [
         spf for spf in portfolios if spf.portfolio_date > transaction_date
     ]
@@ -206,7 +210,31 @@ def _add_investment_realization(
             pos.realized = round(pos.realized + realization, 2)
 
 
-def process_buy_transaction(
+def apply_transactions(
+    transactions: tuple[ShareTransaction, ...], portfolios: tuple[SharePortfolio, ...]
+) -> None:
+    """Process transactions to add the investment and realization of the portfolios."""
+    for transaction in transactions:
+        match transaction.kind:
+            case ShareTransactionKind.BUY:
+                _process_buy_transaction(transaction, portfolios)
+            case ShareTransactionKind.SELL:
+                _process_sell_transaction(transaction, portfolios)
+            case ShareTransactionKind.DIVIDEND:
+                _process_dividend_transaction(transaction, portfolios)
+            case _:
+                print(f"Cannot process unknown transaction kind {transaction.kind}")
+
+
+def get_all_isins(portfolios: tuple[SharePortfolio, ...]) -> set[str]:
+    """Get all the ISIN's present in the portfolios."""
+    ret_val: set[str] = set()
+    for porto in portfolios:
+        ret_val.update(porto.all_isins())
+    return ret_val
+
+
+def _process_buy_transaction(
     transaction: ShareTransaction, portfolios: tuple[SharePortfolio, ...]
 ) -> None:
     assert (
@@ -224,7 +252,7 @@ def process_buy_transaction(
     )
 
 
-def process_sell_transaction(
+def _process_sell_transaction(
     transaction: ShareTransaction, portfolios: tuple[SharePortfolio, ...]
 ) -> None:
     assert (
@@ -253,7 +281,8 @@ def process_sell_transaction(
     current_pos = last_unchanged_portfolio.get_position(transaction.isin)
     if not current_pos:
         print(
-            "Cannot process sell transaction, position not present in last portfolio before transaction date"
+            "Cannot process sell transaction, position not present in last portfolio before"
+            f" the transaction date: {transaction.transaction_date}"
         )
         return
 
@@ -286,7 +315,7 @@ def process_sell_transaction(
     )
 
 
-def process_dividend_transaction(
+def _process_dividend_transaction(
     transaction: ShareTransaction, portfolios: tuple[SharePortfolio, ...]
 ) -> None:
     assert (

@@ -21,7 +21,7 @@ Importing files downloaded from De Giro
 
 #. Create a folder that will be used to store files downloaded from De GIRO and nothing
    else. We will refer to this as our STOCKWATCH_DIR hereafter
-#. Create two subfolders in STOCKWATCH_DIR: portfolio and account
+#. Create three subfolders in STOCKWATCH_DIR: *portfolio*, *account* and *indices*
 
 Downloading portfolio data from De Giro
 =======================================
@@ -54,6 +54,20 @@ Downloading account data from De Giro
    yymmdd_Account.csv
 #. Repeat steps 3-7 until you are at the current date.
 
+Downloading historical stock data for index comparisons
+=======================================================
+
+#. Go to `Yahoo Finance`_
+#. Search for the stock or index you want to compare to.
+#. Select the `historical data` tab of the stock/index.
+#. Some stocks/indexes are not available to download, so check that the `download` button
+   is available.
+#. Select the time period used for the comparison (extra data is not a problem).
+#. Select Frequency: `daily` to ensure the comparison is accurate enough.
+#. Download the csv file, and put this in the STOCKWATCH_DIR/indices folder, name it
+   *index_name*.csv where `_` are replaced by spaces in the plot legends.
+#. When redrawing the figures the new index should be picked up automatically.
+
 Running and editing
 ===================
 
@@ -69,3 +83,4 @@ of creating the virtual shell.
 .. _python 3.10: https://www.python.org/downloads/
 .. _poetry: https://python-poetry.org/docs/#installation
 .. _Stockwatch repository: https://bitbucket.org/stockwatch-ws/stockwatch/src/develop/
+.. _Yahoo Finance: https://finance.yahoo.com
