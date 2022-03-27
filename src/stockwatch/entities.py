@@ -214,20 +214,16 @@ def apply_transactions(
     transactions: tuple[ShareTransaction, ...], portfolios: tuple[SharePortfolio, ...]
 ) -> None:
     """Process transactions to add the investment and realization of the portfolios."""
-    matching = {
-        ShareTransactionKind.BUY: _process_buy_transaction,
-        ShareTransactionKind.SELL: _process_sell_transaction,
-        ShareTransactionKind.DIVIDEND: _process_dividend_transaction,
-    }
-
     for transaction in transactions:
-        process_func = matching.get(transaction.kind, None)
-        if process_func is None:
-            print(f"Cannot process unknown transaction kind {transaction.kind}")
-            continue
-        # For now we assume that all transactions are in euros
-        # TODO: Properly account for different currencies.
-        process_func(transaction, portfolios)
+        match transaction.kind:
+            case ShareTransactionKind.BUY:
+                _process_buy_transaction(transaction, portfolios)
+            case ShareTransactionKind.SELL:
+                _process_sell_transaction(transaction, portfolios)
+            case ShareTransactionKind.DIVIDEND:
+                _process_dividend_transaction(transaction, portfolios)
+            case _:
+                print(f"Cannot process unknown transaction kind {transaction.kind}")
 
 
 def get_all_isins(portfolios: tuple[SharePortfolio, ...]) -> set[str]:
