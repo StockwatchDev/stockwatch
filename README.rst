@@ -22,6 +22,9 @@ Importing files downloaded from De Giro
 #. Create a folder that will be used to store files downloaded from De GIRO and nothing
    else. We will refer to this as our STOCKWATCH_DIR hereafter
 #. Create three subfolders in STOCKWATCH_DIR: *portfolio*, *account* and *indices*
+#. The STOCKWATCH_DIR path can be defined in the environment variable STOCKWATCH_PATH
+   to be picked up by the different scripts, or be put as last positional commandline
+   argument
 
 Downloading portfolio data from De Giro
 =======================================
@@ -80,6 +83,30 @@ Running and editing
 Alternatively you can use :code:`poetry run python -m stockwatch` instead
 of creating the virtual shell.
 
+Scraping the porfolio data from De Giro
+=======================================
+
+Alternatively the portfolio data can be scraped with the scraping application
+in this repo. Note that this application can easily break if De Giro updates
+it's website, unfortunately it is therefore not guaranteed to work. If the
+script breaks please raise an issue in the repo with the error output.
+
+#. First login at DeGiro using your preferred browser.
+#. Open the devtools window (F12 on firefox, and Chrome)
+#. In the *network* tab, Search for a GET request to trader.degiro.nl
+#. Search for the *intAccount* integer, and the *sessionId* string to
+   input in the scraping application. In `Firefox`_ it can be found under
+   *Headers*, whereas in `Chrome`_, and `Edge`_ it can be found under *Payload*.
+#. Run the scraping application using
+   :code:`python3 src/stockwatch/scraping/run.py accountId sessionId`
+   the start and end date can be configured using the :code:`--start-date YYYY-MM-DD`
+   and :code:`--end-date YYYY-MM-DD` commandline arguments. The script will put all
+   the files in the STOCKWATCH_DIR/portfolio folder.
+
+
+.. _Firefox: ./figs/devtools_firefox.png
+.. _Chrome: ./figs/devtools_chrome.png
+.. _Edge: ./figs/devtools_edge.png
 .. _python 3.10: https://www.python.org/downloads/
 .. _poetry: https://python-poetry.org/docs/#installation
 .. _Stockwatch repository: https://bitbucket.org/stockwatch-ws/stockwatch/src/develop/
