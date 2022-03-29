@@ -95,28 +95,18 @@ script breaks please raise an issue in the repo with the error output.
 #. Open the devtools window (F12 on firefox, and Chrome)
 #. In the *network* tab, Search for a GET request to trader.degiro.nl
 #. Search for the *intAccount* integer, and the *sessionId* string to
-   input in the scraping application. In firefox it can be found under
-   *Headers*, whereas in Chrome it can be found under *Payload*.
+   input in the scraping application. In `Firefox`_ it can be found under
+   *Headers*, whereas in `Chrome`_, and `Edge`_ it can be found under *Payload*.
 #. Run the scraping application using
    :code:`python3 src/stockwatch/scraping/run.py accountId sessionId`
-   the start and end date can be configured using the --start-date YYYY-MM-DD
-   and --end-date YYYY-MM-DD commandline arguments. The script will put all
-   the files in the STOCKWATCH_DIR/account folder.
+   the start and end date can be configured using the :code:`--start-date YYYY-MM-DD`
+   and :code:`--end-date YYYY-MM-DD` commandline arguments. The script will put all
+   the files in the STOCKWATCH_DIR/portfolio folder.
 
 
-.. figure:: figs/devtools_firefox.png
-   :scale: 50 %
-   :align: center
-
-   The devtools in Firefox
-
-.. figure:: figs/devtools_chrome.png
-   :scale: 50 %
-   :align: center
-
-   The devtools in Chrome
-
-
+.. _Firefox: ./figs/devtools_firefox.png
+.. _Chrome: ./figs/devtools_chrome.png
+.. _Edge: ./figs/devtools_edge.png
 .. _python 3.10: https://www.python.org/downloads/
 .. _poetry: https://python-poetry.org/docs/#installation
 .. _Stockwatch repository: https://bitbucket.org/stockwatch-ws/stockwatch/src/develop/

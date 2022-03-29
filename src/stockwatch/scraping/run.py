@@ -18,7 +18,7 @@ def obtain_portfolio(account: int, session_id: str, end_date: date) -> str:
     which can be used to obtain data safely.
     """
     url = "https://trader.degiro.nl/reporting/secure/v3/positionReport/csv"
-    args = {
+    args: dict[str, str | int] = {
         "sessionId": session_id,
         "country": "NL",
         "lang": "nl",
