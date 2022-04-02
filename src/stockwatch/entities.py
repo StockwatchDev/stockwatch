@@ -95,6 +95,11 @@ class SharePortfolio:
             sum([share_pos.investment for share_pos in self.share_positions]), 2
         )
 
+    @property
+    def total_realized_return(self) -> float:
+        """Return the total realized return of this portfolio."""
+        return round(sum([share_pos.realized for share_pos in self.share_positions]), 2)
+
     def contains(self, an_isin: str) -> bool:
         """Return True if self has a share position with ISIN an_isin."""
         return an_isin in [share_pos.isin for share_pos in self.share_positions]
