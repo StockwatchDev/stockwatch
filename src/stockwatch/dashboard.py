@@ -1,5 +1,4 @@
-"""
-This module provides a dashboard for analysis of share portfolios.
+"""This module provides a dashboard for analysis of share portfolios.
 
 The dashboard is defined by connecting widgets, events, etc. as defined in layout
 to methods provided by analysis and use_cases.
@@ -43,16 +42,14 @@ _INDICES: dict[str, dict[date, float]] | None = None
     prevent_initial_callback=True,
 )
 def _update_portfolios(_clicks: int, folder: str, refresh_clicks: int) -> int:
-    global _PORTOS
-    global _TRANSACTIONS
-    global _INDICES
+    global _PORTOS  # pylint: disable=global-statement
+    global _TRANSACTIONS  # pylint: disable=global-statement
+    global _INDICES  # pylint: disable=global-statement
 
     path = Path(folder)
-    _PORTOS = process_portfolios(folder=path, rename=False)
+    _PORTOS = process_portfolios(folder=path)
 
-    _TRANSACTIONS = process_transactions(
-        isins=get_all_isins(_PORTOS), folder=path, rename=False
-    )
+    _TRANSACTIONS = process_transactions(isins=get_all_isins(_PORTOS), folder=path)
     apply_transactions(_TRANSACTIONS, _PORTOS)
 
     _INDICES = process_index_prices(path)
@@ -74,23 +71,22 @@ def _draw_portfolio_graph(_clicks: int) -> dcc.Graph:
 @_APP.callback(
     Output("portfolio-graph-total", "figure"),
     Input("portfolio-refresh", "n_clicks"),
-    State("folder-selected", "value"),
     prevent_initial_callback=True,
 )
-def _draw_portfolio_graph_total(_clicks: int, folder: str) -> dcc.Graph:
+def _draw_portfolio_graph_total(_clicks: int) -> dcc.Graph:
     if not _PORTOS:
         return go.Figure()
 
-    if _INDICES is not None and _TRANSACTIONS is not None:
-        index_positions = process_indices(
-            _INDICES, _TRANSACTIONS, [x.portfolio_date for x in _PORTOS]
-        )
-    else:
-        index_positions = []
+    index_positions = (
+        process_indices(_INDICES, _TRANSACTIONS, [x.portfolio_date for x in _PORTOS])
+        if _INDICES and _TRANSACTIONS
+        else []
+    )
 
     return plot_returns(_PORTOS, index_positions)
 
 
 def run_blocking(folder: Path) -> None:
+    """Run the dash application."""
     _APP.layout = get_layout(folder)
     _APP.run_server(debug=True)

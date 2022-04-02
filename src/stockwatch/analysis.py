@@ -1,5 +1,4 @@
-"""
-This module provides methods for visualizing various aspects of share portfolios.
+"""This module provides methods for visualizing various aspects of share portfolios.
 
 This package has a clean architecture. This module should not contain any business- or
 application logic, nor any adapters.
@@ -14,6 +13,7 @@ def plot_returns(
     share_portfolios: tuple[SharePortfolio, ...],
     indices: list[tuple[SharePosition, ...]] | None = None,
 ) -> go.Figure:
+    """Plot the returns of a portfolio."""
     returns_data = returns_plotdata(share_portfolios)
 
     fig = go.Figure()
@@ -78,15 +78,16 @@ def plot_returns(
 
 
 def plot_positions(share_portfolios: tuple[SharePortfolio, ...]) -> go.Figure:
-    """
-    Plot the value of all positions in the portfolios through time
-    """
+    """Plot the value of all positions in the portfolios through time."""
 
     positions_data = positions_plotdata(share_portfolios)
 
     fig = go.Figure()
     for (isin, name) in positions_data.isins_and_names:
-        hovertemplate = f"<b>{name} - {isin}</b><br>value €%{{y:0.2f}}<br>date: %{{x}}<extra></extra>"
+        hovertemplate = (
+            f"<b>{name} - {isin}</b><br>value €%{{y:0.2f}}<br>"
+            f"date: %{{x}}<extra></extra>"
+        )
         # vertical axis to be the value of each position in the portfolio
         fig.add_trace(
             go.Scatter(

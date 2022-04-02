@@ -1,5 +1,4 @@
-"""
-This module defines the visual layout of the share portfolios dashboard.
+"""This module defines the visual layout of the share portfolios dashboard.
 
 This package has a clean architecture. This module should not contain any business- or
 application logic, nor any adapters.
@@ -10,6 +9,7 @@ from dash import dcc, html
 
 
 def get_layout(folder: Path) -> html.Div:
+    """Get the layout of the stockwatch dash application."""
     return html.Div(
         children=[
             html.Div(

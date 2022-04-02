@@ -16,6 +16,7 @@ def run() -> int:
     checkers = {
         "mypy": ["mypy", "src"],
         "black": ["python3", "-m", "black", "--check", "src"],
+        "pylint": ["pylint", "--recursive=y", "--enable-all-extensions", "./src"],
     }
     failed_checkers = []
 

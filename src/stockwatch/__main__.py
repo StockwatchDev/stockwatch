@@ -1,11 +1,8 @@
-"""
-Analysis application for stock data obtain from DeGiro.
-"""
+"""Analysis application for stock data obtain from DeGiro."""
 import argparse
 import os
 import sys
 from pathlib import Path
-from typing import Optional
 
 import stockwatch.run
 
@@ -29,12 +26,11 @@ parser.add_argument(
 )
 
 args = parser.parse_args()
-folder: Optional[Path] = args.dir
+folder: Path | None = args.dir
 
 if not folder or not folder.is_dir():
     # Let's try to read from the environment variables.
-    env_path = os.environ.get(STOCKWATCH_ENV_VAR, "")
-    if env_path:
+    if env_path := os.environ.get(STOCKWATCH_ENV_VAR, ""):
         folder = Path(env_path)
 
 if folder is None or not folder.is_dir():  # not folder or not folder.is_dir():
@@ -46,9 +42,5 @@ if folder is None or not folder.is_dir():  # not folder or not folder.is_dir():
     sys.exit(-1)
 
 print(f"Parsing the porfolio files in directory: '{folder}'")
-if args.dash:
-    ret_val = stockwatch.run.dash(folder)
-else:
-    ret_val = stockwatch.run.main(folder)
-
-sys.exit(ret_val)
+run_func = stockwatch.run.dash if args.dash else stockwatch.run.main
+sys.exit(run_func(folder))
