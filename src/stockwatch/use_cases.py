@@ -106,7 +106,6 @@ def process_transactions(isins: set[str], folder: Path) -> tuple[ShareTransactio
             for row in reversed(list(csv_reader)):
                 # we're only interested in real stock positions (not cash)
                 if (isin := row["ISIN"]) in isins:
-                    print(row)
                     transaction_date = datetime.strptime(
                         row["Datum"], "%d-%m-%Y"
                     ).date()
