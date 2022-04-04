@@ -4,10 +4,37 @@ import pytest
 from stockwatch.entities import (
     SharePosition,
     SharePortfolio,
+    ShareTransactionKind,
+    ShareTransaction,
     closest_portfolio_after_date,
     closest_portfolio_before_date,
     get_all_isins,
+    apply_transactions,
 )
+
+
+@pytest.fixture
+def example_sell_transaction() -> ShareTransaction:
+    return ShareTransaction(
+        kind=ShareTransactionKind.SELL,
+        isin="NL0010408704",
+        curr="EUR",
+        nr_stocks=36.0,
+        price=28.79,
+        transaction_date=date.today() - timedelta(days=9),
+    )
+
+
+@pytest.fixture
+def example_buy_transaction() -> ShareTransaction:
+    return ShareTransaction(
+        kind=ShareTransactionKind.BUY,
+        isin="IE00B441G979",
+        curr="EUR",
+        nr_stocks=16.0,
+        price=64.375,
+        transaction_date=date.today() - timedelta(days=7),
+    )
 
 
 @pytest.fixture
@@ -43,9 +70,9 @@ def example_portfolio_2() -> SharePortfolio:
         "VanEck Sustainable World Equal Weight UCITS ETF",
         "NL0010408704",
         "EUR",
-        1000.00,
+        1000.08,
         36,
-        28.76,
+        28.75,
         1035,
         86.50,
         date.today() - timedelta(days=21),
@@ -71,7 +98,7 @@ def test_value(example_portfolio_1: SharePortfolio) -> None:
 
 def test_investment(example_portfolio_1: SharePortfolio) -> None:
     assert example_portfolio_1.investment_of("IE00B441G979") == 1030.00
-    assert example_portfolio_1.total_investment == 2000.0
+    assert example_portfolio_1.total_investment == 2000.00
 
 
 def test_contains_get_position(example_portfolio_1: SharePortfolio) -> None:
@@ -136,3 +163,26 @@ def test_get_all_isins(
     assert "NL0010408704" in all_isins
     assert "IE00B441G979" in all_isins
     assert "IE00B3RBWM25" in all_isins
+
+
+def test_sell_and_buy_transaction(
+    example_portfolio_1: SharePortfolio,
+    example_portfolio_2: SharePortfolio,
+    example_sell_transaction: ShareTransaction,
+    example_buy_transaction: ShareTransaction,
+) -> None:
+    portfolio_set = (example_portfolio_2, example_portfolio_1)
+    transactions = (example_sell_transaction, example_buy_transaction)
+    apply_transactions(transactions, portfolio_set)
+    assert portfolio_set[1].investment_of(example_sell_transaction.isin) == 0.0
+    assert portfolio_set[1].realized_return_of(example_sell_transaction.isin) == 122.86
+    assert portfolio_set[1].investment_of(example_buy_transaction.isin) == 2060.0
+
+    # and test the degenerate cases, that they do not raise an exception
+    example_sell_transaction.transaction_date = date.today() - timedelta(days=50)
+    apply_transactions((example_sell_transaction,), portfolio_set)
+    example_sell_transaction.transaction_date = date.today() + timedelta(days=50)
+    apply_transactions((example_sell_transaction,), portfolio_set)
+    example_sell_transaction.transaction_date = date.today() - timedelta(days=9)
+    example_sell_transaction.isin = "IE00B441G979"
+    apply_transactions((example_sell_transaction,), portfolio_set)
