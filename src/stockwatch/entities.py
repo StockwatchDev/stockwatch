@@ -33,7 +33,7 @@ class ShareTransaction:
     kind: ShareTransactionKind
     isin: str
     curr: str
-    nr_stocks: int
+    nr_stocks: float
     price: float
     transaction_date: date
 

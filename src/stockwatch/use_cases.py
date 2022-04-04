@@ -22,7 +22,7 @@ def _process_buy_transaction_row(
 ) -> ShareTransaction:
     descr = row["Omschrijving"].split()
     key_index = descr.index("Koop")
-    nr_stocks = round(float(descr[key_index + 1].replace(",", ".")))
+    nr_stocks = float(descr[key_index + 1].replace(",", "."))
     price = float(descr[key_index + 3].replace(",", "."))
     curr = row["Mutatie"]
     return ShareTransaction(
@@ -37,7 +37,7 @@ def _process_sell_transaction_row(
 ) -> ShareTransaction:
     descr = row["Omschrijving"].split()
     key_index = descr.index("Verkoop")
-    nr_stocks = round(float(descr[key_index + 1].replace(",", ".")))
+    nr_stocks = float(descr[key_index + 1].replace(",", "."))
     price = float(descr[key_index + 3].replace(",", "."))
     curr = row["Mutatie"]
     return ShareTransaction(
@@ -138,7 +138,7 @@ def process_portfolios(folder: Path) -> tuple[SharePortfolio, ...]:
                 if isin := row["Symbool/ISIN"]:
                     name = row["Product"]
                     curr = row["Lokale waarde"].split()[0]
-                    nr_stocks = int(float(row["Aantal"].replace(",", ".", 2)))
+                    nr_stocks = float(row["Aantal"].replace(",", ".", 2))
                     price = round(float(row["Slotkoers"].replace(",", ".")), 2)
                     value = round(float(row["Waarde in EUR"].replace(",", ".")), 2)
                     the_position = SharePosition(
