@@ -1,5 +1,4 @@
-"""
-This module contains the business logic for holding a stock portfolio.
+"""This module contains the business logic for holding a stock portfolio.
 
 This package has a clean architecture. Hence, this module should not depend on any
 other module and only import Python stuff.
@@ -19,15 +18,14 @@ class ShareTransactionKind(Enum):
 
 @dataclass(frozen=False)
 class ShareTransaction:
-    """
-    For representing a stock shares transaction at a certain date.
+    """For representing a stock shares transaction at a certain date.
 
     Attributes
     ----------
     kind              : the kind of transaction
     isin              : the ISIN code / Symbol string used to identify a share
     curr              : the currency shorthand in which the transaction is done, e.g. EUR
-    nr                : the number of items in the transaction
+    nr_stocks         : the number of items in the transaction
     price             : the price per item, in curr
     transaction_date  : the date for which the value of the share position is registered
     """
@@ -35,15 +33,14 @@ class ShareTransaction:
     kind: ShareTransactionKind
     isin: str
     curr: str
-    nr: int
+    nr_stocks: float
     price: float
     transaction_date: date
 
 
 @dataclass(frozen=False)
-class SharePosition:
-    """
-    For representing a stock shares position at a certain date.
+class SharePosition:  # pylint: disable=too-many-instance-attributes
+    """For representing a stock shares position at a certain date.
 
     Attributes
     ----------
@@ -51,7 +48,7 @@ class SharePosition:
     isin            : the ISIN code / Symbol string used to identify a share
     curr            : the currency shorthand in which the stock is traded, e.g. EUR
     investment      : the amount in EUR spent in purchasing the shares
-    nr              : the number of shares
+    nr_stocks       : the number of shares
     price           : the current price of the shares, in curr
     value           : the current value of the shares, in EUR
     realized        : the realized result in EUR (including trading costs)
@@ -62,7 +59,7 @@ class SharePosition:
     isin: str
     curr: str
     investment: float
-    nr: float
+    nr_stocks: float
     price: float
     value: float
     realized: float
@@ -71,8 +68,7 @@ class SharePosition:
 
 @dataclass(frozen=True)
 class SharePortfolio:
-    """
-    For representing a stock shares portfolio (i.e. multiple positions) at a certain date.
+    """For representing a stock shares portfolio (i.e. multiple positions) at a certain date.
 
     Attributes
     ----------
@@ -164,35 +160,33 @@ class SharePortfolio:
 
 
 def closest_portfolio_after_date(
-    share_portfolios: tuple[SharePortfolio, ...], date: date
+    share_portfolios: tuple[SharePortfolio, ...], start_date: date
 ) -> SharePortfolio | None:
     """Return the share portfolio on or closest after date or None if no portfolio matches that."""
     portfolios_after_date = [
-        spf for spf in share_portfolios if spf.portfolio_date >= date
+        spf for spf in share_portfolios if spf.portfolio_date >= start_date
     ]
     if len(portfolios_after_date) > 0:
         sorted_portfolios = sorted(
             portfolios_after_date, key=lambda x: x.portfolio_date
         )
         return sorted_portfolios[0]
-    else:
-        return None
+    return None
 
 
 def closest_portfolio_before_date(
-    share_portfolios: tuple[SharePortfolio, ...], date: date
+    share_portfolios: tuple[SharePortfolio, ...], end_date: date
 ) -> SharePortfolio | None:
     """Return the share portfolio closest before date or None if no portfolio matches that."""
     portfolios_before_date = [
-        spf for spf in share_portfolios if spf.portfolio_date < date
+        spf for spf in share_portfolios if spf.portfolio_date < end_date
     ]
     if len(portfolios_before_date) > 0:
         sorted_portfolios = sorted(
             portfolios_before_date, key=lambda x: x.portfolio_date
         )
         return sorted_portfolios[-1]
-    else:
-        return None
+    return None
 
 
 def _add_investment_realization(
@@ -202,15 +196,14 @@ def _add_investment_realization(
     isin: str,
     portfolios: tuple[SharePortfolio, ...],
 ) -> None:
-    """
-    Add a realization and/or investment amount to each portfolio dated later than transaction_date.
+    """Add a realization and/or investment amount to each portfolio dated
+    after the transaction_date.
     """
     portfolios_to_modify = [
         spf for spf in portfolios if spf.portfolio_date > transaction_date
     ]
     for spf in portfolios_to_modify:
-        pos = spf.get_position(isin)
-        if pos:
+        if pos := spf.get_position(isin):
             pos.investment = round(pos.investment + investment, 2)
             pos.realized = round(pos.realized + realization, 2)
 
@@ -246,7 +239,7 @@ def _process_buy_transaction(
         transaction.kind == ShareTransactionKind.BUY
     ), f"Buy transaction expected, got {transaction.kind.name}"
 
-    investment = transaction.nr * transaction.price
+    investment = transaction.nr_stocks * transaction.price
     realization = 0.0
     _add_investment_realization(
         investment=investment,
@@ -283,17 +276,16 @@ def _process_sell_transaction(
         )
         return
 
-    current_pos = last_unchanged_portfolio.get_position(transaction.isin)
-    if not current_pos:
+    if not (current_pos := last_unchanged_portfolio.get_position(transaction.isin)):
         print(
             "Cannot process sell transaction, position not present in last portfolio before"
             f" the transaction date: {transaction.transaction_date}"
         )
         return
 
-    buy_price = current_pos.investment / current_pos.nr
-    investment = round(-transaction.nr * buy_price, 2)
-    realization = round(transaction.nr * (transaction.price - buy_price), 2)
+    buy_price = current_pos.investment / current_pos.nr_stocks
+    investment = round(-transaction.nr_stocks * buy_price, 2)
+    realization = round(transaction.nr_stocks * (transaction.price - buy_price), 2)
     if not next_pos:
         # the portfolio on the next date does not have this share because we sell all
         # so let's create a position with the realization
@@ -302,7 +294,7 @@ def _process_sell_transaction(
             isin=current_pos.isin,
             curr=current_pos.curr,
             investment=0.0,
-            nr=0,
+            nr_stocks=0,
             price=1.0,
             value=0.0,
             realized=realization,
@@ -327,7 +319,7 @@ def _process_dividend_transaction(
         transaction.kind == ShareTransactionKind.DIVIDEND
     ), f"Dividend transaction expected, got {transaction.kind.name}"
 
-    realization = round(transaction.nr * transaction.price, 2)
+    realization = round(transaction.nr_stocks * transaction.price, 2)
     _add_investment_realization(
         investment=0.0,
         realization=realization,

@@ -103,10 +103,17 @@ script breaks please raise an issue in the repo with the error output.
    and :code:`--end-date YYYY-MM-DD` commandline arguments. The script will put all
    the files in the STOCKWATCH_DIR/portfolio folder.
 
+Running the tests
+=================
+
+To run all the static-code analysis, and unit-tests the `tox`_ framework is
+used. For running the all checks simply execute the :code:`tox` command from
+within the repo (while having a poetry shell, otherwise run :code:`poetry run tox`).
 
 .. _Firefox: ./figs/devtools_firefox.png
 .. _Chrome: ./figs/devtools_chrome.png
 .. _Edge: ./figs/devtools_edge.png
+.. _tox: https://tox.wiki/en/latest/index.html
 .. _python 3.10: https://www.python.org/downloads/
 .. _poetry: https://python-poetry.org/docs/#installation
 .. _Stockwatch repository: https://bitbucket.org/stockwatch-ws/stockwatch/src/develop/

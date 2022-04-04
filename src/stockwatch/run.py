@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Simple main script to show the figures without an active dash application.
+"""Simple main script to show the figures without an active dash application.
 
 Functions:
     main(folder: Path) -> int
@@ -16,7 +15,7 @@ from .use_cases import process_portfolios, process_transactions
 def main(folder: Path) -> int:
     """The main function to run the stockwatcher."""
 
-    share_portfolios = process_portfolios(folder=folder, rename=False)
+    share_portfolios = process_portfolios(folder=folder)
     print(
         "All consistent?",
         all(
@@ -24,7 +23,7 @@ def main(folder: Path) -> int:
         ),
     )
     transactions = process_transactions(
-        isins=get_all_isins(share_portfolios), folder=folder, rename=False
+        isins=get_all_isins(share_portfolios), folder=folder
     )
     apply_transactions(transactions, share_portfolios)
     fig1 = plot_returns(share_portfolios)
