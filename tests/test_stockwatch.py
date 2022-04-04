@@ -1,3 +1,4 @@
+# pylint: skip-file
 from stockwatch import __version__
 
 
