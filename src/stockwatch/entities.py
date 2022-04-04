@@ -66,7 +66,7 @@ class SharePosition:  # pylint: disable=too-many-instance-attributes
     position_date: date
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=False)
 class SharePortfolio:
     """For representing a stock shares portfolio (i.e. multiple positions) at a certain date.
 
@@ -257,16 +257,6 @@ def _process_sell_transaction(
         transaction.kind == ShareTransactionKind.SELL
     ), f"Sell transaction expected, got {transaction.kind.name}"
 
-    first_changed_portfolio = closest_portfolio_after_date(
-        portfolios, transaction.transaction_date
-    )
-    if not first_changed_portfolio:
-        print(
-            "Cannot process sell transaction, no portfolio present after transaction date"
-        )
-        return
-
-    next_pos = first_changed_portfolio.get_position(transaction.isin)
     last_unchanged_portfolio = closest_portfolio_before_date(
         portfolios, transaction.transaction_date
     )
@@ -283,10 +273,19 @@ def _process_sell_transaction(
         )
         return
 
+    if not (
+        first_changed_portfolio := closest_portfolio_after_date(
+            portfolios, transaction.transaction_date
+        )
+    ):
+        print(
+            "Cannot process sell transaction, no portfolio present after transaction date"
+        )
+        return
+
     buy_price = current_pos.investment / current_pos.nr_stocks
-    investment = round(-transaction.nr_stocks * buy_price, 2)
     realization = round(transaction.nr_stocks * (transaction.price - buy_price), 2)
-    if not next_pos:
+    if not first_changed_portfolio.get_position(transaction.isin):
         # the portfolio on the next date does not have this share because we sell all
         # so let's create a position with the realization
         next_pos = SharePosition(
@@ -297,19 +296,24 @@ def _process_sell_transaction(
             nr_stocks=0,
             price=1.0,
             value=0.0,
-            realized=realization,
+            realized=current_pos.realized + realization,
             position_date=first_changed_portfolio.portfolio_date,
         )
+        share_poss = list(first_changed_portfolio.share_positions)
+        share_poss.append(next_pos)
+        first_changed_portfolio.share_positions = tuple(share_poss)
         print(
             f"ISIN {transaction.isin} has been sold, total realization: {next_pos.realized}\n"
         )
-    _add_investment_realization(
-        investment=investment,
-        realization=realization,
-        transaction_date=transaction.transaction_date,
-        isin=transaction.isin,
-        portfolios=portfolios,
-    )
+    else:
+        investment = round(-transaction.nr_stocks * buy_price, 2)
+        _add_investment_realization(
+            investment=investment,
+            realization=realization,
+            transaction_date=transaction.transaction_date,
+            isin=transaction.isin,
+            portfolios=portfolios,
+        )
 
 
 def _process_dividend_transaction(
