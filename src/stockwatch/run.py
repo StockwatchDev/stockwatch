@@ -7,7 +7,7 @@ Functions:
 from pathlib import Path
 
 from .analysis import plot_positions, plot_returns
-from .dashboard import run_blocking
+from .app.dashboard import run_blocking
 from .entities import apply_transactions, get_all_isins
 from .use_cases import process_portfolios, process_transactions
 
@@ -35,6 +35,6 @@ def main(folder: Path) -> int:
 
 
 def dash(folder: Path) -> int:
-    """Run the visualisation using the Dash web interface."""
+    """Run the visualization using the Dash web interface."""
     run_blocking(folder)
     return 0

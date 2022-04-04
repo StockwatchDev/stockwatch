@@ -15,22 +15,32 @@ De Giro.
 4. Open a command prompt, go to the repo directory and run `poetry install`. This
    command will create a virtual environment and install all needed dependencies.
 
-# Importing files downloaded from De Giro
+# Downloading stock data
+
+## Importing files downloaded from De Giro
+For the application to be able to find the downloaded data, a certain folder structure
+is required.
 
 1. Create a folder that will be used to store files downloaded from De GIRO and nothing
    else. We will refer to this as our STOCKWATCH\_DIR hereafter
 2. Create three subfolders in STOCKWATCH\_DIR: *portfolio*, *account* and *indices*
-3. The STOCKWATCH\_DIR path can be defined in the environment variable STOCKWATCH\_PATH
-   to be picked up by the different scripts, or be put as last positional commandline
-   argument
+3. The STOCKWATCH\_DIR path has to be defined in the environment variable
+   STOCKWATCH\_PATH before running the application. For help on how to do that
+   depending on your OS see: [Windows][WindowsEnv], [Linux][LinuxEnv].
 
-# Download data manually
+## Scraping using the app
+
+Currently the portfolio data can be scraped using the Dash application. This will
+eventually be extended to all data. To scrape data using the webbrowser start the
+Stockwatch app and navigate to the `scrape` tab, and follow the instructions.
+
+## Download data manually
 
 The data used for the analysis in the stockwatch application can be downloaded manually.
 There is also an automatic scraper for the portfolio data, more about this
 [here](#markdown-header-scraping-the-porfolio-data-from-de-giro)
 
-## Portfolio data (stock positions)
+### Portfolio data (stock positions)
 
 1. Log in with De Giro
 2. Select the Portfolio tab (Dutch: Portefeuille)
@@ -42,7 +52,7 @@ There is also an automatic scraper for the portfolio data, more about this
    yymmdd\_Portfolio.csv
 8. Repeat steps 4-8 for all dates that you want to visualize.
 
-## Account data (transactions)
+### Account data (transactions)
 
 1. Log in with De Giro
 2. Select the Overviews tab (Dutch: Overzichten) and then the Account overview tab
@@ -59,7 +69,7 @@ There is also an automatic scraper for the portfolio data, more about this
    yymmdd\_Account.csv
 8. Repeat steps 3-7 until you are at the current date.
 
-## Other indices
+### Other indices
 
 1. Go to [Yahoo Finance]
 2. Search for the stock or index you want to compare to.
@@ -75,9 +85,9 @@ There is also an automatic scraper for the portfolio data, more about this
 # Running and editing
 
 1. Create a virtual env shell using `poetry shell`.
-2. Run the stockwatch executable using: `python -m stockwatch --dash`
-3. For help with the arguments use `python -m stockwatch --help`.
-4. Start your preferred editor from the poetry shell (this ensures that
+3. Run the stockwatch executable using: `python -m stockwatch`
+4. For help with the arguments use `python -m stockwatch --help`.
+5. Start your preferred editor from the poetry shell (this ensures that
    the virtual env is still valid).
 
 Alternatively you can use `poetry run python -m stockwatch` instead
@@ -116,3 +126,5 @@ within the repo (while having a poetry shell, otherwise run `poetry run tox`).
 [poetry]: https://python-poetry.org/docs/#installation
 [Stockwatch repo]: https://bitbucket.org/stockwatch-ws/stockwatch/src/develop/
 [Yahoo Finance]: https://finance.yahoo.com
+[WindowsEnv]: https://docs.oracle.com/en/database/oracle/machine-learning/oml4r/1.5.1/oread/creating-and-modifying-environment-variables-on-windows.html#GUID-DD6F9982-60D5-48F6-8270-A27EC53807D0
+[LinuxEnv]: https://unix.stackexchange.com/a/117470

@@ -153,10 +153,12 @@ def process_portfolios(folder: Path) -> tuple[SharePortfolio, ...]:
                         position_date=file_date,
                     )
                     sep_stocks.append(the_position)
-        the_portfolio = SharePortfolio(
-            share_positions=tuple(sep_stocks), portfolio_date=file_date
-        )
-        share_portfolios.append(the_portfolio)
+
+        if sep_stocks:
+            the_portfolio = SharePortfolio(
+                share_positions=tuple(sep_stocks), portfolio_date=file_date
+            )
+            share_portfolios.append(the_portfolio)
     return tuple(share_portfolios)
 
 

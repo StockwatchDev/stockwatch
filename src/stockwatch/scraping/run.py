@@ -18,7 +18,7 @@ def obtain_portfolio(account: int, session_id: str, end_date: date) -> str:
     which can be used to obtain data safely.
     """
     url = "https://trader.degiro.nl/reporting/secure/v3/positionReport/csv"
-    args: dict[str, str | int] = {
+    curl_args: dict[str, str | int] = {
         "sessionId": session_id,
         "country": "NL",
         "lang": "nl",
@@ -26,7 +26,7 @@ def obtain_portfolio(account: int, session_id: str, end_date: date) -> str:
         "toDate": end_date.strftime("%d/%m/%Y"),
     }
 
-    res = requests.get(url, params=args)
+    res = requests.get(url, params=curl_args)
 
     if res.ok:
         return str(res.text)
@@ -34,36 +34,40 @@ def obtain_portfolio(account: int, session_id: str, end_date: date) -> str:
     raise RuntimeError(f"Got an unexpected response: {res.reason}")
 
 
-def loop_dates(
+def process_date(
+    new_date: date, account: int, session_id: str, portfolio_dir: Path
+) -> None:
+    """Obtain the DeGiro portfolio data of a certain date."""
+    if new_date.weekday() == 5 or new_date.weekday() == 6:
+        return
+
+    file_name = new_date.strftime("%y%m%d") + "_portfolio.csv"
+    file_path = portfolio_dir.joinpath(file_name)
+
+    if file_path.is_file():
+        print(
+            f"Skipping portfolio date {new_date} "
+            f"as the file {file_path} already exists"
+        )
+        return
+
+    print(f"Obtaining portfolio for date: {new_date}")
+    data = obtain_portfolio(account, session_id, new_date)
+    with open(file_path, "w+", encoding="UTF-8") as portfolio_file:
+        portfolio_file.write(data)
+
+
+def _loop_dates(
     account: int, session_id: str, start_date: date, end_date: date, portfolio_dir: Path
 ) -> None:
-    """
-    Loop over the days between start_date and end_date, and obtain the portfolio.
+    """Loop over the days between start_date and end_date, and obtain the portfolio.
 
     All the files are placed in the porfolio_dir/portfolio directory with the
     yymmdd_porfolio.csv filename.
     """
 
     while start_date < end_date:
-        if start_date.weekday() == 5 or start_date.weekday() == 6:
-            # Let's skip the weekend days.
-            start_date += timedelta(days=1)
-            continue
-
-        file_name = start_date.strftime("%y%m%d") + "_portfolio.csv"
-        file_path = portfolio_dir.joinpath(file_name)
-
-        if file_path.is_file():
-            print(
-                f"Skipping portfolio date {start_date} "
-                f"as the file {file_path} already exists"
-            )
-
-        print(f"Obtaining portfolio for date: {start_date}")
-        data = obtain_portfolio(account, session_id, start_date)
-        with open(file_path, "w+") as f:
-            f.write(data)
-
+        process_date(start_date, account, session_id, portfolio_dir)
         start_date += timedelta(days=1)
 
 
@@ -82,16 +86,8 @@ def _get_stockwatch_dir(suggested_dir: Path | None) -> Path:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "account",
-        type=int,
-        help="The account identifier",
-    )
-    parser.add_argument(
-        "session_id",
-        type=str,
-        help="A valid session ID",
-    )
+    parser.add_argument("account", type=int, help="The account identifier")
+    parser.add_argument("session_id", type=str, help="A valid session ID")
     parser.add_argument(
         "-s",
         "--start-date",
@@ -118,9 +114,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     stockwatch_dir = _get_stockwatch_dir(args.dir)
-    portfolio_dir = stockwatch_dir.joinpath("portfolio")
-    os.makedirs(portfolio_dir, exist_ok=True)
+    new_dir = stockwatch_dir.joinpath("portfolio")
+    os.makedirs(new_dir, exist_ok=True)
 
-    loop_dates(
-        args.account, args.session_id, args.start_date, args.end_date, portfolio_dir
-    )
+    _loop_dates(args.account, args.session_id, args.start_date, args.end_date, new_dir)
