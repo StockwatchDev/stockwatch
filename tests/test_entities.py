@@ -14,7 +14,7 @@ from stockwatch.entities import (
 
 
 @pytest.fixture
-def example_sell_transaction() -> ShareTransaction:
+def example_sell_transaction_1() -> ShareTransaction:
     return ShareTransaction(
         kind=ShareTransactionKind.SELL,
         isin="NL0010408704",
@@ -26,6 +26,18 @@ def example_sell_transaction() -> ShareTransaction:
 
 
 @pytest.fixture
+def example_sell_transaction_2() -> ShareTransaction:
+    return ShareTransaction(
+        kind=ShareTransactionKind.SELL,
+        isin="IE00B3RBWM25",
+        curr="EUR",
+        nr_stocks=2.0,
+        price=105.25,
+        transaction_date=date.today() - timedelta(days=12),
+    )
+
+
+@pytest.fixture
 def example_buy_transaction() -> ShareTransaction:
     return ShareTransaction(
         kind=ShareTransactionKind.BUY,
@@ -33,6 +45,18 @@ def example_buy_transaction() -> ShareTransaction:
         curr="EUR",
         nr_stocks=16.0,
         price=64.375,
+        transaction_date=date.today() - timedelta(days=7),
+    )
+
+
+@pytest.fixture
+def example_dividend_transaction() -> ShareTransaction:
+    return ShareTransaction(
+        kind=ShareTransactionKind.DIVIDEND,
+        isin="IE00B3RBWM25",
+        curr="EUR",
+        nr_stocks=1.0,
+        price=13.13,
         transaction_date=date.today() - timedelta(days=7),
     )
 
@@ -82,9 +106,9 @@ def example_portfolio_2() -> SharePortfolio:
         "IE00B3RBWM25",
         "EUR",
         970.00,
-        10,
+        12,
         104.23,
-        1042.30,
+        1250.76,
         23.66,
         date.today() - timedelta(days=21),
     )
@@ -168,21 +192,44 @@ def test_get_all_isins(
 def test_sell_and_buy_transaction(
     example_portfolio_1: SharePortfolio,
     example_portfolio_2: SharePortfolio,
-    example_sell_transaction: ShareTransaction,
+    example_sell_transaction_1: ShareTransaction,
+    example_sell_transaction_2: ShareTransaction,
     example_buy_transaction: ShareTransaction,
 ) -> None:
     portfolio_set = (example_portfolio_2, example_portfolio_1)
-    transactions = (example_sell_transaction, example_buy_transaction)
+    transactions = (
+        example_sell_transaction_1,
+        example_sell_transaction_2,
+        example_buy_transaction,
+    )
     apply_transactions(transactions, portfolio_set)
-    assert portfolio_set[1].investment_of(example_sell_transaction.isin) == 0.0
-    assert portfolio_set[1].realized_return_of(example_sell_transaction.isin) == 122.86
+    assert portfolio_set[1].investment_of(example_sell_transaction_1.isin) == 0.0
+    assert (
+        portfolio_set[1].realized_return_of(example_sell_transaction_1.isin) == 122.86
+    )
     assert portfolio_set[1].investment_of(example_buy_transaction.isin) == 2060.0
+    assert portfolio_set[1].investment_of(example_sell_transaction_2.isin) == 808.33
+    assert portfolio_set[1].realized_return_of(example_sell_transaction_2.isin) == 72.49
 
     # and test the degenerate cases, that they do not raise an exception
-    example_sell_transaction.transaction_date = date.today() - timedelta(days=50)
-    apply_transactions((example_sell_transaction,), portfolio_set)
-    example_sell_transaction.transaction_date = date.today() + timedelta(days=50)
-    apply_transactions((example_sell_transaction,), portfolio_set)
-    example_sell_transaction.transaction_date = date.today() - timedelta(days=9)
-    example_sell_transaction.isin = "IE00B441G979"
-    apply_transactions((example_sell_transaction,), portfolio_set)
+    example_sell_transaction_1.transaction_date = date.today() - timedelta(days=50)
+    apply_transactions((example_sell_transaction_1,), portfolio_set)
+    example_sell_transaction_1.transaction_date = date.today() + timedelta(days=50)
+    apply_transactions((example_sell_transaction_1,), portfolio_set)
+    example_sell_transaction_1.transaction_date = date.today() - timedelta(days=9)
+    example_sell_transaction_1.isin = "IE00B441G979"
+    apply_transactions((example_sell_transaction_1,), portfolio_set)
+
+
+def test_dividend_transaction(
+    example_portfolio_1: SharePortfolio,
+    example_portfolio_2: SharePortfolio,
+    example_dividend_transaction: ShareTransaction,
+) -> None:
+    portfolio_set = (example_portfolio_2, example_portfolio_1)
+    transactions = (example_dividend_transaction,)
+    apply_transactions(transactions, portfolio_set)
+    assert portfolio_set[1].investment_of(example_dividend_transaction.isin) == 970.0
+    assert (
+        portfolio_set[1].realized_return_of(example_dividend_transaction.isin) == 36.79
+    )
