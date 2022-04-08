@@ -285,7 +285,16 @@ def _process_sell_transaction(
 
     buy_price = current_pos.investment / current_pos.nr_stocks
     realization = round(transaction.nr_stocks * (transaction.price - buy_price), 2)
-    if not next_portfolio.get_position(transaction.isin):
+    if next_portfolio.get_position(transaction.isin):
+        investment = round(-transaction.nr_stocks * buy_price, 2)
+        _add_investment_realization(
+            investment=investment,
+            realization=realization,
+            transaction_date=transaction.transaction_date,
+            isin=transaction.isin,
+            portfolios=portfolios,
+        )
+    else:
         # the portfolio on the next date does not have this share because we sell all
         # so let's create a position with the realization
         realization_pos = SharePosition(
@@ -303,15 +312,6 @@ def _process_sell_transaction(
         print(
             f"ISIN {transaction.isin} has been sold, total realization: "
             f"{realization_pos.realized}\n"
-        )
-    else:
-        investment = round(-transaction.nr_stocks * buy_price, 2)
-        _add_investment_realization(
-            investment=investment,
-            realization=realization,
-            transaction_date=transaction.transaction_date,
-            isin=transaction.isin,
-            portfolios=portfolios,
         )
 
 
