@@ -299,9 +299,7 @@ def _process_sell_transaction(
             realized=current_pos.realized + realization,
             position_date=next_portfolio.portfolio_date,
         )
-        share_poss = list(next_portfolio.share_positions)
-        share_poss.append(next_pos)
-        next_portfolio.share_positions = tuple(share_poss)
+        next_portfolio.share_positions += (next_pos,)
         print(
             f"ISIN {transaction.isin} has been sold, total realization: {next_pos.realized}\n"
         )
