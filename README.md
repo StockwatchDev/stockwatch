@@ -1,4 +1,4 @@
-# Stockwatch
+<h1 id="header">Stockwatch</h1>
 
 Stockwatch is an application (in development) for visualizing and analyzing a stock
 portfolio. The portfolio is loaded by reading csv files that have been downloaded from
@@ -6,7 +6,7 @@ De Giro.
 
 [TOC]
 
-## Installation for development
+# Installation for development
 
 1. Make sure that you have [python 3.10] installed, preferably with as little extra
    packages as possible.
@@ -15,7 +15,7 @@ De Giro.
 4. Open a command prompt, go to the repo directory and run `poetry install`. This
    command will create a virtual environment and install all needed dependencies.
 
-## Importing files downloaded from De Giro
+# Importing files downloaded from De Giro
 
 1. Create a folder that will be used to store files downloaded from De GIRO and nothing
    else. We will refer to this as our STOCKWATCH\_DIR hereafter
@@ -24,13 +24,13 @@ De Giro.
    to be picked up by the different scripts, or be put as last positional commandline
    argument
 
-## Download data manually
+# Download data manually
 
 The data used for the analysis in the stockwatch application can be downloaded manually.
-There is also an automatic scraper created for the portfolio data, which can be found
+There is also an automatic scraper for the portfolio data, more about this
 [here](#markdown-header-scraping-the-porfolio-data-from-de-giro)
 
-### Portfolio data (stock positions)
+## Portfolio data (stock positions)
 
 1. Log in with De Giro
 2. Select the Portfolio tab (Dutch: Portefeuille)
@@ -42,7 +42,7 @@ There is also an automatic scraper created for the portfolio data, which can be 
    yymmdd\_Portfolio.csv
 8. Repeat steps 4-8 for all dates that you want to visualize.
 
-### Account data (transactions)
+## Account data (transactions)
 
 1. Log in with De Giro
 2. Select the Overviews tab (Dutch: Overzichten) and then the Account overview tab
@@ -59,7 +59,7 @@ There is also an automatic scraper created for the portfolio data, which can be 
    yymmdd\_Account.csv
 8. Repeat steps 3-7 until you are at the current date.
 
-### Other indices
+## Other indices
 
 1. Go to [Yahoo Finance]
 2. Search for the stock or index you want to compare to.
@@ -72,20 +72,20 @@ There is also an automatic scraper created for the portfolio data, which can be 
    *index_name*.csv where `_` are replaced by spaces in the plot legends.
 8. When redrawing the figures the new index should be picked up automatically.
 
-## Running and editing
+# Running and editing
 
 1. Create a virtual env shell using `poetry shell`.
-2. Start your preferred editor from this shell (ensure that the virtual env is still
-   valid).
-3. Run the stockwatch executable using: `python -m stockwatch --dash`
-4. For help with the arguments use `python -m stockwatch --help`.
+2. Run the stockwatch executable using: `python -m stockwatch --dash`
+3. For help with the arguments use `python -m stockwatch --help`.
+4. Start your preferred editor from the poetry shell (this ensures that
+   the virtual env is still valid).
 
 Alternatively you can use `poetry run python -m stockwatch` instead
 of creating the virtual shell.
 
-## Scraping the porfolio data from De Giro
+# Scraping the porfolio data from De Giro
 
-Alternatively the portfolio data can be scraped with the scraping application
+The portfolio data can be scraped with the scraping application
 in this repo. Note that this application can easily break if De Giro updates
 it's website, unfortunately it is therefore not guaranteed to work. If the
 script breaks please raise an issue in the repo with the error output.
@@ -102,9 +102,9 @@ script breaks please raise an issue in the repo with the error output.
    and `--end-date YYYY-MM-DD` commandline arguments. The script will put all
    the files in the STOCKWATCH\_DIR/portfolio folder.
 
-## Running the tests
+# Running the tests
 
-To run all the static-code analysis, and unit-tests the [tox] framework is
+To run all the static-code analyses, and unit-tests the [tox] framework is
 used. For running the all checks simply execute the `tox` command from
 within the repo (while having a poetry shell, otherwise run `poetry run tox`).
 
