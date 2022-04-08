@@ -257,16 +257,16 @@ def _process_sell_transaction(
         transaction.kind == ShareTransactionKind.SELL
     ), f"Sell transaction expected, got {transaction.kind.name}"
 
-    last_unchanged_portfolio = closest_portfolio_before_date(
+    current_portfolio = closest_portfolio_before_date(
         portfolios, transaction.transaction_date
     )
-    if not last_unchanged_portfolio:
+    if not current_portfolio:
         print(
             "Cannot process sell transaction, no portfolio present before transaction date"
         )
         return
 
-    if not (current_pos := last_unchanged_portfolio.get_position(transaction.isin)):
+    if not (current_pos := current_portfolio.get_position(transaction.isin)):
         print(
             "Cannot process sell transaction, position not present in last portfolio before"
             f" the transaction date: {transaction.transaction_date}"
@@ -274,7 +274,7 @@ def _process_sell_transaction(
         return
 
     if not (
-        first_changed_portfolio := closest_portfolio_after_date(
+        next_portfolio := closest_portfolio_after_date(
             portfolios, transaction.transaction_date
         )
     ):
@@ -285,7 +285,7 @@ def _process_sell_transaction(
 
     buy_price = current_pos.investment / current_pos.nr_stocks
     realization = round(transaction.nr_stocks * (transaction.price - buy_price), 2)
-    if not first_changed_portfolio.get_position(transaction.isin):
+    if not next_portfolio.get_position(transaction.isin):
         # the portfolio on the next date does not have this share because we sell all
         # so let's create a position with the realization
         next_pos = SharePosition(
@@ -297,11 +297,11 @@ def _process_sell_transaction(
             price=1.0,
             value=0.0,
             realized=current_pos.realized + realization,
-            position_date=first_changed_portfolio.portfolio_date,
+            position_date=next_portfolio.portfolio_date,
         )
-        share_poss = list(first_changed_portfolio.share_positions)
+        share_poss = list(next_portfolio.share_positions)
         share_poss.append(next_pos)
-        first_changed_portfolio.share_positions = tuple(share_poss)
+        next_portfolio.share_positions = tuple(share_poss)
         print(
             f"ISIN {transaction.isin} has been sold, total realization: {next_pos.realized}\n"
         )
