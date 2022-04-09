@@ -315,7 +315,7 @@ def _process_sell_transaction(
             nr_stocks=0,
             price=1.0,
             value=0.0,
-            realized=current_pos.realized + realization,
+            realized=round(current_pos.realized + realization, 2),
             position_date=next_portfolio.portfolio_date,
         )
         next_portfolio.share_positions += (realization_pos,)
