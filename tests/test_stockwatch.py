@@ -1,4 +1,5 @@
-# pylint: skip-file
+# pylint: disable=C0114
+# pylint: disable=C0116
 from stockwatch import __version__
 
 
