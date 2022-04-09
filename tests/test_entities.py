@@ -8,6 +8,8 @@ from stockwatch.entities import (
     SharePortfolio,
     ShareTransactionKind,
     ShareTransaction,
+    earliest_portfolio_date,
+    latest_portfolio_date,
     closest_portfolio_after_date,
     closest_portfolio_before_date,
     get_all_isins,
@@ -157,28 +159,36 @@ def test_is_date_consistent(example_portfolio_1: SharePortfolio) -> None:
     assert example_portfolio_1.is_date_consistent()
 
 
+def test_earliest_lates_date(
+    example_portfolio_1: SharePortfolio, example_portfolio_2: SharePortfolio
+) -> None:
+    portfolios = (example_portfolio_2, example_portfolio_1)
+    assert earliest_portfolio_date(portfolios) == example_portfolio_2.portfolio_date
+    assert latest_portfolio_date(portfolios) == example_portfolio_1.portfolio_date
+
+
 def test_closest_portfolio(
     example_portfolio_1: SharePortfolio, example_portfolio_2: SharePortfolio
 ) -> None:
-    portfolio_set = (example_portfolio_2, example_portfolio_1)
+    portfolios = (example_portfolio_2, example_portfolio_1)
     assert (
-        closest_portfolio_after_date(portfolio_set, date.today() + timedelta(days=1))
+        closest_portfolio_after_date(portfolios, date.today() + timedelta(days=1))
         is None
     )
     assert (
-        closest_portfolio_after_date(portfolio_set, date.today() - timedelta(days=1))
+        closest_portfolio_after_date(portfolios, date.today() - timedelta(days=1))
         == example_portfolio_1
     )
     assert (
-        closest_portfolio_before_date(portfolio_set, date.today() + timedelta(days=1))
+        closest_portfolio_before_date(portfolios, date.today() + timedelta(days=1))
         == example_portfolio_1
     )
     assert (
-        closest_portfolio_before_date(portfolio_set, date.today() - timedelta(days=1))
+        closest_portfolio_before_date(portfolios, date.today() - timedelta(days=1))
         == example_portfolio_2
     )
     assert (
-        closest_portfolio_before_date(portfolio_set, date.today() - timedelta(days=50))
+        closest_portfolio_before_date(portfolios, date.today() - timedelta(days=50))
         is None
     )
 
@@ -186,8 +196,8 @@ def test_closest_portfolio(
 def test_get_all_isins(
     example_portfolio_1: SharePortfolio, example_portfolio_2: SharePortfolio
 ) -> None:
-    portfolio_set = (example_portfolio_2, example_portfolio_1)
-    all_isins = get_all_isins(portfolio_set)
+    portfolios = (example_portfolio_2, example_portfolio_1)
+    all_isins = get_all_isins(portfolios)
     assert len(all_isins) == 3
     assert "NL0010408704" in all_isins
     assert "IE00B441G979" in all_isins
@@ -201,29 +211,27 @@ def test_sell_and_buy_transaction(
     example_sell_transaction_2: ShareTransaction,
     example_buy_transaction: ShareTransaction,
 ) -> None:
-    portfolio_set = (example_portfolio_2, example_portfolio_1)
+    portfolios = (example_portfolio_2, example_portfolio_1)
     transactions = (
         example_sell_transaction_1,
         example_sell_transaction_2,
         example_buy_transaction,
     )
-    apply_transactions(transactions, portfolio_set)
-    assert portfolio_set[1].investment_of(example_sell_transaction_1.isin) == 0.0
-    assert (
-        portfolio_set[1].realized_return_of(example_sell_transaction_1.isin) == 122.86
-    )
-    assert portfolio_set[1].investment_of(example_buy_transaction.isin) == 2060.0
-    assert portfolio_set[1].investment_of(example_sell_transaction_2.isin) == 808.33
-    assert portfolio_set[1].realized_return_of(example_sell_transaction_2.isin) == 72.49
+    apply_transactions(transactions, portfolios)
+    assert portfolios[1].investment_of(example_sell_transaction_1.isin) == 0.0
+    assert portfolios[1].realized_return_of(example_sell_transaction_1.isin) == 122.86
+    assert portfolios[1].investment_of(example_buy_transaction.isin) == 2060.0
+    assert portfolios[1].investment_of(example_sell_transaction_2.isin) == 808.33
+    assert portfolios[1].realized_return_of(example_sell_transaction_2.isin) == 72.49
 
     # and test the degenerate cases, that they do not raise an exception
     example_sell_transaction_1.transaction_date = date.today() - timedelta(days=50)
-    apply_transactions((example_sell_transaction_1,), portfolio_set)
+    apply_transactions((example_sell_transaction_1,), portfolios)
     example_sell_transaction_1.transaction_date = date.today() + timedelta(days=50)
-    apply_transactions((example_sell_transaction_1,), portfolio_set)
+    apply_transactions((example_sell_transaction_1,), portfolios)
     example_sell_transaction_1.transaction_date = date.today() - timedelta(days=9)
     example_sell_transaction_1.isin = "IE00B441G979"
-    apply_transactions((example_sell_transaction_1,), portfolio_set)
+    apply_transactions((example_sell_transaction_1,), portfolios)
 
 
 def test_dividend_transaction(
@@ -231,10 +239,8 @@ def test_dividend_transaction(
     example_portfolio_2: SharePortfolio,
     example_dividend_transaction: ShareTransaction,
 ) -> None:
-    portfolio_set = (example_portfolio_2, example_portfolio_1)
+    portfolios = (example_portfolio_2, example_portfolio_1)
     transactions = (example_dividend_transaction,)
-    apply_transactions(transactions, portfolio_set)
-    assert portfolio_set[1].investment_of(example_dividend_transaction.isin) == 970.0
-    assert (
-        portfolio_set[1].realized_return_of(example_dividend_transaction.isin) == 36.79
-    )
+    apply_transactions(transactions, portfolios)
+    assert portfolios[1].investment_of(example_dividend_transaction.isin) == 970.0
+    assert portfolios[1].realized_return_of(example_dividend_transaction.isin) == 36.79

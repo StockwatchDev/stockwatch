@@ -159,6 +159,16 @@ class SharePortfolio:
         )
 
 
+def earliest_portfolio_date(share_portfolios: tuple[SharePortfolio, ...]) -> date:
+    """Return the earliest date found in share_portfolios."""
+    return min(spf.portfolio_date for spf in share_portfolios)
+
+
+def latest_portfolio_date(share_portfolios: tuple[SharePortfolio, ...]) -> date:
+    """Return the latest date found in share_portfolios."""
+    return max(spf.portfolio_date for spf in share_portfolios)
+
+
 def closest_portfolio_after_date(
     share_portfolios: tuple[SharePortfolio, ...], start_date: date
 ) -> SharePortfolio | None:
