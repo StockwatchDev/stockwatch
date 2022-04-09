@@ -1,4 +1,6 @@
-# pylint: skip-file
+# pylint: disable=W0621
+# pylint: disable=C0114
+# pylint: disable=C0116
 from datetime import date, timedelta
 import pytest
 from stockwatch.entities import (
@@ -127,7 +129,7 @@ def test_investment(example_portfolio_1: SharePortfolio) -> None:
 
 def test_contains_get_position(example_portfolio_1: SharePortfolio) -> None:
     assert not example_portfolio_1.contains("IE00B02KXL92")
-    assert example_portfolio_1.get_position("IE00B02KXL92") == None
+    assert example_portfolio_1.get_position("IE00B02KXL92") is None
     assert example_portfolio_1.get_position("IE00B441G979").isin == "IE00B441G979"
 
 
@@ -158,7 +160,7 @@ def test_closest_portfolio(
     portfolio_set = (example_portfolio_2, example_portfolio_1)
     assert (
         closest_portfolio_after_date(portfolio_set, date.today() + timedelta(days=1))
-        == None
+        is None
     )
     assert (
         closest_portfolio_after_date(portfolio_set, date.today() - timedelta(days=1))
@@ -174,7 +176,7 @@ def test_closest_portfolio(
     )
     assert (
         closest_portfolio_before_date(portfolio_set, date.today() - timedelta(days=50))
-        == None
+        is None
     )
 
 
