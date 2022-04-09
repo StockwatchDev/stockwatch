@@ -128,12 +128,15 @@ def test_investment(example_portfolio_1: SharePortfolio) -> None:
 
 
 def test_contains_get_position(example_portfolio_1: SharePortfolio) -> None:
-    assert not example_portfolio_1.contains("IE00B02KXL92")
-    assert example_portfolio_1.get_position("IE00B02KXL92") is None
+    non_existing_isin = "IE00B02KXL92"
+    assert not example_portfolio_1.contains(non_existing_isin)
+    assert example_portfolio_1.get_position(non_existing_isin) is None
     assert example_portfolio_1.get_position("IE00B441G979").isin == "IE00B441G979"
 
 
 def test_realized_return(example_portfolio_1: SharePortfolio) -> None:
+    non_existing_isin = "IE00B02KXL92"
+    assert example_portfolio_1.realized_return_of(non_existing_isin) == 0.0
     assert example_portfolio_1.realized_return_of("IE00B441G979") == -10.50
     assert example_portfolio_1.total_realized_return == 13.16
 
