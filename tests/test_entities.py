@@ -171,24 +171,26 @@ def test_closest_portfolio(
     example_portfolio_1: SharePortfolio, example_portfolio_2: SharePortfolio
 ) -> None:
     portfolios = (example_portfolio_2, example_portfolio_1)
+    earliest_date = earliest_portfolio_date(portfolios)
+    latest_date = latest_portfolio_date(portfolios)
     assert (
-        closest_portfolio_after_date(portfolios, date.today() + timedelta(days=1))
+        closest_portfolio_after_date(portfolios, latest_date + timedelta(days=1))
         is None
     )
     assert (
-        closest_portfolio_after_date(portfolios, date.today() - timedelta(days=1))
+        closest_portfolio_after_date(portfolios, latest_date - timedelta(days=1))
         == example_portfolio_1
     )
     assert (
-        closest_portfolio_before_date(portfolios, date.today() + timedelta(days=1))
+        closest_portfolio_before_date(portfolios, latest_date + timedelta(days=1))
         == example_portfolio_1
     )
     assert (
-        closest_portfolio_before_date(portfolios, date.today() - timedelta(days=1))
+        closest_portfolio_before_date(portfolios, earliest_date + timedelta(days=1))
         == example_portfolio_2
     )
     assert (
-        closest_portfolio_before_date(portfolios, date.today() - timedelta(days=50))
+        closest_portfolio_before_date(portfolios, earliest_date - timedelta(days=1))
         is None
     )
 
