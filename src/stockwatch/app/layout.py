@@ -9,6 +9,7 @@ from pathlib import Path
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 
+from .. import use_cases
 from . import ids
 
 
@@ -26,8 +27,8 @@ def get_layout(folder: Path) -> dbc.Container:
             ),
             dbc.Tabs(
                 [
-                    dcc.Tab(
-                        label="plotting",
+                    dbc.Tab(
+                        label="Plotting",
                         children=[
                             html.Div(
                                 [
@@ -69,7 +70,7 @@ def _get_scraping_form(folder: Path) -> list[dbc.Row]:
     return [
         dbc.Row(
             [
-                dbc.Col(html.Label("folder:"), width=2),
+                dbc.Col(html.Label("Folder:"), width=2),
                 dbc.Col(
                     dbc.Input(
                         id=ids.ScrapingId.FOLDER,
@@ -85,21 +86,13 @@ def _get_scraping_form(folder: Path) -> list[dbc.Row]:
         ),
         dbc.Row(
             [
-                dbc.Col(html.Label("account id:"), width=2),
+                dbc.Col(html.Label("Account ID:"), width=2),
                 dbc.Col(
-                    html.Div(
-                        [
-                            dbc.Input(
-                                placeholder="accountId",
-                                id=ids.ScrapingId.ACCOUNT_ID,
-                                type="number",
-                                style={"appearance": "textfield"},
-                            ),
-                            dbc.FormFeedback(
-                                "The account id should be a positive number",
-                                type="invalid",
-                            ),
-                        ]
+                    dbc.Input(
+                        placeholder="account ID",
+                        id=ids.ScrapingId.ACCOUNT_ID,
+                        type="number",
+                        style={"appearance": "textfield"},
                     ),
                     width=6,
                 ),
@@ -109,21 +102,13 @@ def _get_scraping_form(folder: Path) -> list[dbc.Row]:
         ),
         dbc.Row(
             [
-                dbc.Col(html.Label("session id:"), width=2),
+                dbc.Col(html.Label("Session ID:"), width=2),
                 dbc.Col(
-                    html.Div(
-                        [
-                            dbc.Input(
-                                placeholder="sessionId",
-                                id=ids.ScrapingId.SESSION_ID,
-                                type="text",
-                                size="50",
-                            ),
-                            dbc.FormFeedback(
-                                "The sessionid should end with .prod_b_112_1",
-                                type="invalid",
-                            ),
-                        ]
+                    dbc.Input(
+                        placeholder="session ID",
+                        id=ids.ScrapingId.SESSION_ID,
+                        type="text",
+                        size="50",
                     ),
                     width=6,
                 ),
@@ -133,25 +118,25 @@ def _get_scraping_form(folder: Path) -> list[dbc.Row]:
         ),
         dbc.Row(
             [
-                dbc.Col(html.Label("start date:"), width=2),
+                dbc.Col(html.Label("Start date:"), width=2),
                 dbc.Col(
                     dcc.DatePickerSingle(
                         id=ids.ScrapingId.START_DATE,
-                        min_date_allowed=date(1995, 8, 5),
+                        min_date_allowed=date(2008, 1, 1),
                         max_date_allowed=date.today(),
-                        initial_visible_month=date(2020, 1, 1),
-                        date=date(2020, 1, 1),
+                        date=use_cases.stockdir.get_last_date(folder / "portfolio"),
+                        display_format="DD/MM/YYYY",
                         className="dbc",
                     ),
                     width=2,
                 ),
-                dbc.Col(html.Label("end date:"), width=2),
+                dbc.Col(html.Label("End date:"), width=2),
                 dbc.Col(
                     dcc.DatePickerSingle(
                         id=ids.ScrapingId.END_DATE,
-                        min_date_allowed=date(1995, 8, 5),
+                        min_date_allowed=date(2008, 1, 1),
                         max_date_allowed=date.today(),
-                        initial_visible_month=date.today(),
+                        display_format="DD/MM/YYYY",
                         date=date.today(),
                         className="dbc",
                     ),
@@ -164,9 +149,9 @@ def _get_scraping_form(folder: Path) -> list[dbc.Row]:
     ]
 
 
-def _get_scraping_tab(folder: Path) -> dcc.Tab:
-    return dcc.Tab(
-        label="scraping",
+def _get_scraping_tab(folder: Path) -> dbc.Tab:
+    return dbc.Tab(
+        label="Scraping",
         children=[
             html.Div([html.Hr(), html.H2("Portfolio Scraping")]),
             html.Div(

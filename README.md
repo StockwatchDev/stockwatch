@@ -24,15 +24,22 @@ is required.
 1. Create a folder that will be used to store files downloaded from De GIRO and nothing
    else. We will refer to this as our STOCKWATCH\_DIR hereafter
 2. Create three subfolders in STOCKWATCH\_DIR: *portfolio*, *account* and *indices*
-3. The STOCKWATCH\_DIR path has to be defined in the environment variable
-   STOCKWATCH\_PATH before running the application. For help on how to do that
-   depending on your OS see: [Windows][WindowsEnv], [Linux][LinuxEnv].
+3. The STOCKWATCH\_DIR path can be defined in the environment variable STOCKWATCH\_PATH
+   to be picked up by the different scripts, or be put as last positional commandline.
+   For help on environment variables see: [Windows][WindowsEnv], [Linux][LinuxEnv].
 
 ## Scraping using the app
 
 Currently the portfolio data can be scraped using the Dash application. This will
 eventually be extended to all data. To scrape data using the webbrowser start the
-Stockwatch app and navigate to the `scrape` tab, and follow the instructions.
+Stockwatch app and navigate to the `scrape` tab, and follow these instructions:
+
+1. First login at DeGiro using your preferred browser.
+2. Open the devtools window (F12 on firefox, and Chrome)
+3. In the *network* tab, Search for a GET request to trader.degiro.nl
+4. Search for the *intAccount* integer, and the *sessionId* string to
+   input in the scraping application. In [Firefox] it can be found under
+   *Headers*, whereas in [Chrome], and [Edge] it can be found under *Payload*.
 
 ## Download data manually
 
@@ -85,32 +92,13 @@ There is also an automatic scraper for the portfolio data, more about this
 # Running and editing
 
 1. Create a virtual env shell using `poetry shell`.
-3. Run the stockwatch executable using: `python -m stockwatch`
-4. For help with the arguments use `python -m stockwatch --help`.
-5. Start your preferred editor from the poetry shell (this ensures that
+2. Run the stockwatch executable using: `python -m stockwatch`
+3. For help with the arguments use `python -m stockwatch --help`.
+4. Start your preferred editor from the poetry shell (this ensures that
    the virtual env is still valid).
 
 Alternatively you can use `poetry run python -m stockwatch` instead
 of creating the virtual shell.
-
-# Scraping the porfolio data from De Giro
-
-The portfolio data can be scraped with the scraping application
-in this repo. Note that this application can easily break if De Giro updates
-it's website, unfortunately it is therefore not guaranteed to work. If the
-script breaks please raise an issue in the repo with the error output.
-
-1. First login at DeGiro using your preferred browser.
-2. Open the devtools window (F12 on firefox, and Chrome)
-3. In the *network* tab, Search for a GET request to trader.degiro.nl
-4. Search for the *intAccount* integer, and the *sessionId* string to
-   input in the scraping application. In [Firefox] it can be found under
-   *Headers*, whereas in [Chrome], and [Edge] it can be found under *Payload*.
-5. Run the scraping application using
-   `python3 src/stockwatch/scraping/run.py accountId sessionId`
-   the start and end date can be configured using the `--start-date YYYY-MM-DD`
-   and `--end-date YYYY-MM-DD` commandline arguments. The script will put all
-   the files in the STOCKWATCH\_DIR/portfolio folder.
 
 # Running the tests
 

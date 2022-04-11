@@ -17,11 +17,8 @@ from . import layout, plotting, scraping
 def run_blocking(folder: Path) -> None:
     """Run the dash application."""
     app = DashProxy(
-        "StockWatcher",
-        external_stylesheets=[
-            dbc.themes.SIMPLEX,
-            "https://cdn.jsdelivr.net/gh/AnnMarieW/dash-bootstrap-templates@V1.0.4/dbc.css",
-        ],
+        __name__,
+        external_stylesheets=[dbc.themes.SIMPLEX],
         transforms=[MultiplexerTransform()],
     )
     app.layout = layout.get_layout(folder)

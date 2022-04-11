@@ -1,13 +1,10 @@
-"""This module contains the application logic for holding a stock portfolio with DeGiro.
-
-This package has a clean architecture. Hence, this module should only depend on the
-entities module (apart from plain Python).
-"""
+"""Here are all the use cases related to importing data from the DeGiro exported
+files."""
 import csv
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
-from .entities import (
+from ..entities import (
     SharePortfolio,
     SharePosition,
     ShareTransaction,
