@@ -52,8 +52,8 @@ show_error_context = true
 [[tool.mypy.overrides]]
 module = [
     "dash.*",
-	"dash_bootstrap_components.*",
-	"dash_extensions.*",
+    "dash_bootstrap_components.*",
+    "dash_extensions.*",
     "plotly.*",
 ]
 ignore_missing_imports = true
