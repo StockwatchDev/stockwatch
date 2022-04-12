@@ -16,6 +16,7 @@ def test_get_stockdir(monkeypatch) -> None:
 
     # If we give no input, and no environment variable
     # we get nothing back.
+    monkeypatch.delenv("STOCKWATCH_PATH", raising=True)
     with pytest.raises(RuntimeError):
         new_dir = stockdir.get_stockdir(None)
 
