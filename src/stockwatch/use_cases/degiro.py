@@ -1,4 +1,5 @@
 """The use cases related to getting data from the DeGiro website."""
+import re
 import threading
 from dataclasses import dataclass
 from datetime import date, timedelta
@@ -7,6 +8,25 @@ from pathlib import Path
 import requests
 
 from . import stockdir
+
+
+def is_valid_sessionid(sessionid: str) -> bool:
+    """Validate a session id according to the expected scheme from the DeGiro
+    website.
+    """
+    # A valid session id consists of 32 alpha-numericals
+    # followed by the identifier of the authentication server
+    # (seperated by a dot).
+    pattern = re.compile(r"[a-zA-Z0-9]{32}\.\w+", re.ASCII)
+    return bool(pattern.fullmatch(sessionid))
+
+
+def is_valid_accountid(accountid: int) -> bool:
+    """Validate an account id according to the expected scheme from the DeGiro
+    website.
+    """
+    # A valid account id is bigger than zero
+    return accountid > 0
 
 
 def get_portfolio_at(day: date, account: int, session_id: str) -> str | None:

@@ -1,15 +1,15 @@
 """Dash app callbacks for importing/scraping data from DeGiro."""
-import re
+from collections import namedtuple
 from datetime import date
 from pathlib import Path
 
 import dash
 from dash.dependencies import Input, Output, State
 
-from ..use_cases.degiro import PortfolioImportData, ScrapeThread
+from ..use_cases import degiro
 from .ids import ScrapingId
 
-_SCRAPE_THREAD = ScrapeThread()
+_SCRAPE_THREAD = degiro.ScrapeThread()
 
 
 def _disable_execute(session_id_valid: bool, account_id_valid: bool) -> bool:
@@ -32,7 +32,7 @@ def _execute_scraping(
         return dash.no_update
 
     started = _SCRAPE_THREAD.start(
-        PortfolioImportData(
+        degiro.PortfolioImportData(
             session_id,
             account_id,
             date.fromisoformat(start_date),
@@ -44,25 +44,21 @@ def _execute_scraping(
     return started
 
 
-def _validate_sessionid(sessionid: str | None) -> tuple[bool, bool]:
+ValidationOutput = namedtuple("ValidationOutput", ["valid", "invalid"])
+
+
+def _validate_sessionid(sessionid: str | None) -> ValidationOutput:
     if sessionid:
-        # A session id consists of 32 alpha-numericals
-        # followed by the identifier of the authentication server
-        # (seperated by a dot).
-        pattern = re.compile(r"[a-zA-Z0-9]{32}\.\w+", re.ASCII)
-        valid = pattern.fullmatch(sessionid)
-
-        return bool(valid), not valid
-
-    return False, False
+        valid = degiro.is_valid_sessionid(sessionid)
+        return ValidationOutput(valid=valid, invalid=not valid)
+    return ValidationOutput(False, False)
 
 
-def _validate_accountid(accountid: int | None) -> tuple[bool, bool]:
+def _validate_accountid(accountid: int | None) -> ValidationOutput:
     if accountid:
-        valid = accountid > 0
-
-        return valid, not valid
-    return False, False
+        valid = degiro.is_valid_accountid(accountid)
+        return ValidationOutput(valid=valid, invalid=not valid)
+    return ValidationOutput(False, False)
 
 
 def _set_interval(is_open: bool) -> bool:
