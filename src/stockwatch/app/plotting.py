@@ -26,12 +26,14 @@ _TRANSACTIONS: tuple[ShareTransaction, ...] | None = None
 _INDICES: dict[str, dict[date, float]] | None = None
 
 
-def _update_portfolios(is_open: bool, folder: str, refresh_clicks: int) -> int:
+def _update_portfolios(
+    is_open: bool, folder: str, refresh_clicks: int
+) -> int | dash._callback.NoUpdate:
     global _PORTOS  # pylint: disable=global-statement
     global _TRANSACTIONS  # pylint: disable=global-statement
     global _INDICES  # pylint: disable=global-statement
     if is_open:
-        return refresh_clicks
+        return dash.no_update
 
     path = Path(folder)
     _PORTOS = process_portfolios(folder=path)
@@ -68,13 +70,11 @@ def init_app(app: dash.Dash) -> None:
     app.callback(
         Output(ids.PlottingId.GRAPH_TOTAL, "figure"),
         Input(ids.PlottingId.REFRESH, "n_clicks"),
-        prevent_initial_callback=True,
     )(_draw_portfolio_graph_total)
 
     app.callback(
         Output(ids.PlottingId.GRAPH_RESULT, "figure"),
         Input(ids.PlottingId.REFRESH, "n_clicks"),
-        prevent_initial_callback=True,
     )(_draw_portfolio_graph)
 
     app.callback(
@@ -82,5 +82,5 @@ def init_app(app: dash.Dash) -> None:
         Input(ids.ScrapingId.MODAL, "is_open"),
         State(ids.ScrapingId.FOLDER, "value"),
         State(ids.PlottingId.REFRESH, "n_clicks"),
-        prevent_initial_callback=True,
+        prevent_initial_call=False,
     )(_update_portfolios)

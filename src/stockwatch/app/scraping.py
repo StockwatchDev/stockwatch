@@ -27,9 +27,9 @@ def _execute_scraping(
     start_date: str,
     end_date: str,
     folder: str,
-) -> bool:
+) -> bool | dash._callback.NoUpdate:
     if not session_id or not account_id:
-        return False
+        return dash.no_update
 
     started = _SCRAPE_THREAD.start(
         PortfolioImportData(
@@ -46,10 +46,10 @@ def _execute_scraping(
 
 def _validate_sessionid(sessionid: str | None) -> tuple[bool, bool]:
     if sessionid:
-        # A session id consists of 32 alphanumericas
+        # A session id consists of 32 alpha-numericals
         # followed by the identifier of the authentication server
         # (seperated by a dot).
-        pattern = re.compile(r"\w{32}\.\w+")
+        pattern = re.compile(r"[a-zA-Z0-9]{32}\.\w+", re.ASCII)
         valid = pattern.fullmatch(sessionid)
 
         return bool(valid), not valid
@@ -88,7 +88,7 @@ def _update_progress_info(_iter: int) -> str:
     )
 
 
-def _update_progress_modal(_iter: int) -> bool:
+def _update_progress_modal(_iter: int) -> bool | dash._callback.NoUpdate:
     # Close the modal window when the scraping is finished
     return not _SCRAPE_THREAD.finished
 
@@ -99,13 +99,10 @@ def init_app(app: dash.Dash) -> None:
         Output(ScrapingId.EXECUTE, "disabled"),
         Input(ScrapingId.SESSION_ID, "valid"),
         Input(ScrapingId.ACCOUNT_ID, "valid"),
-        prevent_initial_callback=True,
     )(_disable_execute)
 
     app.callback(
-        Output(ScrapingId.INTERVAL, "disabled"),
-        Input(ScrapingId.MODAL, "is_open"),
-        prevent_initial_callback=True,
+        Output(ScrapingId.INTERVAL, "disabled"), Input(ScrapingId.MODAL, "is_open")
     )(_set_interval)
 
     app.callback(
@@ -116,13 +113,10 @@ def init_app(app: dash.Dash) -> None:
         State(ScrapingId.START_DATE, "date"),
         State(ScrapingId.END_DATE, "date"),
         State(ScrapingId.FOLDER, "value"),
-        prevent_initial_callback=True,
     )(_execute_scraping)
 
     app.callback(
-        Output(ScrapingId.PLACEHOLDER, "n_clicks"),
-        Input(ScrapingId.CLOSE, "n_clicks"),
-        prevent_initial_callback=True,
+        Output(ScrapingId.PLACEHOLDER, "n_clicks"), Input(ScrapingId.CLOSE, "n_clicks")
     )(_stop_execution)
 
     app.callback(
@@ -142,19 +136,14 @@ def init_app(app: dash.Dash) -> None:
     )(_validate_accountid)
 
     app.callback(
-        Output(ScrapingId.PROGRESS, "value"),
-        Input(ScrapingId.INTERVAL, "n_intervals"),
-        prevent_initial_callback=True,
+        Output(ScrapingId.PROGRESS, "value"), Input(ScrapingId.INTERVAL, "n_intervals")
     )(_update_progress_bar)
 
     app.callback(
         Output(ScrapingId.CURRENT, "children"),
         Input(ScrapingId.INTERVAL, "n_intervals"),
-        prevent_initial_callback=True,
     )(_update_progress_info)
 
     app.callback(
-        Output(ScrapingId.MODAL, "is_open"),
-        Input(ScrapingId.INTERVAL, "n_intervals"),
-        prevent_initial_callback=True,
+        Output(ScrapingId.MODAL, "is_open"), Input(ScrapingId.INTERVAL, "n_intervals")
     )(_update_progress_modal)

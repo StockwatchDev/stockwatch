@@ -31,8 +31,6 @@ def get_stockdir(cmdline: Path | None) -> Path:
                 f"where the stockdata can be saved."
             )
         stockdir = Path(folder_str)
-
-    stockdir.mkdir(exist_ok=True)
     return stockdir
 
 
@@ -55,6 +53,8 @@ def check_portfolio_exists(folder: Path, portfolio_date: date) -> bool:
 def portfolio_to_file(folder: Path, data: str, portfolio_date: date) -> None:
     """Write the portfolio data of a certain date to file."""
     filepath = _get_portfolio_file(folder, portfolio_date)
+
+    filepath.parent.mkdir(exist_ok=True, parents=True)
     with open(filepath, "w+", encoding="UTF-8") as portfolio_file:
         portfolio_file.write(data)
 

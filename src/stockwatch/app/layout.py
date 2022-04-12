@@ -72,12 +72,7 @@ def _get_scraping_form(folder: Path) -> list[dbc.Row]:
             [
                 dbc.Col(html.Label("Folder:"), width=2),
                 dbc.Col(
-                    dbc.Input(
-                        id=ids.ScrapingId.FOLDER,
-                        value=f"{folder}",
-                        type="text",
-                        size="50",
-                    ),
+                    dbc.Input(id=ids.ScrapingId.FOLDER, value=f"{folder}", type="text"),
                     width=6,
                 ),
             ],
@@ -108,7 +103,6 @@ def _get_scraping_form(folder: Path) -> list[dbc.Row]:
                         placeholder="session ID",
                         id=ids.ScrapingId.SESSION_ID,
                         type="text",
-                        size="50",
                     ),
                     width=6,
                 ),
@@ -130,7 +124,7 @@ def _get_scraping_form(folder: Path) -> list[dbc.Row]:
                     ),
                     width=2,
                 ),
-                dbc.Col(html.Label("End date:"), width=2),
+                dbc.Col(html.Label("End date:", style={"float": "right"}), width=2),
                 dbc.Col(
                     dcc.DatePickerSingle(
                         id=ids.ScrapingId.END_DATE,
@@ -139,8 +133,9 @@ def _get_scraping_form(folder: Path) -> list[dbc.Row]:
                         display_format="DD/MM/YYYY",
                         date=date.today(),
                         className="dbc",
+                        style={"float": "right"},
                     ),
-                    width=3,
+                    width=2,
                 ),
             ],
             align="center",

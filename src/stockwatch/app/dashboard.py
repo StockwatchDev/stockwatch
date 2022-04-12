@@ -20,6 +20,7 @@ def run_blocking(folder: Path) -> None:
         __name__,
         external_stylesheets=[dbc.themes.SIMPLEX],
         transforms=[MultiplexerTransform()],
+        prevent_initial_callbacks=True,
     )
     app.layout = layout.get_layout(folder)
 
