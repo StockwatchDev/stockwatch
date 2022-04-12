@@ -1,4 +1,4 @@
-"""Run module for starting in the stockwatch application in the console."""
+"""Run module for starting the stockwatch application in the console."""
 
 from pathlib import Path
 

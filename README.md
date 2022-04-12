@@ -56,7 +56,7 @@ There is also an automatic scraper for the portfolio data, more about this
 5. Click CSV - as a result, a file Portfolio.csv will be downloaded to your computer
 6. Move the downloaded file to the STOCKWATCH\_DIR/portfolio folder
 7. Use the selected date info (step 5) to rename the relocated file to
-   yymmdd\_Portfolio.csv
+   yymmdd\_portfolio.csv
 8. Repeat steps 4-8 for all dates that you want to visualize.
 
 ### Account data (transactions)

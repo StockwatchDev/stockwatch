@@ -1,4 +1,4 @@
-"""Run module for starting in the stockwatch using a Dash interface in the browser."""
+"""Run module for starting stockwatch using a Dash interface in the browser."""
 from pathlib import Path
 
 from ..app import run_blocking
