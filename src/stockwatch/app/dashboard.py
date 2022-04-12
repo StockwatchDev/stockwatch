@@ -9,22 +9,42 @@ application logic, nor any adapters.
 from pathlib import Path
 
 import dash_bootstrap_components as dbc
-from dash_extensions.enrich import DashProxy, MultiplexerTransform
+from dash import Dash, Input, Output, callback, html
 
-from . import layout, plotting, scraping
+from . import pages
+from .ids import HeaderIds, Pages
+
+
+@callback(Output(HeaderIds.CONTENT, "children"), Input(HeaderIds.LOCATION, "pathname"))
+def _switch_page(pathname: str) -> html.Div:
+    match pathname:
+        case Pages.PLOTS:
+            return pages.plots.layout
+        case Pages.SCRAPING:
+            return pages.scraping.layout
+        case Pages.ABOUT:
+            return pages.about.layout
+        case _:
+            return pages.plots.layout
 
 
 def run_blocking(folder: Path) -> None:
     """Run the dash application."""
-    app = DashProxy(
+    app = Dash(
         __name__,
         external_stylesheets=[dbc.themes.SIMPLEX],
-        transforms=[MultiplexerTransform()],
         prevent_initial_callbacks=True,
     )
-    app.layout = layout.get_layout(folder)
+    pages.scraping.init_layout(folder)
 
-    scraping.init_app(app)
-    plotting.init_app(app)
+    app.layout = pages.index.layout
+    app.validation_layout = html.Div(
+        [
+            pages.index.layout,
+            pages.scraping.layout,
+            pages.plots.layout,
+            pages.about.layout,
+        ],
+    )
 
     app.run_server(debug=True)

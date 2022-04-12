@@ -56,3 +56,6 @@ Thumbs.db
 
 # stockwatch data
 stocks/
+
+# Playground folder for local develop scripts
+develop/

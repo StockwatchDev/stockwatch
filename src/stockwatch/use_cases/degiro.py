@@ -29,16 +29,12 @@ def is_valid_accountid(accountid: int) -> bool:
     return accountid > 0
 
 
-def get_portfolio_at(day: date, account: int, session_id: str) -> str | None:
+def get_portfolio_at(day: date, account: int, session_id: str) -> str:
     """Obtain the DeGiro portfolio csv data at a certain date.
 
     The method raises a RuntimeError if an error occurred while connecting
     to the DeGiro website.
     """
-    if day.weekday() == 5 or day.weekday() == 6:
-        # No need to get the portfolio at a weekend
-        return None
-
     url = "https://trader.degiro.nl/reporting/secure/v3/positionReport/csv"
     curl_args: dict[str, str | int] = {
         "sessionId": session_id,
@@ -46,6 +42,33 @@ def get_portfolio_at(day: date, account: int, session_id: str) -> str | None:
         "lang": "nl",
         "intAccount": account,
         "toDate": day.strftime("%d/%m/%Y"),
+    }
+
+    res = requests.get(url, params=curl_args)
+
+    if res.ok:
+        return str(res.text)
+
+    raise RuntimeError(f"Got an unexpected response: {res.reason}")
+
+
+def get_account_report(
+    start_day: date, end_day: date, account: int, session_id: str
+) -> str:
+    """Obtain the account report of a DeGiro account between the start and end date.
+
+    The method raises a RuntimeError if an error occurred while connecting to the
+    DeGiro website.
+    """
+
+    url = "https://trader.degiro.nl/reporting/secure/v3/cashAccountReport/csv"
+    curl_args: dict[str, str | int] = {
+        "sessionId": session_id,
+        "country": "NL",
+        "lang": "nl",
+        "intAccount": account,
+        "fromDate": start_day.strftime("%d/%m/%Y"),
+        "toDate": end_day.strftime("%d/%m/%Y"),
     }
 
     res = requests.get(url, params=curl_args)
@@ -76,6 +99,7 @@ class ScrapeThread:
         self._data = PortfolioImportData()
         self._current_date: date = date.today()
         self._stop = False
+        self._finished = True
 
     def start(self, data: PortfolioImportData) -> bool:
         """Start obtaining data from DeGiro"""
@@ -84,6 +108,7 @@ class ScrapeThread:
         self._data = data
 
         self._stop = False
+        self._finished = False
         self._thread = threading.Thread(target=self._process)
         self._thread.start()
         print("started")
@@ -107,7 +132,7 @@ class ScrapeThread:
     @property
     def finished(self) -> bool:
         """Return True if the process has finished."""
-        return self._stop or self._current_date == self._data.end_date
+        return self._finished
 
     @property
     def progress(self) -> int:
@@ -130,11 +155,42 @@ class ScrapeThread:
         return self._data.end_date
 
     def _process(self) -> None:
+        if not self._import_porfolio():
+            print("Failed to obtain all necessary portfolios")
+            self._finished = True
+            return
+
+        if not self._import_transactions():
+            print("Failed to obtain the transactions.")
+            self._finished = True
+            return
+
+        self._finished = True
+
+    def _import_transactions(self) -> bool:
+        # Let's also obtain the transactions.
+        if not self._stop:
+            try:
+                report = get_account_report(
+                    self._data.start_date,
+                    self._data.end_date,
+                    self._data.account_id,
+                    self._data.session_id,
+                )
+            except RuntimeError as ex:
+                # We should at least show a pop-up or something
+                print(f"Error during getting account report: {ex}")
+                self._stop = True
+                return False
+
+            stockdir.account_report_to_file(self._data.folder, report)
+        return True
+
+    def _import_porfolio(self) -> bool:
         self._current_date = self._data.start_date
         while self._current_date < self._data.end_date:
-            print(f"processing: {self._current_date}")
             if self._stop:
-                break
+                return False
 
             if stockdir.check_portfolio_exists(self._data.folder, self._current_date):
                 self._current_date += timedelta(days=1)
@@ -146,13 +202,11 @@ class ScrapeThread:
                 )
             except RuntimeError as ex:
                 # We should at least show a pop-up or something
-                print(f"Error: {ex}")
-                self._current_date = self._data.end_date
-                break
+                print(f"Error during getting portfolio at {self._current_date}: {ex}")
+                self._stop = True
+                return False
 
-            if portfolio:
-                stockdir.portfolio_to_file(
-                    self._data.folder, portfolio, self._current_date
-                )
+            stockdir.portfolio_to_file(self._data.folder, portfolio, self._current_date)
 
             self._current_date += timedelta(days=1)
+        return True

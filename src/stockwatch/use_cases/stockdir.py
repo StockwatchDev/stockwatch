@@ -34,7 +34,7 @@ def get_stockdir(cmdline: Path | None) -> Path:
     return stockdir
 
 
-def get_last_date(folder: Path) -> date:
+def get_first_date(folder: Path) -> date | None:
     """Get the last date of the csv files in the folder
 
     This assumes that all the csv files have the filename
@@ -42,7 +42,9 @@ def get_last_date(folder: Path) -> date:
     for a file from 15-Jan-2021)
     """
     files = sorted(folder.glob("*.csv"))
-    return datetime.strptime(files[-1].name[:6], _FILE_DATE_FORMAT).date()
+    if files:
+        return datetime.strptime(files[0].name[:6], _FILE_DATE_FORMAT).date()
+    return None
 
 
 def check_portfolio_exists(folder: Path, portfolio_date: date) -> bool:
@@ -59,6 +61,19 @@ def portfolio_to_file(folder: Path, data: str, portfolio_date: date) -> None:
         portfolio_file.write(data)
 
 
+def account_report_to_file(folder: Path, data: str) -> None:
+    """Write the account report to file."""
+    filepath = get_account_report_file(folder)
+
+    filepath.parent.mkdir(exist_ok=True, parents=True)
+    with open(filepath, "w+", encoding="UTF-8") as report_file:
+        report_file.write(data)
+
+
 def _get_portfolio_file(folder: Path, portfolio_date: date) -> Path:
     filename = portfolio_date.strftime("%y%m%d") + "_portfolio.csv"
     return folder / "portfolio" / filename
+
+
+def get_account_report_file(folder: Path) -> Path:
+    return folder.joinpath("account", "report.csv")

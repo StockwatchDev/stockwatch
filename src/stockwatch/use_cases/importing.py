@@ -10,6 +10,7 @@ from ..entities import (
     ShareTransaction,
     ShareTransactionKind,
 )
+from . import stockdir
 
 
 def _process_buy_transaction_row(
@@ -88,33 +89,32 @@ def process_transactions(isins: set[str], folder: Path) -> tuple[ShareTransactio
     The csv files should be formatted as done by De Giro and should named as follows:
     yymmdd_Account.csv, where the date is from the Einddatum that was selected.
     """
-    account_folder = folder.joinpath("account")
-    files = sorted(account_folder.glob("*.csv"))
-    print(f"Number of files to process: {len(files)}")
+    transactions_file = stockdir.get_account_report_file(folder)
+
+    if not transactions_file.is_file():
+        print(f"No transactions file can be found at: {transactions_file}")
+        return tuple()
 
     transactions: list[ShareTransaction] = []
-    for file_path in files:
-        with file_path.open(mode="r") as csv_file:
-            contents = csv_file.readlines()
-            # headers are missing for columns with the transaction amount
-            # and the balance; modify contents[0] here to include header for amount
-            contents[0] = contents[0].replace("Mutatie,,", "Mutatie,Bedrag,")
-            csv_reader = csv.DictReader(contents)
-            for row in reversed(list(csv_reader)):
-                # we're only interested in real stock positions (not cash)
-                if (isin := row["ISIN"]) in isins:
-                    transaction_date = datetime.strptime(
-                        row["Datum"], "%d-%m-%Y"
-                    ).date()
+    with transactions_file.open(mode="r") as csv_file:
+        contents = csv_file.readlines()
+        # headers are missing for columns with the transaction amount
+        # and the balance; modify contents[0] here to include header for amount
+        contents[0] = contents[0].replace("Mutatie,,", "Mutatie,Bedrag,")
+        csv_reader = csv.DictReader(contents)
+        for row in reversed(list(csv_reader)):
+            # we're only interested in real stock positions (not cash)
+            if (isin := row["ISIN"]) in isins:
+                transaction_date = datetime.strptime(row["Datum"], "%d-%m-%Y").date()
 
-                    transaction = _process_transaction_row(
-                        transaction_date=transaction_date,
-                        isin=isin,
-                        row=row,
-                    )
+                transaction = _process_transaction_row(
+                    transaction_date=transaction_date,
+                    isin=isin,
+                    row=row,
+                )
 
-                    if transaction is not None:
-                        transactions.append(transaction)
+                if transaction is not None:
+                    transactions.append(transaction)
     return tuple(transactions)
 
 
@@ -191,7 +191,11 @@ def _determine_index_values(
             )
             continue
 
-        if not (index_price := index_prices.get(transaction.transaction_date)):
+        if not (
+            index_price := _get_first_valid_price(
+                index_prices, transaction.transaction_date
+            )
+        ):
             continue
 
         value = transaction.nr_stocks * transaction.price
@@ -230,20 +234,8 @@ def process_indices(
     """Create the positions for the indices in the dict, given the transactions done."""
     ret_val = []
 
-    for index_name, prices in indices.items():
+    for index_name, index_prices in indices.items():
         index_positions = []
-
-        # Let's create the index prices at all the transaction dates.
-        index_prices = {}
-        for transaction in transactions:
-            index_price = _get_first_valid_price(prices, transaction.transaction_date)
-            if index_price is None:
-                print(
-                    f"Could not find an index price of '{index_name}' within 10 days "
-                    f"for {transaction.transaction_date}"
-                )
-                continue
-            index_prices[transaction.transaction_date] = index_price
 
         for position_date in dates:
             if new_pos := _determine_index_values(

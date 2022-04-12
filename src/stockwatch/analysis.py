@@ -9,6 +9,16 @@ from .adapters import positions_plotdata, returns_plotdata
 from .entities import SharePortfolio, SharePosition
 
 
+def _create_figure() -> go.Figure:
+    return go.Figure(
+        layout=go.Layout(
+            paper_bgcolor="rgba(0,0,0,0)",
+            margin=dict(l=50, r=50, b=50, t=50, pad=4),
+            legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01, bgcolor="white"),
+        ),
+    )
+
+
 def plot_returns(
     share_portfolios: tuple[SharePortfolio, ...],
     indices: list[tuple[SharePosition, ...]] | None = None,
@@ -16,7 +26,9 @@ def plot_returns(
     """Plot the returns of a portfolio."""
     returns_data = returns_plotdata(share_portfolios)
 
-    fig = go.Figure()
+    fig = _create_figure()
+    fig.update_layout(hovermode="x unified")
+
     fig.add_trace(
         go.Scatter(
             x=returns_data.dates,
@@ -49,12 +61,12 @@ def plot_returns(
         go.Scatter(
             x=returns_data.dates,
             y=returns_data.returns,
-            hovertemplate="<b>returns: </b>€%{y:0.2f}<extra></extra>",
+            hovertemplate="<b>portfolio: </b>€%{y:0.2f}<extra></extra>",
             name="Returns",
             line=dict(color="black", width=2.0),
             legendrank=2,
             legendgroup="indexes",
-            legendgrouptitle_text="Indexes",
+            legendgrouptitle_text="Returns",
         )
     )
 
@@ -73,7 +85,7 @@ def plot_returns(
                     legendgrouptitle_text="Indexes",
                 )
             )
-    fig.update_layout(hovermode="x unified")
+
     return fig
 
 
@@ -82,7 +94,7 @@ def plot_positions(share_portfolios: tuple[SharePortfolio, ...]) -> go.Figure:
 
     positions_data = positions_plotdata(share_portfolios)
 
-    fig = go.Figure()
+    fig = _create_figure()
     for (isin, name) in positions_data.isins_and_names:
         hovertemplate = (
             f"<b>{name} - {isin}</b><br>value €%{{y:0.2f}}<br>"
