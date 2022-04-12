@@ -1,13 +1,10 @@
-"""This module contains the application logic for holding a stock portfolio with DeGiro.
-
-This package has a clean architecture. Hence, this module should only depend on the
-entities module (apart from plain Python).
-"""
+"""Here are all the use cases related to importing data from the DeGiro exported
+files."""
 import csv
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
-from .entities import (
+from ..entities import (
     SharePortfolio,
     SharePosition,
     ShareTransaction,
@@ -153,10 +150,12 @@ def process_portfolios(folder: Path) -> tuple[SharePortfolio, ...]:
                         position_date=file_date,
                     )
                     sep_stocks.append(the_position)
-        the_portfolio = SharePortfolio(
-            share_positions=tuple(sep_stocks), portfolio_date=file_date
-        )
-        share_portfolios.append(the_portfolio)
+
+        if sep_stocks:
+            the_portfolio = SharePortfolio(
+                share_positions=tuple(sep_stocks), portfolio_date=file_date
+            )
+            share_portfolios.append(the_portfolio)
     return tuple(share_portfolios)
 
 
