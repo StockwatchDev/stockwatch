@@ -2,9 +2,7 @@
 
 from pathlib import Path
 
-from .. import use_cases
-from ..analysis import plot_positions, plot_returns
-from ..entities import apply_transactions, get_all_isins
+from stockwatch import use_cases, analysis, entities
 
 
 def run(folder: Path) -> int:
@@ -18,11 +16,11 @@ def run(folder: Path) -> int:
         ),
     )
     transactions = use_cases.process_transactions(
-        isins=get_all_isins(share_portfolios), folder=folder
+        isins=entities.get_all_isins(share_portfolios), folder=folder
     )
-    apply_transactions(transactions, share_portfolios)
-    fig1 = plot_returns(share_portfolios)
-    fig2 = plot_positions(share_portfolios)
+    entities.apply_transactions(transactions, share_portfolios)
+    fig1 = analysis.plot_returns(share_portfolios)
+    fig2 = analysis.plot_positions(share_portfolios)
 
     fig1.show()
     fig2.show()

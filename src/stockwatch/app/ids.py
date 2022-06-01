@@ -42,7 +42,7 @@ class HeaderIds(_BaseDashId):
     CONTENT = "header-content"
 
 
-class Pages(_BaseDashId):
+class PageIds(_BaseDashId):
     """The pages link."""
 
     PLOTS = "/plots"

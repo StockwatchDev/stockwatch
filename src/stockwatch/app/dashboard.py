@@ -12,17 +12,17 @@ import dash_bootstrap_components as dbc
 from dash import Dash, Input, Output, callback, html
 
 from . import pages
-from .ids import HeaderIds, Pages
+from .ids import HeaderIds, PageIds
 
 
 @callback(Output(HeaderIds.CONTENT, "children"), Input(HeaderIds.LOCATION, "pathname"))
 def _switch_page(pathname: str) -> html.Div:
     match pathname:
-        case Pages.PLOTS:
+        case PageIds.PLOTS:
             return pages.plots.layout
-        case Pages.SCRAPING:
+        case PageIds.SCRAPING:
             return pages.scraping.layout
-        case Pages.ABOUT:
+        case PageIds.ABOUT:
             return pages.about.layout
         case _:
             return pages.plots.layout

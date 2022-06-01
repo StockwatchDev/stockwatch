@@ -4,7 +4,7 @@ import csv
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
-from ..entities import (
+from stockwatch.entities import (
     SharePortfolio,
     SharePosition,
     ShareTransaction,

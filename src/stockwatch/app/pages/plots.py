@@ -6,8 +6,8 @@ import dash
 import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
 
-from ... import analysis, entities, use_cases
-from .. import ids
+from stockwatch import analysis, entities, use_cases
+from stockwatch.app import ids
 
 _PORTOS: tuple[entities.SharePortfolio, ...] | None = None
 _TRANSACTIONS: tuple[entities.ShareTransaction, ...] | None = None
@@ -19,10 +19,7 @@ def _get_layout() -> dash.html.Div:
     return dash.html.Div(
         [
             dash.html.Button(
-                "Refresh",
-                id=ids.PlottingId.REFRESH,
-                n_clicks=0,
-                hidden=True,
+                "Refresh", id=ids.PlottingId.REFRESH, n_clicks=0, hidden=True
             ),
             dbc.Container(
                 [
@@ -54,24 +51,18 @@ def _create_graph_card(title: str, graph_id: ids.PlottingId) -> dbc.Card:
         [
             dbc.CardHeader(
                 dash.html.H2(
-                    title,
-                    style={"text-align": "center"},
-                    className="card-title",
-                ),
+                    title, style={"text-align": "center"}, className="card-title"
+                )
             ),
             dbc.CardBody(
                 [
                     dash.dcc.Loading(
                         dash.dcc.Graph(
-                            id=graph_id,
-                            style={
-                                "width": "100%",
-                                "height": "700px",
-                            },
+                            id=graph_id, style={"width": "100%", "height": "700px"}
                         ),
                         color="var(--bs-gray)",
-                    ),
-                ],
+                    )
+                ]
             ),
         ],
         style={"marginBottom": "5em", "verticalAlign": "middle"},
@@ -80,10 +71,6 @@ def _create_graph_card(title: str, graph_id: ids.PlottingId) -> dbc.Card:
 
 
 layout = _get_layout()
-
-###############################################################################
-#                               The Callbacks                                 #
-###############################################################################
 
 
 @dash.callback(

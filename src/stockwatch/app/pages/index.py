@@ -1,7 +1,8 @@
+"""Dash app callbacks for the index/home page."""
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 
-from ..ids import HeaderIds, Pages
+from stockwatch.app.ids import HeaderIds, PageIds
 
 
 def _get_index_page() -> html.Div:
@@ -12,22 +13,22 @@ def _get_index_page() -> html.Div:
                 [
                     dbc.NavItem(
                         dbc.NavLink(
-                            "Plots", id=HeaderIds.PLOTS, href=Pages.PLOTS, n_clicks=0
+                            "Plots", id=HeaderIds.PLOTS, href=PageIds.PLOTS, n_clicks=0
                         )
                     ),
                     dbc.NavItem(
                         dbc.NavLink(
-                            "Scraping", id=HeaderIds.SCRAPING, href=Pages.SCRAPING
+                            "Scraping", id=HeaderIds.SCRAPING, href=PageIds.SCRAPING
                         )
                     ),
                     dbc.NavItem(dbc.NavLink("", disabled=True)),
                     dbc.NavItem(
-                        dbc.NavLink("About", id=HeaderIds.ABOUT, href=Pages.ABOUT),
+                        dbc.NavLink("About", id=HeaderIds.ABOUT, href=PageIds.ABOUT),
                         style={"marginRight": "10em", "marginLeft": "1em"},
                     ),
                 ],
                 brand="StockWatch",
-                brand_href=Pages.PLOTS,
+                brand_href=PageIds.PLOTS,
                 color="dark",
                 dark=True,
                 fluid=False,

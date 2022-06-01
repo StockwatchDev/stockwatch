@@ -35,7 +35,7 @@ def get_stockdir(cmdline: Path | None) -> Path:
 
 
 def get_first_date(folder: Path) -> date | None:
-    """Get the last date of the csv files in the folder
+    """Get the first date of the csv files in the folder
 
     This assumes that all the csv files have the filename
     format yymmdd_FILENAME.csv (e.g. 210115_example.csv
@@ -76,4 +76,5 @@ def _get_portfolio_file(folder: Path, portfolio_date: date) -> Path:
 
 
 def get_account_report_file(folder: Path) -> Path:
+    """Get the account report file path."""
     return folder.joinpath("account", "report.csv")

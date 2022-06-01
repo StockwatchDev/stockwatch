@@ -7,15 +7,16 @@ import dash
 import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output, State
 
-from ...use_cases import degiro, stockdir
-from ..ids import HeaderIds, Pages, ScrapingId
+from stockwatch.use_cases import degiro, stockdir
+from stockwatch.app.ids import HeaderIds, PageIds, ScrapingId
 
 _SCRAPE_THREAD = degiro.ScrapeThread()
 layout = dash.dash.html.Div()
 
 
 def init_layout(folder: Path) -> None:
-    global layout
+    """Initialze the layout for the scraping page."""
+    global layout  # pylint: disable=global-statement, invalid-name
     layout = dash.html.Div(
         [
             dbc.Container(
@@ -31,7 +32,7 @@ def init_layout(folder: Path) -> None:
                                     disabled=True,
                                 ),
                             ]
-                        ),
+                        )
                     ),
                     dbc.Row(
                         dbc.Col(
@@ -47,8 +48,8 @@ def init_layout(folder: Path) -> None:
                                         target="_blank",
                                     ),
                                 ]
-                            ),
-                        ),
+                            )
+                        )
                     ),
                     dbc.Row(dash.html.Hr()),
                     dbc.Container(_get_scraping_form(folder), fluid=True),
@@ -59,8 +60,7 @@ def init_layout(folder: Path) -> None:
                                 [
                                     dash.html.Label("Importing data from DeGiro"),
                                     dbc.Progress(
-                                        id=ScrapingId.PROGRESS,
-                                        style={"height": "30px"},
+                                        id=ScrapingId.PROGRESS, style={"height": "30px"}
                                     ),
                                     dash.html.Label("", id=ScrapingId.CURRENT),
                                 ]
@@ -75,8 +75,8 @@ def init_layout(folder: Path) -> None:
                     dash.html.Hr(),
                     dash.html.P(id=ScrapingId.PLACEHOLDER),
                 ]
-            ),
-        ],
+            )
+        ]
     )
 
 
@@ -118,9 +118,7 @@ def _get_scraping_form(folder: Path) -> list[dbc.Row]:
                 dbc.Col(dash.html.Label("Session ID:"), width=2, xl=1),
                 dbc.Col(
                     dbc.Input(
-                        placeholder="session ID",
-                        id=ScrapingId.SESSION_ID,
-                        type="text",
+                        placeholder="session ID", id=ScrapingId.SESSION_ID, type="text"
                     ),
                     width=7,
                 ),
@@ -172,18 +170,13 @@ def _get_scraping_form(folder: Path) -> list[dbc.Row]:
                     [
                         dbc.Button(
                             "Import", id=ScrapingId.EXECUTE, n_clicks=0, disabled=True
-                        ),
+                        )
                     ],
                     width="auto",
-                ),
+                )
             ]
         ),
     ]
-
-
-###############################################################################
-#                               The Callbacks                                 #
-###############################################################################
 
 
 @dash.callback(
@@ -239,10 +232,7 @@ ValidationOutput = namedtuple("ValidationOutput", ["valid", "invalid"])
 
 
 @dash.callback(
-    [
-        Output(ScrapingId.SESSION_ID, "valid"),
-        Output(ScrapingId.SESSION_ID, "invalid"),
-    ],
+    [Output(ScrapingId.SESSION_ID, "valid"), Output(ScrapingId.SESSION_ID, "invalid")],
     Input(ScrapingId.SESSION_ID, "value"),
 )
 def _validate_sessionid(sessionid: str | None) -> ValidationOutput:
@@ -253,10 +243,7 @@ def _validate_sessionid(sessionid: str | None) -> ValidationOutput:
 
 
 @dash.callback(
-    [
-        Output(ScrapingId.ACCOUNT_ID, "valid"),
-        Output(ScrapingId.ACCOUNT_ID, "invalid"),
-    ],
+    [Output(ScrapingId.ACCOUNT_ID, "valid"), Output(ScrapingId.ACCOUNT_ID, "invalid")],
     Input(ScrapingId.ACCOUNT_ID, "value"),
 )
 def _validate_accountid(accountid: int | None) -> ValidationOutput:
@@ -285,8 +272,7 @@ def _update_progress_bar(_iter: int) -> int:
 
 
 @dash.callback(
-    Output(ScrapingId.CURRENT, "children"),
-    Input(ScrapingId.INTERVAL, "n_intervals"),
+    Output(ScrapingId.CURRENT, "children"), Input(ScrapingId.INTERVAL, "n_intervals")
 )
 def _update_progress_info(_iter: int) -> str:
     if _SCRAPE_THREAD.finished:
@@ -300,10 +286,9 @@ def _update_progress_info(_iter: int) -> str:
 
 
 @dash.callback(
-    Output(HeaderIds.LOCATION, "pathname"),
-    Input(ScrapingId.INTERVAL, "n_intervals"),
+    Output(HeaderIds.LOCATION, "pathname"), Input(ScrapingId.INTERVAL, "n_intervals")
 )
 def _update_progress_finished(_iter: int) -> str | dash._callback.NoUpdate:
     if not _SCRAPE_THREAD.created:
         return dash.no_update
-    return Pages.PLOTS
+    return PageIds.PLOTS
