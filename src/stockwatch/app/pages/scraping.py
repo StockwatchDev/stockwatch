@@ -7,8 +7,8 @@ import dash
 import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output, State
 
-from stockwatch.use_cases import degiro, stockdir
 from stockwatch.app.ids import HeaderIds, PageIds, ScrapingId
+from stockwatch.use_cases import degiro, stockdir
 
 _SCRAPE_THREAD = degiro.ScrapeThread()
 layout = dash.dash.html.Div()
@@ -290,5 +290,7 @@ def _update_progress_info(_iter: int) -> str:
 )
 def _update_progress_finished(_iter: int) -> str | dash._callback.NoUpdate:
     if not _SCRAPE_THREAD.created:
+        return dash.no_update
+    if not _SCRAPE_THREAD.finished:
         return dash.no_update
     return PageIds.PLOTS

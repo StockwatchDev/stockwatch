@@ -111,7 +111,6 @@ class ScrapeThread:
         self._finished = False
         self._thread = threading.Thread(target=self._process)
         self._thread.start()
-        print("started")
         return True
 
     def stop(self) -> None:
