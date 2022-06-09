@@ -4,6 +4,6 @@ from pathlib import Path
 from . import console, dash
 
 
-def main(no_dash: bool, stockdir: Path) -> int:
+def main(no_dash: bool) -> int:
     """Main run function."""
-    return console.run(stockdir) if no_dash else dash.run(stockdir)
+    return console.run() if no_dash else dash.run()

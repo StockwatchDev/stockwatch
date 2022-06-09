@@ -2,7 +2,6 @@
 files."""
 import csv
 from datetime import date, datetime, timedelta
-from pathlib import Path
 
 from stockwatch.entities import (
     SharePortfolio,
@@ -10,6 +9,7 @@ from stockwatch.entities import (
     ShareTransaction,
     ShareTransactionKind,
 )
+
 from . import stockdir
 
 
@@ -83,13 +83,13 @@ def _process_transaction_row(
     return None
 
 
-def process_transactions(isins: set[str], folder: Path) -> tuple[ShareTransaction, ...]:
+def process_transactions(isins: set[str]) -> tuple[ShareTransaction, ...]:
     """Get a list of all the transactions from the CSV files in the account folder.
 
     The csv files should be formatted as done by De Giro and should named as follows:
     yymmdd_Account.csv, where the date is from the Einddatum that was selected.
     """
-    transactions_file = stockdir.get_account_report_file(folder)
+    transactions_file = stockdir.get_account_report_file()
 
     if not transactions_file.is_file():
         print(f"No transactions file can be found at: {transactions_file}")
@@ -118,15 +118,15 @@ def process_transactions(isins: set[str], folder: Path) -> tuple[ShareTransactio
     return tuple(transactions)
 
 
-def process_portfolios(folder: Path) -> tuple[SharePortfolio, ...]:
-    """Create the dated portfolios from the Portfolio csv's found in folder.
+def process_portfolios() -> tuple[SharePortfolio, ...]:
+    """Create the dated portfolios from the Portfolio csv's found in the portfolio folder.
 
     The csv files should be formatted as done by De Giro and should named as follows:
     yymmdd_Portfolio.csv
     """
     share_portfolios = []
 
-    for file_path in sorted(folder.joinpath("portfolio").glob("*.csv")):
+    for file_path in sorted(stockdir.get_portfolio_folder().glob("*.csv")):
         file_date = datetime.strptime(file_path.name[:6], "%y%m%d").date()
         with file_path.open(mode="r") as csv_file:
             sep_stocks = []
@@ -248,10 +248,9 @@ def process_indices(
     return ret_val
 
 
-def process_index_prices(folder: Path) -> dict[str, dict[date, float]]:
+def process_index_prices() -> dict[str, dict[date, float]]:
     """Read in all the index prices from the index folder."""
-    index_folder = folder.joinpath("indices")
-    files = index_folder.glob("*.csv")
+    files = stockdir.get_indices_folder().glob("*.csv")
 
     ret_val: dict[str, dict[date, float]] = {}
 

@@ -1,7 +1,6 @@
 """Dash app callbacks for importing/scraping data from DeGiro."""
 from collections import namedtuple
 from datetime import date
-from pathlib import Path
 
 import dash
 import dash_bootstrap_components as dbc
@@ -14,7 +13,7 @@ _SCRAPE_THREAD = degiro.ScrapeThread()
 layout = dash.dash.html.Div()
 
 
-def init_layout(folder: Path) -> None:
+def init_layout() -> None:
     """Initialze the layout for the scraping page."""
     global layout  # pylint: disable=global-statement, invalid-name
     layout = dash.html.Div(
@@ -52,7 +51,7 @@ def init_layout(folder: Path) -> None:
                         )
                     ),
                     dbc.Row(dash.html.Hr()),
-                    dbc.Container(_get_scraping_form(folder), fluid=True),
+                    dbc.Container(_get_scraping_form(), fluid=True),
                     dbc.Modal(
                         [
                             dbc.ModalHeader(dbc.ModalTitle("Scraping progress...")),
@@ -80,8 +79,9 @@ def init_layout(folder: Path) -> None:
     )
 
 
-def _get_scraping_form(folder: Path) -> list[dbc.Row]:
-    start_date = stockdir.get_first_date(folder / "portfolio")
+def _get_scraping_form() -> list[dbc.Row]:
+    folder = stockdir.get_portfolio_folder()
+    start_date = stockdir.get_first_date(folder)
     if start_date is None:
         start_date = date(2020, 1, 1)
 
@@ -90,7 +90,12 @@ def _get_scraping_form(folder: Path) -> list[dbc.Row]:
             [
                 dbc.Col(dash.html.Label("Folder:"), width=2, xl=1),
                 dbc.Col(
-                    dbc.Input(id=ScrapingId.FOLDER, value=f"{folder}", type="text"),
+                    dbc.Input(
+                        id=ScrapingId.FOLDER,
+                        value=f"{folder}",
+                        type="text",
+                        disabled=True,
+                    ),
                     width=7,
                 ),
             ],
@@ -202,7 +207,6 @@ def _stop_execution(_n_clicks: int) -> None:
     State(ScrapingId.ACCOUNT_ID, "value"),
     State(ScrapingId.START_DATE, "date"),
     State(ScrapingId.END_DATE, "date"),
-    State(ScrapingId.FOLDER, "value"),
 )
 def _execute_scraping(
     _execute_clicks: int,
@@ -210,7 +214,6 @@ def _execute_scraping(
     account_id: int | None,
     start_date: str,
     end_date: str,
-    folder: str,
 ) -> bool | dash._callback.NoUpdate:
     if not session_id or not account_id:
         return dash.no_update
@@ -221,7 +224,6 @@ def _execute_scraping(
             account_id,
             date.fromisoformat(start_date),
             date.fromisoformat(end_date),
-            Path(folder),
         )
     )
 
@@ -264,10 +266,6 @@ def _set_interval(is_open: bool) -> bool:
     Output(ScrapingId.PROGRESS, "value"), Input(ScrapingId.INTERVAL, "n_intervals")
 )
 def _update_progress_bar(_iter: int) -> int:
-    if _SCRAPE_THREAD.finished:
-        _SCRAPE_THREAD.clear()
-        return 0
-
     return _SCRAPE_THREAD.progress
 
 
@@ -278,10 +276,10 @@ def _update_progress_info(_iter: int) -> str:
     if _SCRAPE_THREAD.finished:
         return ""
 
+    days_left = (_SCRAPE_THREAD.end_date - _SCRAPE_THREAD.current_date).days + 1
     return (
         f"Currently processing: {_SCRAPE_THREAD.current_date} - still "
-        f"{(_SCRAPE_THREAD.end_date - _SCRAPE_THREAD.current_date).days} "
-        f"days to go"
+        f"{days_left} days to go"
     )
 
 

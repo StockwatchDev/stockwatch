@@ -18,16 +18,16 @@ def test_get_stockdir(monkeypatch) -> None:
     # we get nothing back.
     monkeypatch.delenv("STOCKWATCH_PATH", raising=False)
     with pytest.raises(RuntimeError):
-        new_dir = stockdir.get_stockdir(None)
+        new_dir = stockdir.set_stockdir(None)
 
     # We can set an environment variable
     monkeypatch.setenv("STOCKWATCH_PATH", env_dir)
-    new_dir = stockdir.get_stockdir(None)
-    assert new_dir == Path(env_dir)
+    stockdir.set_stockdir(None)
+    assert stockdir.get_stockdir() == Path(env_dir)
 
     # We can also give it as an input variable.
-    new_dir = stockdir.get_stockdir(cmd_dir)
-    assert new_dir == cmd_dir
+    stockdir.set_stockdir(cmd_dir)
+    assert stockdir.get_stockdir() == cmd_dir
 
 
 def test_get_first_date(monkeypatch) -> None:

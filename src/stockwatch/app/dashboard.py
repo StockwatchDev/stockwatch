@@ -6,8 +6,6 @@ to methods provided by analysis and use_cases.
 This package has a clean architecture. This module should not contain any business- or
 application logic, nor any adapters.
 """
-from pathlib import Path
-
 import dash_bootstrap_components as dbc
 from dash import Dash, Input, Output, callback, html
 
@@ -28,14 +26,14 @@ def _switch_page(pathname: str) -> html.Div:
             return pages.plots.layout
 
 
-def run_blocking(folder: Path) -> None:
+def run_blocking() -> None:
     """Run the dash application."""
     app = Dash(
         __name__,
         external_stylesheets=[dbc.themes.SIMPLEX],
         prevent_initial_callbacks=True,
     )
-    pages.scraping.init_layout(folder)
+    pages.scraping.init_layout()
 
     app.layout = pages.index.layout
     app.validation_layout = html.Div(

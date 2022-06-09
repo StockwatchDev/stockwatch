@@ -3,7 +3,6 @@ import re
 import threading
 from dataclasses import dataclass
 from datetime import date, timedelta
-from pathlib import Path
 
 import requests
 
@@ -87,7 +86,6 @@ class PortfolioImportData:
     account_id: int = 0
     start_date: date = date.today()
     end_date: date = date.today()
-    folder: Path = Path()
 
 
 class ScrapeThread:
@@ -103,8 +101,9 @@ class ScrapeThread:
 
     def start(self, data: PortfolioImportData) -> bool:
         """Start obtaining data from DeGiro"""
-        if self._thread:
+        if self._thread and not self.finished:
             return False
+
         self._data = data
 
         self._stop = False
@@ -182,7 +181,7 @@ class ScrapeThread:
                 self._stop = True
                 return False
 
-            stockdir.account_report_to_file(self._data.folder, report)
+            stockdir.account_report_to_file(report)
         return True
 
     def _import_porfolio(self) -> bool:
@@ -191,7 +190,7 @@ class ScrapeThread:
             if self._stop:
                 return False
 
-            if stockdir.check_portfolio_exists(self._data.folder, self._current_date):
+            if stockdir.check_portfolio_exists(self._current_date):
                 self._current_date += timedelta(days=1)
                 continue
 
@@ -205,7 +204,7 @@ class ScrapeThread:
                 self._stop = True
                 return False
 
-            stockdir.portfolio_to_file(self._data.folder, portfolio, self._current_date)
+            stockdir.portfolio_to_file(portfolio, self._current_date)
 
             self._current_date += timedelta(days=1)
         return True

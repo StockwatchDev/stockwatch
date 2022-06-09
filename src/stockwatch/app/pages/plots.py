@@ -1,6 +1,5 @@
 """All dash specific callbacks and layout related to the plots page."""
 from datetime import date
-from pathlib import Path
 
 import dash
 import dash_bootstrap_components as dbc
@@ -82,17 +81,15 @@ def _update_portfolios(_: int, refresh_clicks: int) -> int | dash._callback.NoUp
     global _PORTOS  # pylint: disable=global-statement
     global _TRANSACTIONS  # pylint: disable=global-statement
     global _INDICES  # pylint: disable=global-statement
-    folder = "/home/jorik/Documents/stockwatch"
 
-    path = Path(folder)
-    _PORTOS = use_cases.process_portfolios(folder=path)
+    _PORTOS = use_cases.process_portfolios()
 
     _TRANSACTIONS = use_cases.process_transactions(
-        isins=entities.get_all_isins(_PORTOS), folder=path
+        isins=entities.get_all_isins(_PORTOS)
     )
     entities.apply_transactions(_TRANSACTIONS, _PORTOS)
 
-    _INDICES = use_cases.process_index_prices(path)
+    _INDICES = use_cases.process_index_prices()
 
     return refresh_clicks + 1
 
