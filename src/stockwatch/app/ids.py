@@ -30,3 +30,21 @@ class PlottingId(_BaseDashId):
     GRAPH_TOTAL = "plotting-graph-total"
     GRAPH_RESULT = "plotting-graph-result"
     REFRESH = "plotting-refresh"
+
+
+class HeaderIds(_BaseDashId):
+    """The ids for the header items."""
+
+    PLOTS = "header-plots"
+    SCRAPING = "header-scraping"
+    ABOUT = "header-about"
+    LOCATION = "header-location"
+    CONTENT = "header-content"
+
+
+class PageIds(_BaseDashId):
+    """The pages link."""
+
+    PLOTS = "/plots"
+    SCRAPING = "/scraping"
+    ABOUT = "/about"

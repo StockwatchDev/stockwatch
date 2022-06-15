@@ -18,27 +18,22 @@ def test_get_stockdir(monkeypatch) -> None:
     # we get nothing back.
     monkeypatch.delenv("STOCKWATCH_PATH", raising=False)
     with pytest.raises(RuntimeError):
-        new_dir = stockdir.get_stockdir(None)
+        new_dir = stockdir.set_stockdir(None)
 
     # We can set an environment variable
     monkeypatch.setenv("STOCKWATCH_PATH", env_dir)
-    new_dir = stockdir.get_stockdir(None)
-    assert new_dir == Path(env_dir)
+    stockdir.set_stockdir(None)
+    assert stockdir.get_stockdir() == Path(env_dir)
 
     # We can also give it as an input variable.
-    new_dir = stockdir.get_stockdir(cmd_dir)
-    assert new_dir == cmd_dir
+    stockdir.set_stockdir(cmd_dir)
+    assert stockdir.get_stockdir() == cmd_dir
 
 
-def test_get_last_date(monkeypatch) -> None:
+def test_get_first_date(monkeypatch) -> None:
     """Test getting the last date."""
-    dates = [
-        date(2000, 2, 1),
-        date(2010, 1, 1),
-        date(2000, 10, 10),
-        date(2009, 12, 30),
-    ]
-    max_date = max(i for i in dates)
+    dates = [date(2000, 2, 1), date(2010, 1, 1), date(2000, 10, 10), date(2009, 12, 30)]
+    min_date = min(i for i in dates)
 
     monkeypatch.setattr(
         Path,
@@ -47,4 +42,4 @@ def test_get_last_date(monkeypatch) -> None:
     )
 
     test = Path("some/path/whatever")
-    assert stockdir.get_last_date(test) == max_date
+    assert stockdir.get_first_date(test) == min_date
