@@ -82,19 +82,17 @@ class SharePortfolio:
     @property
     def total_value(self) -> float:
         """Return the total value of this portfolio."""
-        return round(sum([share_pos.value for share_pos in self.share_positions]), 2)
+        return round(sum(share_pos.value for share_pos in self.share_positions), 2)
 
     @property
     def total_investment(self) -> float:
         """Return the total investment of this portfolio."""
-        return round(
-            sum([share_pos.investment for share_pos in self.share_positions]), 2
-        )
+        return round(sum(share_pos.investment for share_pos in self.share_positions), 2)
 
     @property
     def total_realized_return(self) -> float:
         """Return the total realized return of this portfolio."""
-        return round(sum([share_pos.realized for share_pos in self.share_positions]), 2)
+        return round(sum(share_pos.realized for share_pos in self.share_positions), 2)
 
     def contains(self, an_isin: str) -> bool:
         """Return True if self has a share position with ISIN an_isin."""
@@ -111,10 +109,8 @@ class SharePortfolio:
         """Return the value in EUR of the share position with ISIN the_isin."""
         return round(
             sum(
-                [
-                    share_pos.value if share_pos.isin == the_isin else 0.0
-                    for share_pos in self.share_positions
-                ]
+                share_pos.value if share_pos.isin == the_isin else 0.0
+                for share_pos in self.share_positions
             ),
             2,
         )
@@ -123,10 +119,8 @@ class SharePortfolio:
         """Return the investment in EUR of the share position with ISIN the_isin."""
         return round(
             sum(
-                [
-                    share_pos.investment if share_pos.isin == the_isin else 0.0
-                    for share_pos in self.share_positions
-                ]
+                share_pos.investment if share_pos.isin == the_isin else 0.0
+                for share_pos in self.share_positions
             ),
             2,
         )
@@ -135,10 +129,8 @@ class SharePortfolio:
         """Return the realized return in EUR of the share position with ISIN the_isin."""
         return round(
             sum(
-                [
-                    share.realized if share.isin == the_isin else 0.0
-                    for share in self.share_positions
-                ]
+                share.realized if share.isin == the_isin else 0.0
+                for share in self.share_positions
             ),
             2,
         )

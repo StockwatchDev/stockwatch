@@ -81,8 +81,7 @@ def init_layout() -> None:
 
 def _get_scraping_form() -> list[dbc.Row]:
     folder = stockdir.get_portfolio_folder()
-    start_date = stockdir.get_first_date(folder)
-    if start_date is None:
+    if (start_date := stockdir.get_first_date(folder)) is None:
         start_date = date(2020, 1, 1)
 
     return [
