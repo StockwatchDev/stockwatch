@@ -34,12 +34,11 @@ Currently the portfolio data can be scraped using the Dash application. This wil
 eventually be extended to all data. To scrape data using the webbrowser start the
 Stockwatch app and navigate to the `scrape` tab, and follow these instructions:
 
-1. First login at DeGiro using your preferred browser.
-2. Open the devtools window (F12 on firefox, and Chrome)
-3. In the *network* tab, Search for a GET request to trader.degiro.nl
-4. Search for the *intAccount* integer, and the *sessionId* string to
-   input in the scraping application. In [Firefox] it can be found under
-   *Headers*, whereas in [Chrome], and [Edge] it can be found under *Payload*.
+1. Put in the username / password in the respective fields
+2. Specify the start and end date that you're interested in.
+3. Put in the Google Authenticator one-time password in the TOTP field, note that this
+   has a limited timebased validity.
+4. Press import to start importing.
 
 ## Download data manually
 
