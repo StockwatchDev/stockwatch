@@ -36,8 +36,8 @@ Stockwatch app and navigate to the `scrape` tab, and follow these instructions:
 
 1. Put in the username / password in the respective fields
 2. Specify the start and end date that you're interested in.
-3. Put in the Google Authenticator one-time password in the TOTP field, note that this
-   has a limited timebased validity.
+3. Put in the Google Authenticator one-time password in the Time-based One Time
+   Password (TOTP) field, note that the TOTP is only valid for a limited time.
 4. Press import to start importing.
 
 ## Download data manually

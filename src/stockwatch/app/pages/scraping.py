@@ -216,7 +216,7 @@ def _get_scraping_form() -> list[dbc.Row]:
 def _disable_execute(
     username_valid: bool, password_valid: bool, goauth_valid: bool
 ) -> bool:
-    return not username_valid or not password_valid or not goauth_valid
+    return not (username_valid and password_valid and goauth_valid)
 
 
 @dash.callback(
@@ -257,10 +257,10 @@ def _execute_scraping(
 
     started = _SCRAPE_THREAD.start(
         degiro.PortfolioImportData(
-            login[1],
-            login[0],
-            date.fromisoformat(start_date),
-            date.fromisoformat(end_date),
+            account_id=login[0],
+            session_id=login[1],
+            start_date=date.fromisoformat(start_date),
+            end_date=date.fromisoformat(end_date),
         )
     )
 
