@@ -1,5 +1,4 @@
 """The use cases related to getting data from the DeGiro website."""
-import re
 import threading
 from dataclasses import dataclass
 from datetime import date, timedelta
@@ -8,24 +7,51 @@ import requests
 
 from . import stockdir
 
+__TRADER_URL = "https://trader.degiro.nl"
 
-def is_valid_sessionid(sessionid: str) -> bool:
-    """Validate a session id according to the expected scheme from the DeGiro
-    website.
+
+def login(username: str, password: str, goauth: str | None) -> tuple[int, str] | None:
+    """Login into the degiro site. Obtain a `intAccount` and `sessionId`, return None
+    if the login failed.
     """
-    # A valid session id consists of 32 alpha-numericals
-    # followed by the identifier of the authentication server
-    # (seperated by a dot).
-    pattern = re.compile(r"[a-zA-Z0-9]{32}\.\w+", re.ASCII)
-    return bool(pattern.fullmatch(sessionid))
+    url = __TRADER_URL + "/login/secure/login"
+    curl_args: dict[str, str | dict[str, str]] = {
+        "username": username,
+        "password": password,
+        "queryParams": {},
+    }
 
+    if goauth:
+        url += "/totp"
+        curl_args["oneTimePassword"] = goauth
 
-def is_valid_accountid(accountid: int) -> bool:
-    """Validate an account id according to the expected scheme from the DeGiro
-    website.
-    """
-    # A valid account id is bigger than zero
-    return accountid > 0
+    res = requests.post(url, json=curl_args)
+
+    if not res.ok:
+        print("failed wrong password")
+        return None
+
+    data = res.json()
+    if (session_id := data.get("sessionId")) is None:
+        print("Failed to get session id")
+        return None
+
+    session_id = str(session_id)
+
+    # Let's also get the intAccount number.
+    url = __TRADER_URL + "/pa/secure/client"
+    curl_args = {
+        "sessionId": session_id,
+    }
+
+    res = requests.get(url, params=curl_args)
+
+    if not res.ok:
+        print("Failed to obtain account info")
+        return None
+
+    data = res.json()
+    return int(data["data"]["intAccount"]), session_id
 
 
 def get_portfolio_at(day: date, account: int, session_id: str) -> str:
@@ -34,7 +60,7 @@ def get_portfolio_at(day: date, account: int, session_id: str) -> str:
     The method raises a RuntimeError if an error occurred while connecting
     to the DeGiro website.
     """
-    url = "https://trader.degiro.nl/reporting/secure/v3/positionReport/csv"
+    url = __TRADER_URL + "/reporting/secure/v3/positionReport/csv"
     curl_args: dict[str, str | int] = {
         "sessionId": session_id,
         "country": "NL",
@@ -60,7 +86,7 @@ def get_account_report(
     DeGiro website.
     """
 
-    url = "https://trader.degiro.nl/reporting/secure/v3/cashAccountReport/csv"
+    url = __TRADER_URL + "/reporting/secure/v3/cashAccountReport/csv"
     curl_args: dict[str, str | int] = {
         "sessionId": session_id,
         "country": "NL",
