@@ -56,7 +56,7 @@ class SharePosition:  # pylint: disable=too-many-instance-attributes
     """
 
     sort_index1: date = field(init=False, repr=False)
-    sort_index2: str = field(init=False, repr=False)
+    sort_index2: float = field(init=False, repr=False)
     name: str
     isin: str
     curr: str
@@ -69,7 +69,7 @@ class SharePosition:  # pylint: disable=too-many-instance-attributes
 
     def __post_init__(self) -> None:
         self.sort_index1 = self.position_date
-        self.sort_index2 = self.isin
+        self.sort_index2 = self.value
 
 
 @dataclass(frozen=False, order=True)
@@ -82,12 +82,14 @@ class SharePortfolio:
     portfolio_date           : the date of the registered share positions
     """
 
-    sort_index: date = field(init=False, repr=False)
+    sort_index1: date = field(init=False, repr=False)
+    sort_index2: float = field(init=False, repr=False)
     share_positions: tuple[SharePosition, ...]
     portfolio_date: date
 
     def __post_init__(self) -> None:
-        self.sort_index = self.portfolio_date
+        self.sort_index1 = self.portfolio_date
+        self.sort_index2 = self.total_value
 
     @property
     def total_value(self) -> float:
