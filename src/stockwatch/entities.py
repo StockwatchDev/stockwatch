@@ -179,9 +179,7 @@ def closest_portfolio_after_date(
         spf for spf in share_portfolios if spf.portfolio_date >= start_date
     ]
     if len(portfolios_after_date) > 0:
-        sorted_portfolios = sorted(
-            portfolios_after_date, key=lambda x: x.portfolio_date
-        )
+        sorted_portfolios = sorted(portfolios_after_date)
         return sorted_portfolios[0]
     return None
 
@@ -194,9 +192,7 @@ def closest_portfolio_before_date(
         spf for spf in share_portfolios if spf.portfolio_date < end_date
     ]
     if len(portfolios_before_date) > 0:
-        sorted_portfolios = sorted(
-            portfolios_before_date, key=lambda x: x.portfolio_date
-        )
+        sorted_portfolios = sorted(portfolios_before_date)
         return sorted_portfolios[-1]
     return None
 

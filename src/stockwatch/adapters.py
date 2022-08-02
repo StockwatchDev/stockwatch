@@ -32,7 +32,7 @@ class PositionsData:
 def returns_plotdata(share_portfolios: tuple[SharePortfolio, ...]) -> ReturnsData:
     """Get the ReturnsData of a list of portfolios."""
     # make sure the portfolios are sorted by date:
-    sorted_portfolios = sorted(share_portfolios, key=lambda x: x.portfolio_date)
+    sorted_portfolios = sorted(share_portfolios)
 
     returns_data = ReturnsData()
     # horizontal axis to be the date
@@ -59,7 +59,7 @@ def positions_plotdata(share_portfolios: tuple[SharePortfolio, ...]) -> Position
 
     positions_data = PositionsData()
     # make sure the portfolios are sorted by date:
-    sorted_portfolios = sorted(share_portfolios, key=lambda x: x.portfolio_date)
+    sorted_portfolios = sorted(share_portfolios)
     # horizontal axis to be the date
     positions_data.dates.extend(
         [share_pf.portfolio_date for share_pf in sorted_portfolios]
