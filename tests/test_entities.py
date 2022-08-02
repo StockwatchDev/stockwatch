@@ -1,6 +1,6 @@
-# pylint: disable=W0621
-# pylint: disable=C0114
-# pylint: disable=C0116
+# pylint: disable=redefined-outer-name
+# pylint: disable=missing-module-docstring
+# pylint: disable=missing-function-docstring
 from datetime import date, timedelta
 import pytest
 from stockwatch.entities import (
@@ -66,6 +66,51 @@ def example_dividend_transaction() -> ShareTransaction:
 
 
 @pytest.fixture
+def example_position_1() -> SharePosition:
+    return SharePosition(
+        "iShares MSCI World EUR Hedged UCITS ETF",
+        "IE00B441G979",
+        "EUR",
+        1030.00,
+        16,
+        74.42,
+        1190.72,
+        -10.50,
+        date.today(),
+    )
+
+
+@pytest.fixture
+def example_position_2() -> SharePosition:
+    return SharePosition(
+        "Vanguard FTSE All-World UCITS ETF USD Dis",
+        "IE00B3RBWM25",
+        "EUR",
+        970.00,
+        10,
+        106.00,
+        1060.00,
+        23.66,
+        date.today(),
+    )
+
+
+@pytest.fixture
+def example_position_3() -> SharePosition:
+    return SharePosition(
+        "VanhEck Sustainable World Equal Weight UCITS ETF",
+        "NL0010408704",
+        "EUR",
+        1000.08,
+        36,
+        28.75,
+        1035,
+        86.50,
+        date.today() - timedelta(days=21),
+    )
+
+
+@pytest.fixture
 def example_portfolio_1() -> SharePortfolio:
     sp1 = SharePosition(
         "iShares MSCI World EUR Hedged UCITS ETF",
@@ -119,6 +164,15 @@ def example_portfolio_2() -> SharePortfolio:
     return SharePortfolio((sp1, sp2), date.today() - timedelta(days=21))
 
 
+def test_position_order(
+    example_position_1: SharePortfolio,
+    example_position_2: SharePortfolio,
+    example_position_3: SharePortfolio,
+) -> None:
+    assert example_position_1 > example_position_2
+    assert example_position_3 < example_position_2
+
+
 def test_value(example_portfolio_1: SharePortfolio) -> None:
     assert example_portfolio_1.value_of("IE00B441G979") == 1190.72
     assert example_portfolio_1.total_value == 2250.72
@@ -159,7 +213,13 @@ def test_is_date_consistent(example_portfolio_1: SharePortfolio) -> None:
     assert example_portfolio_1.is_date_consistent()
 
 
-def test_earliest_lates_date(
+def test_portfolio_order(
+    example_portfolio_1: SharePortfolio, example_portfolio_2: SharePortfolio
+) -> None:
+    assert example_portfolio_2 < example_portfolio_1
+
+
+def test_earliest_latest_date(
     example_portfolio_1: SharePortfolio, example_portfolio_2: SharePortfolio
 ) -> None:
     portfolios = (example_portfolio_2, example_portfolio_1)

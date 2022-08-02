@@ -3,7 +3,7 @@
 This package has a clean architecture. Hence, this module should not depend on any
 other module and only import Python stuff.
 """
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date
 from enum import Enum, auto
 
@@ -38,7 +38,7 @@ class ShareTransaction:
     transaction_date: date
 
 
-@dataclass(frozen=False)
+@dataclass(frozen=False, order=True)
 class SharePosition:  # pylint: disable=too-many-instance-attributes
     """For representing a stock shares position at a certain date.
 
@@ -55,6 +55,8 @@ class SharePosition:  # pylint: disable=too-many-instance-attributes
     position_date   : the date for which the value of the share position is registered
     """
 
+    sort_index1: date = field(init=False, repr=False)
+    sort_index2: str = field(init=False, repr=False)
     name: str
     isin: str
     curr: str
@@ -65,8 +67,12 @@ class SharePosition:  # pylint: disable=too-many-instance-attributes
     realized: float
     position_date: date
 
+    def __post_init__(self) -> None:
+        self.sort_index1 = self.position_date
+        self.sort_index2 = self.isin
 
-@dataclass(frozen=False)
+
+@dataclass(frozen=False, order=True)
 class SharePortfolio:
     """For representing a stock shares portfolio (i.e. multiple positions) at a certain date.
 
@@ -76,8 +82,12 @@ class SharePortfolio:
     portfolio_date           : the date of the registered share positions
     """
 
+    sort_index: date = field(init=False, repr=False)
     share_positions: tuple[SharePosition, ...]
     portfolio_date: date
+
+    def __post_init__(self) -> None:
+        self.sort_index = self.portfolio_date
 
     @property
     def total_value(self) -> float:
