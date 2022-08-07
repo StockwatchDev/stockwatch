@@ -165,18 +165,30 @@ class SharePortfolio:
             for share_pos in self.share_positions.values()
         )
 
-    def add_investment_realization(
+    def update_investment_realization(  # pylint: disable=too-many-arguments
         self,
-        investment: float,
-        realization: float,
+        new_investment: float,
+        new_realization: float,
+        name: str,
         isin: str,
+        curr: str,
     ) -> None:
         """Add a realization and/or investment to the sharepos with the specified isin."""
         if pos := self.get_position(isin):
-            new_investment = round(pos.investment + investment, 2)
-            new_realization = round(pos.realized + realization, 2)
             self.share_positions[isin] = replace(
                 pos, investment=new_investment, realized=new_realization
+            )
+        else:
+            self.share_positions[isin] = SharePosition(
+                name=name,
+                isin=isin,
+                curr=curr,
+                investment=0.0,
+                nr_stocks=0.0,
+                price=1.0,
+                value=0.0,
+                realized=new_realization,
+                position_date=self.portfolio_date,
             )
 
 
@@ -216,11 +228,13 @@ def closest_portfolio_before_date(
     return None
 
 
-def _add_investment_realization(
-    investment: float,
-    realization: float,
+def _update_investment_realization(  # pylint: disable=too-many-arguments
+    new_investment: float,
+    new_realization: float,
     transaction_date: date,
+    name: str,
     isin: str,
+    curr: str,
     portfolios: tuple[SharePortfolio, ...],
 ) -> None:
     """Add a realization and/or investment amount to each portfolio dated
@@ -230,7 +244,9 @@ def _add_investment_realization(
         spf for spf in portfolios if spf.portfolio_date > transaction_date
     ]
     for spf in portfolios_to_modify:
-        spf.add_investment_realization(investment, realization, isin)
+        spf.update_investment_realization(
+            new_investment, new_realization, name, isin, curr
+        )
 
 
 def apply_transactions(
@@ -264,13 +280,30 @@ def _process_buy_transaction(
         transaction.kind == ShareTransactionKind.BUY
     ), f"Buy transaction expected, got {transaction.kind.name}"
 
+    if not (
+        next_portfolio := closest_portfolio_after_date(
+            portfolios, transaction.transaction_date
+        )
+    ):
+        print(
+            "Cannot process buy transaction, no portfolio present after transaction date"
+        )
+        return
+    if not (next_pos := next_portfolio.get_position(transaction.isin)):
+        print(
+            "Cannot process buy transaction, no position present after transaction date"
+        )
+        return
+
     investment = transaction.nr_stocks * transaction.price
     realization = 0.0
-    _add_investment_realization(
-        investment=investment,
-        realization=realization,
+    _update_investment_realization(
+        new_investment=round(next_pos.investment + investment, 2),
+        new_realization=round(next_pos.realized + realization, 2),
         transaction_date=transaction.transaction_date,
-        isin=transaction.isin,
+        name=next_pos.name,  # for a BUY transaction, the name is not important
+        isin=next_pos.isin,
+        curr=next_pos.curr,
         portfolios=portfolios,
     )
 
@@ -291,53 +324,28 @@ def _process_sell_transaction(
         )
         return
 
-    if not (current_pos := current_portfolio.get_position(transaction.isin)):
+    if not (
+        (current_pos := current_portfolio.get_position(transaction.isin))
+        and (current_pos.nr_stocks > 0.0)
+    ):
         print(
             "Cannot process sell transaction, position not present in last portfolio before"
             f" the transaction date: {transaction.transaction_date}"
         )
         return
 
-    if not (
-        next_portfolio := closest_portfolio_after_date(
-            portfolios, transaction.transaction_date
-        )
-    ):
-        print(
-            "Cannot process sell transaction, no portfolio present after transaction date"
-        )
-        return
-
     buy_price = current_pos.investment / current_pos.nr_stocks
     realization = round(transaction.nr_stocks * (transaction.price - buy_price), 2)
-    if next_portfolio.get_position(transaction.isin):
-        investment = round(-transaction.nr_stocks * buy_price, 2)
-        _add_investment_realization(
-            investment=investment,
-            realization=realization,
-            transaction_date=transaction.transaction_date,
-            isin=transaction.isin,
-            portfolios=portfolios,
-        )
-    else:
-        # the portfolio on the next date does not have this share because we sell all
-        # so let's create a position with the realization
-        realization_pos = SharePosition(
-            name=current_pos.name,
-            isin=current_pos.isin,
-            curr=current_pos.curr,
-            investment=0.0,
-            nr_stocks=0,
-            price=1.0,
-            value=0.0,
-            realized=round(current_pos.realized + realization, 2),
-            position_date=next_portfolio.portfolio_date,
-        )
-        next_portfolio.share_positions[current_pos.isin] = realization_pos
-        print(
-            f"ISIN {transaction.isin} has been sold, total realization: "
-            f"{realization_pos.realized}\n"
-        )
+    investment = round(-transaction.nr_stocks * buy_price, 2)
+    _update_investment_realization(
+        new_investment=round(current_pos.investment + investment, 2),
+        new_realization=round(current_pos.realized + realization, 2),
+        transaction_date=transaction.transaction_date,
+        name=current_pos.name,
+        isin=current_pos.isin,
+        curr=current_pos.curr,
+        portfolios=portfolios,
+    )
 
 
 def _process_dividend_transaction(
@@ -347,11 +355,27 @@ def _process_dividend_transaction(
         transaction.kind == ShareTransactionKind.DIVIDEND
     ), f"Dividend transaction expected, got {transaction.kind.name}"
 
+    current_portfolio = closest_portfolio_before_date(
+        portfolios, transaction.transaction_date
+    )
+    if not current_portfolio:
+        print(
+            "Cannot process sell transaction, no portfolio present before transaction date"
+        )
+        return
+    if not (current_pos := current_portfolio.get_position(transaction.isin)):
+        print(
+            "Cannot process dividend transaction, no position present before transaction date"
+        )
+        return
+
     realization = round(transaction.nr_stocks * transaction.price, 2)
-    _add_investment_realization(
-        investment=0.0,
-        realization=realization,
+    _update_investment_realization(
+        new_investment=current_pos.investment,
+        new_realization=round(current_pos.realized + realization, 2),
         transaction_date=transaction.transaction_date,
-        isin=transaction.isin,
+        name=current_pos.name,
+        isin=current_pos.isin,
+        curr=current_pos.curr,
         portfolios=portfolios,
     )

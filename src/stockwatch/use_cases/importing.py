@@ -129,7 +129,7 @@ def process_portfolios() -> tuple[SharePortfolio, ...]:
     for file_path in sorted(stockdir.get_portfolio_folder().glob("*.csv")):
         file_date = datetime.strptime(file_path.name[:6], "%y%m%d").date()
         with file_path.open(mode="r") as csv_file:
-            sep_stocks = []
+            sep_stocks = {}
             for row in csv.DictReader(csv_file):
                 # we're only interested in real stock positions (not cash)
                 if isin := row["Symbool/ISIN"]:
@@ -149,11 +149,11 @@ def process_portfolios() -> tuple[SharePortfolio, ...]:
                         realized=0.0,
                         position_date=file_date,
                     )
-                    sep_stocks.append(the_position)
+                    sep_stocks[isin] = the_position
 
         if sep_stocks:
             the_portfolio = SharePortfolio(
-                share_positions=tuple(sep_stocks), portfolio_date=file_date
+                share_positions=sep_stocks, portfolio_date=file_date
             )
             share_portfolios.append(the_portfolio)
     return tuple(share_portfolios)
