@@ -3,7 +3,7 @@
 This package has a clean architecture. Hence, this module should not depend on any
 other module and only import Python stuff.
 """
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import date
 from enum import Enum, auto
 
@@ -38,7 +38,7 @@ class ShareTransaction:
     transaction_date: date
 
 
-@dataclass(frozen=False, order=True)
+@dataclass(frozen=True, order=True)
 class SharePosition:  # pylint: disable=too-many-instance-attributes
     """For representing a stock shares position at a certain date.
 
@@ -68,8 +68,9 @@ class SharePosition:  # pylint: disable=too-many-instance-attributes
     position_date: date
 
     def __post_init__(self) -> None:
-        self.sort_index1 = self.position_date
-        self.sort_index2 = self.value
+        # because frozen=True, we need to use __setattr__ here:
+        object.__setattr__(self, "sort_index1", self.position_date)
+        object.__setattr__(self, "sort_index2", self.value)
 
 
 @dataclass(frozen=False, order=True)
@@ -78,13 +79,13 @@ class SharePortfolio:
 
     Attributes
     ----------
-    share_positions : the collection of share positions
-    portfolio_date           : the date of the registered share positions
+    share_positions         : the collection of share positions
+    portfolio_date          : the date of the registered share positions
     """
 
     sort_index1: date = field(init=False, repr=False)
     sort_index2: float = field(init=False, repr=False)
-    share_positions: tuple[SharePosition, ...]
+    share_positions: dict[str, SharePosition]
     portfolio_date: date
 
     def __post_init__(self) -> None:
@@ -94,73 +95,89 @@ class SharePortfolio:
     @property
     def total_value(self) -> float:
         """Return the total value of this portfolio."""
-        return round(sum(share_pos.value for share_pos in self.share_positions), 2)
+        return round(
+            sum(share_pos.value for share_pos in self.share_positions.values()), 2
+        )
 
     @property
     def total_investment(self) -> float:
         """Return the total investment of this portfolio."""
-        return round(sum(share_pos.investment for share_pos in self.share_positions), 2)
+        return round(
+            sum(share_pos.investment for share_pos in self.share_positions.values()), 2
+        )
 
     @property
     def total_realized_return(self) -> float:
         """Return the total realized return of this portfolio."""
-        return round(sum(share_pos.realized for share_pos in self.share_positions), 2)
+        return round(
+            sum(share_pos.realized for share_pos in self.share_positions.values()), 2
+        )
 
     def contains(self, an_isin: str) -> bool:
         """Return True if self has a share position with ISIN an_isin."""
-        return an_isin in [share_pos.isin for share_pos in self.share_positions]
+        return an_isin in self.share_positions
 
     def get_position(self, the_isin: str) -> SharePosition | None:
         """Return the share position with ISIN the_isin or None if not present."""
-        for share_pos in self.share_positions:
-            if share_pos.isin == the_isin:
-                return share_pos
-        return None
+        return self.share_positions.get(the_isin, None)
 
     def value_of(self, the_isin: str) -> float:
         """Return the value in EUR of the share position with ISIN the_isin."""
         return round(
-            sum(
-                share_pos.value if share_pos.isin == the_isin else 0.0
-                for share_pos in self.share_positions
-            ),
+            self.share_positions[the_isin].value
+            if the_isin in self.share_positions
+            else 0.0,
             2,
         )
 
     def investment_of(self, the_isin: str) -> float:
         """Return the investment in EUR of the share position with ISIN the_isin."""
         return round(
-            sum(
-                share_pos.investment if share_pos.isin == the_isin else 0.0
-                for share_pos in self.share_positions
-            ),
+            self.share_positions[the_isin].investment
+            if the_isin in self.share_positions
+            else 0.0,
             2,
         )
 
     def realized_return_of(self, the_isin: str) -> float:
         """Return the realized return in EUR of the share position with ISIN the_isin."""
         return round(
-            sum(
-                share.realized if share.isin == the_isin else 0.0
-                for share in self.share_positions
-            ),
+            self.share_positions[the_isin].realized
+            if the_isin in self.share_positions
+            else 0.0,
             2,
         )
 
     def all_isins(self) -> tuple[str, ...]:
         """Return the ISIN codes of the share positions."""
-        return tuple(share_pos.isin for share_pos in self.share_positions)
+        return tuple(self.share_positions.keys())
 
     def all_isins_and_names(self) -> dict[str, str]:
         """Return the ISIN codes and names of the share positions."""
-        return {share_pos.isin: share_pos.name for share_pos in self.share_positions}
+        return {
+            isin: share_pos.name for isin, share_pos in self.share_positions.items()
+        }
 
     def is_date_consistent(self) -> bool:
         """Return True if the share positions dates all match self.portfolio_date."""
         return all(
             share_pos.position_date == self.portfolio_date
-            for share_pos in self.share_positions
+            for share_pos in self.share_positions.values()
         )
+
+    def add_investment_realization(
+        self,
+        investment: float,
+        realization: float,
+        isin: str,
+    ) -> None:
+        """Add a realization and/or investment to the sharepos with the specified isin."""
+        if pos := self.get_position(isin):
+            new_investment = round(pos.investment + investment, 2)
+            new_realization = round(pos.realized + realization, 2)
+            self.share_positions[isin] = replace(
+                pos, investment=new_investment, realized=new_realization
+            )
 
 
 def earliest_portfolio_date(share_portfolios: tuple[SharePortfolio, ...]) -> date:
@@ -213,9 +230,7 @@ def _add_investment_realization(
         spf for spf in portfolios if spf.portfolio_date > transaction_date
     ]
     for spf in portfolios_to_modify:
-        if pos := spf.get_position(isin):
-            pos.investment = round(pos.investment + investment, 2)
-            pos.realized = round(pos.realized + realization, 2)
+        spf.add_investment_realization(investment, realization, isin)
 
 
 def apply_transactions(
@@ -318,7 +333,7 @@ def _process_sell_transaction(
             realized=round(current_pos.realized + realization, 2),
             position_date=next_portfolio.portfolio_date,
         )
-        next_portfolio.share_positions += (realization_pos,)
+        next_portfolio.share_positions[current_pos.isin] = realization_pos
         print(
             f"ISIN {transaction.isin} has been sold, total realization: "
             f"{realization_pos.realized}\n"
