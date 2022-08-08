@@ -296,6 +296,11 @@ def test_sell_and_buy_transaction(
     example_sell_transaction_1.transaction_date = date.today() - timedelta(days=9)
     example_sell_transaction_1.isin = "IE00B441G979"
     apply_transactions((example_sell_transaction_1,), portfolios)
+    example_buy_transaction.transaction_date = date.today() + timedelta(days=50)
+    apply_transactions((example_buy_transaction,), portfolios)
+    example_buy_transaction.transaction_date = date.today() - timedelta(days=3)
+    example_buy_transaction.isin = "IE00B02KXL92"
+    apply_transactions((example_buy_transaction,), portfolios)
 
 
 def test_dividend_transaction(
@@ -308,3 +313,10 @@ def test_dividend_transaction(
     apply_transactions(transactions, portfolios)
     assert portfolios[1].investment_of(example_dividend_transaction.isin) == 970.0
     assert portfolios[1].realized_return_of(example_dividend_transaction.isin) == 36.79
+
+    # and test the degenerate cases, that they do not raise an exception
+    example_dividend_transaction.transaction_date = date.today() - timedelta(days=50)
+    apply_transactions((example_dividend_transaction,), portfolios)
+    example_dividend_transaction.transaction_date = date.today() - timedelta(days=9)
+    example_dividend_transaction.isin = "IE00B02KXL92"
+    apply_transactions((example_dividend_transaction,), portfolios)
