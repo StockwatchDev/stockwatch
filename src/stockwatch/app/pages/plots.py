@@ -88,6 +88,7 @@ def _update_portfolios(_: int, refresh_clicks: int) -> int | dash._callback.NoUp
         isins=entities.get_all_isins(_PORTOS)
     )
     entities.apply_transactions(_TRANSACTIONS, _PORTOS)
+    print(_PORTOS[-1])
 
     _INDICES = use_cases.process_index_prices()
 

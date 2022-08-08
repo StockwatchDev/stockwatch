@@ -17,6 +17,8 @@ class ReturnsData:
     dates: list[date] = field(default_factory=list)
     investments: list[float] = field(default_factory=list)
     totals: list[float] = field(default_factory=list)
+    realized_returns: list[float] = field(default_factory=list)
+    unrealized_returns: list[float] = field(default_factory=list)
     returns: list[float] = field(default_factory=list)
 
 
@@ -44,9 +46,20 @@ def returns_plotdata(share_portfolios: tuple[SharePortfolio, ...]) -> ReturnsDat
         [share_pf.total_investment for share_pf in sorted_portfolios]
     )
     returns_data.totals.extend([share_pf.total_value for share_pf in sorted_portfolios])
-    returns_data.returns.extend(
+    returns_data.realized_returns.extend(
+        [share_pf.total_realized_return for share_pf in sorted_portfolios]
+    )
+    returns_data.unrealized_returns.extend(
         [
             share_pf.total_value - share_pf.total_investment
+            for share_pf in sorted_portfolios
+        ]
+    )
+    returns_data.returns.extend(
+        [
+            share_pf.total_realized_return
+            # + share_pf.total_value
+            # - share_pf.total_investment
             for share_pf in sorted_portfolios
         ]
     )
