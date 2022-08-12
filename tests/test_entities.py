@@ -2,6 +2,7 @@
 # pylint: disable=missing-module-docstring
 # pylint: disable=missing-function-docstring
 from datetime import date, timedelta
+from dataclasses import replace
 import pytest
 from stockwatch.entities import (
     SharePosition,
@@ -289,17 +290,29 @@ def test_sell_and_buy_transaction(
     assert portfolios[1].realized_return_of(example_sell_transaction_2.isin) == 72.49
 
     # and test the degenerate cases, that they do not raise an exception
-    example_sell_transaction_1.transaction_date = date.today() - timedelta(days=50)
+    example_sell_transaction_1 = replace(
+        example_sell_transaction_1, transaction_date=date.today() - timedelta(days=50)
+    )
     apply_transactions((example_sell_transaction_1,), portfolios)
-    example_sell_transaction_1.transaction_date = date.today() + timedelta(days=50)
+    example_sell_transaction_1 = replace(
+        example_sell_transaction_1, transaction_date=date.today() + timedelta(days=50)
+    )
     apply_transactions((example_sell_transaction_1,), portfolios)
-    example_sell_transaction_1.transaction_date = date.today() - timedelta(days=9)
-    example_sell_transaction_1.isin = "IE00B441G979"
+    example_sell_transaction_1 = replace(
+        example_sell_transaction_1,
+        isin="IE00B441G979",
+        transaction_date=date.today() - timedelta(days=9),
+    )
     apply_transactions((example_sell_transaction_1,), portfolios)
-    example_buy_transaction.transaction_date = date.today() + timedelta(days=50)
+    example_sell_transaction_1 = replace(
+        example_sell_transaction_1, transaction_date=date.today() + timedelta(days=50)
+    )
     apply_transactions((example_buy_transaction,), portfolios)
-    example_buy_transaction.transaction_date = date.today() - timedelta(days=3)
-    example_buy_transaction.isin = "IE00B02KXL92"
+    example_sell_transaction_1 = replace(
+        example_sell_transaction_1,
+        isin="IE00B02KXL92",
+        transaction_date=date.today() - timedelta(days=3),
+    )
     apply_transactions((example_buy_transaction,), portfolios)
 
 
@@ -315,8 +328,13 @@ def test_dividend_transaction(
     assert portfolios[1].realized_return_of(example_dividend_transaction.isin) == 36.79
 
     # and test the degenerate cases, that they do not raise an exception
-    example_dividend_transaction.transaction_date = date.today() - timedelta(days=50)
+    example_dividend_transaction = replace(
+        example_dividend_transaction, transaction_date=date.today() - timedelta(days=50)
+    )
     apply_transactions((example_dividend_transaction,), portfolios)
-    example_dividend_transaction.transaction_date = date.today() - timedelta(days=9)
-    example_dividend_transaction.isin = "IE00B02KXL92"
+    example_dividend_transaction = replace(
+        example_dividend_transaction,
+        isin="IE00B02KXL92",
+        transaction_date=date.today() - timedelta(days=9),
+    )
     apply_transactions((example_dividend_transaction,), portfolios)

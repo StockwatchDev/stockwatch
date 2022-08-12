@@ -3,9 +3,10 @@
 This package has a clean architecture. Hence, this module should not depend on any
 other module and only import Python stuff.
 """
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, field
 from datetime import date
 from enum import Enum, auto
+from typing import Final
 
 
 class ShareTransactionKind(Enum):
@@ -16,7 +17,7 @@ class ShareTransactionKind(Enum):
     DIVIDEND = auto()
 
 
-@dataclass(frozen=False)
+@dataclass(frozen=True)
 class ShareTransaction:
     """For representing a stock shares transaction at a certain date.
 
@@ -38,7 +39,7 @@ class ShareTransaction:
     transaction_date: date
 
 
-@dataclass(frozen=True, order=True)
+@dataclass(frozen=False, order=True)
 class SharePosition:  # pylint: disable=too-many-instance-attributes
     """For representing a stock shares position at a certain date.
 
@@ -57,15 +58,15 @@ class SharePosition:  # pylint: disable=too-many-instance-attributes
 
     sort_index1: date = field(init=False, repr=False)
     sort_index2: float = field(init=False, repr=False)
-    name: str
-    isin: str
-    curr: str
+    name: Final[str] = field()  # pylint: disable=invalid-name
+    isin: Final[str] = field()  # pylint: disable=invalid-name
+    curr: Final[str] = field()  # pylint: disable=invalid-name
     investment: float
-    nr_stocks: float
-    price: float
-    value: float
+    nr_stocks: Final[float] = field()  # pylint: disable=invalid-name
+    price: Final[float] = field()  # pylint: disable=invalid-name
+    value: Final[float] = field()  # pylint: disable=invalid-name
     realized: float
-    position_date: date
+    position_date: Final[date] = field()  # pylint: disable=invalid-name
 
     def __post_init__(self) -> None:
         # because frozen=True, we need to use __setattr__ here:
@@ -86,7 +87,7 @@ class SharePortfolio:
     sort_index1: date = field(init=False, repr=False)
     sort_index2: float = field(init=False, repr=False)
     share_positions: dict[str, SharePosition]
-    portfolio_date: date
+    portfolio_date: Final[date] = field()  # pylint: disable=invalid-name
 
     def __post_init__(self) -> None:
         self.sort_index1 = self.portfolio_date
@@ -175,15 +176,14 @@ class SharePortfolio:
     ) -> None:
         """Add a realization and/or investment to the sharepos with the specified isin."""
         if pos := self.get_position(isin):
-            self.share_positions[isin] = replace(
-                pos, investment=new_investment, realized=new_realization
-            )
+            pos.investment = new_investment
+            pos.realized = new_realization
         else:
             self.share_positions[isin] = SharePosition(
                 name=name,
                 isin=isin,
                 curr=curr,
-                investment=0.0,
+                investment=new_investment,  # expected to be 0.0
                 nr_stocks=0.0,
                 price=1.0,
                 value=0.0,
@@ -241,7 +241,7 @@ def _update_investment_realization(  # pylint: disable=too-many-arguments
     after the transaction_date.
     """
     portfolios_to_modify = [
-        spf for spf in portfolios if spf.portfolio_date > transaction_date
+        spf for spf in portfolios if spf.portfolio_date >= transaction_date
     ]
     for spf in portfolios_to_modify:
         spf.update_investment_realization(
