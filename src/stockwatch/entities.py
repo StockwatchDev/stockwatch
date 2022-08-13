@@ -3,7 +3,7 @@
 This package has a clean architecture. Hence, this module should not depend on any
 other module and only import Python stuff.
 """
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import date
 from enum import Enum, auto
 from typing import Final
@@ -39,7 +39,7 @@ class ShareTransaction:
     transaction_date: date
 
 
-@dataclass(frozen=False, order=True)
+@dataclass(frozen=True, order=True)
 class SharePosition:  # pylint: disable=too-many-instance-attributes
     """For representing a stock shares position at a certain date.
 
@@ -58,20 +58,30 @@ class SharePosition:  # pylint: disable=too-many-instance-attributes
 
     sort_index1: date = field(init=False, repr=False)
     sort_index2: float = field(init=False, repr=False)
-    name: Final[str] = field()  # pylint: disable=invalid-name
-    isin: Final[str] = field()  # pylint: disable=invalid-name
-    curr: Final[str] = field()  # pylint: disable=invalid-name
+    name: str
+    isin: str
+    curr: str
     investment: float
-    nr_stocks: Final[float] = field()  # pylint: disable=invalid-name
-    price: Final[float] = field()  # pylint: disable=invalid-name
-    value: Final[float] = field()  # pylint: disable=invalid-name
+    nr_stocks: float
+    price: float
+    value: float
     realized: float
-    position_date: Final[date] = field()  # pylint: disable=invalid-name
+    position_date: date
 
     def __post_init__(self) -> None:
         # because frozen=True, we need to use __setattr__ here:
         object.__setattr__(self, "sort_index1", self.position_date)
         object.__setattr__(self, "sort_index2", self.value)
+
+    @property
+    def unrealized(self) -> float:
+        """Return the unrealized return of this position."""
+        return self.value - self.investment
+
+    @property
+    def total_return(self) -> float:
+        """Return the total return of this position."""
+        return self.realized + self.unrealized
 
 
 @dataclass(frozen=False, order=True)
@@ -114,6 +124,21 @@ class SharePortfolio:
             sum(share_pos.realized for share_pos in self.share_positions.values()), 2
         )
 
+    @property
+    def total_unrealized_return(self) -> float:
+        """Return the total unrealized return of this portfolio."""
+        return round(
+            sum(share_pos.unrealized for share_pos in self.share_positions.values()), 2
+        )
+
+    @property
+    def total_return(self) -> float:
+        """Return the total return of this portfolio."""
+        return round(
+            sum(share_pos.total_return for share_pos in self.share_positions.values()),
+            2,
+        )
+
     def contains(self, an_isin: str) -> bool:
         """Return True if self has a share position with ISIN an_isin."""
         return an_isin in self.share_positions
@@ -149,6 +174,24 @@ class SharePortfolio:
             2,
         )
 
+    def unrealized_return_of(self, the_isin: str) -> float:
+        """Return the realized return in EUR of the share position with ISIN the_isin."""
+        return round(
+            self.share_positions[the_isin].unrealized
+            if the_isin in self.share_positions
+            else 0.0,
+            2,
+        )
+
+    def total_return_of(self, the_isin: str) -> float:
+        """Return the realized return in EUR of the share position with ISIN the_isin."""
+        return round(
+            self.share_positions[the_isin].total_return
+            if the_isin in self.share_positions
+            else 0.0,
+            2,
+        )
+
     def all_isins(self) -> tuple[str, ...]:
         """Return the ISIN codes of the share positions."""
         return tuple(self.share_positions.keys())
@@ -176,8 +219,9 @@ class SharePortfolio:
     ) -> None:
         """Add a realization and/or investment to the sharepos with the specified isin."""
         if pos := self.get_position(isin):
-            pos.investment = new_investment
-            pos.realized = new_realization
+            self.share_positions[isin] = replace(
+                pos, investment=new_investment, realized=new_realization
+            )
         else:
             self.share_positions[isin] = SharePosition(
                 name=name,

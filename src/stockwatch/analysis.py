@@ -61,9 +61,33 @@ def plot_returns(
         go.Scatter(
             x=returns_data.dates,
             y=returns_data.returns,
-            hovertemplate="<b>portfolio: </b>€%{y:0.2f}<extra></extra>",
+            hovertemplate="<b>returns: </b>€%{y:0.2f}<extra></extra>",
             name="Returns",
             line=dict(color="black", width=2.0),
+            legendrank=2,
+            legendgroup="indexes",
+            legendgrouptitle_text="Returns",
+        )
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=returns_data.dates,
+            y=returns_data.unrealized_returns,
+            hovertemplate="<b>unrealized: </b>€%{y:0.2f}<extra></extra>",
+            name="Unrealized returns",
+            line=dict(color="blue", width=2.0),
+            legendrank=2,
+            legendgroup="indexes",
+            legendgrouptitle_text="Returns",
+        )
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=returns_data.dates,
+            y=returns_data.realized_returns,
+            hovertemplate="<b>realized: </b>€%{y:0.2f}<extra></extra>",
+            name="Realized returns",
+            line=dict(color="green", width=2.0),
             legendrank=2,
             legendgroup="indexes",
             legendgrouptitle_text="Returns",
