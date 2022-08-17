@@ -6,6 +6,8 @@ from datetime import date, timedelta
 
 import requests
 
+from stockwatch.config import stockwatch_config as CFG
+
 from . import stockdir
 
 
@@ -34,11 +36,11 @@ def get_portfolio_at(day: date, account: int, session_id: str) -> str:
     The method raises a RuntimeError if an error occurred while connecting
     to the DeGiro website.
     """
-    url = "https://trader.degiro.nl/reporting/secure/v3/positionReport/csv"
+    url: str = CFG["degiro_server"]["portfolio_url"]
     curl_args: dict[str, str | int] = {
         "sessionId": session_id,
-        "country": "NL",
-        "lang": "nl",
+        "country": CFG["degiro_server"]["country"],
+        "lang": CFG["degiro_server"]["lang"],
         "intAccount": account,
         "toDate": day.strftime("%d/%m/%Y"),
     }

@@ -1,0 +1,5 @@
+[degiro_server]
+country = "NL"
+lang = "nl"
+portfolio_url = "https://trader.degiro.nl/reporting/secure/v3/positionReport/csv"
+account_url = "https://trader.degiro.nl/reporting/secure/v3/cashAccountReport/csv"
