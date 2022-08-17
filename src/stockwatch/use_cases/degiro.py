@@ -9,14 +9,12 @@ from stockwatch.config import stockwatch_config as CFG
 
 from . import stockdir
 
-__TRADER_URL = "https://trader.degiro.nl"
-
 
 def login(username: str, password: str, goauth: str | None) -> tuple[int, str] | None:
     """Login into the degiro site. Obtain a `intAccount` and `sessionId`, return None
     if the login failed.
     """
-    url = __TRADER_URL + "/login/secure/login"
+    url: str = CFG["degiro_server"]["login_url"]
     curl_args: dict[str, str | dict[str, str]] = {
         "username": username,
         "password": password,
@@ -24,7 +22,7 @@ def login(username: str, password: str, goauth: str | None) -> tuple[int, str] |
     }
 
     if goauth:
-        url += "/totp"
+        url += CFG["degiro_server"]["ga_ext"]
         curl_args["oneTimePassword"] = goauth
 
     res = requests.post(url, json=curl_args)
@@ -41,7 +39,7 @@ def login(username: str, password: str, goauth: str | None) -> tuple[int, str] |
     session_id = str(session_id)
 
     # Let's also get the intAccount number.
-    url = __TRADER_URL + "/pa/secure/client"
+    url = CFG["degiro_server"]["clientnr_url"]
     curl_args = {
         "sessionId": session_id,
     }
@@ -62,7 +60,7 @@ def get_portfolio_at(day: date, account: int, session_id: str) -> str:
     The method raises a RuntimeError if an error occurred while connecting
     to the DeGiro website.
     """
-    url = __TRADER_URL + "/reporting/secure/v3/positionReport/csv"
+    url = CFG["degiro_server"]["portfolio_url"]
     curl_args: dict[str, str | int] = {
         "sessionId": session_id,
         "country": CFG["degiro_server"]["country"],
@@ -88,11 +86,11 @@ def get_account_report(
     DeGiro website.
     """
 
-    url = __TRADER_URL + "/reporting/secure/v3/cashAccountReport/csv"
+    url = CFG["degiro_server"]["account_url"]
     curl_args: dict[str, str | int] = {
         "sessionId": session_id,
-        "country": "NL",
-        "lang": "nl",
+        "country": CFG["degiro_server"]["country"],
+        "lang": CFG["degiro_server"]["lang"],
         "intAccount": account,
         "fromDate": start_day.strftime("%d/%m/%Y"),
         "toDate": end_day.strftime("%d/%m/%Y"),
