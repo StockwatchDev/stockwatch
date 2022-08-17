@@ -14,7 +14,7 @@ def login(username: str, password: str, goauth: str | None) -> tuple[int, str] |
     """Login into the degiro site. Obtain a `intAccount` and `sessionId`, return None
     if the login failed.
     """
-    url: str = CFG["degiro_server"]["login_url"]
+    url: str = CFG.DeGiroServer.login_url
     curl_args: dict[str, str | dict[str, str]] = {
         "username": username,
         "password": password,
@@ -22,7 +22,7 @@ def login(username: str, password: str, goauth: str | None) -> tuple[int, str] |
     }
 
     if goauth:
-        url += CFG["degiro_server"]["ga_ext"]
+        url += CFG.DeGiroServer.ga_ext
         curl_args["oneTimePassword"] = goauth
 
     res = requests.post(url, json=curl_args)
@@ -39,7 +39,7 @@ def login(username: str, password: str, goauth: str | None) -> tuple[int, str] |
     session_id = str(session_id)
 
     # Let's also get the intAccount number.
-    url = CFG["degiro_server"]["clientnr_url"]
+    url = CFG.DeGiroServer.clientnr_url
     curl_args = {
         "sessionId": session_id,
     }
@@ -60,11 +60,11 @@ def get_portfolio_at(day: date, account: int, session_id: str) -> str:
     The method raises a RuntimeError if an error occurred while connecting
     to the DeGiro website.
     """
-    url = CFG["degiro_server"]["portfolio_url"]
+    url = CFG.DeGiroServer.portfolio_url
     curl_args: dict[str, str | int] = {
         "sessionId": session_id,
-        "country": CFG["degiro_server"]["country"],
-        "lang": CFG["degiro_server"]["lang"],
+        "country": CFG.DeGiroServer.country,
+        "lang": CFG.DeGiroServer.lang,
         "intAccount": account,
         "toDate": day.strftime("%d/%m/%Y"),
     }
@@ -86,11 +86,11 @@ def get_account_report(
     DeGiro website.
     """
 
-    url = CFG["degiro_server"]["account_url"]
+    url = CFG.DeGiroServer.account_url
     curl_args: dict[str, str | int] = {
         "sessionId": session_id,
-        "country": CFG["degiro_server"]["country"],
-        "lang": CFG["degiro_server"]["lang"],
+        "country": CFG.DeGiroServer.country,
+        "lang": CFG.DeGiroServer.lang,
         "intAccount": account,
         "fromDate": start_day.strftime("%d/%m/%Y"),
         "toDate": end_day.strftime("%d/%m/%Y"),
