@@ -13,8 +13,6 @@ class ScrapingId(_BaseDashId):
     START = "scraping-start"
     CLOSE = "scraping-close"
     EXECUTE = "scraping-execute"
-    SESSION_ID = "scraping-sessionid"
-    ACCOUNT_ID = "scraping-accountid"
     START_DATE = "scraping-end-date"
     END_DATE = "scraping-start-date"
     PROGRESS = "scraping-progress"
@@ -22,6 +20,11 @@ class ScrapingId(_BaseDashId):
     CURRENT = "scraping-current"
     PLACEHOLDER = "scraping-placeholder"
     FOLDER = "scraping-folder"
+
+    USERNAME = "scraping-username"
+    PASSWORD = "scraping-password"
+    GOAUTH = "scraping-goauth"
+    LOGIN_FAIL = "scraping-loginfail"
 
 
 class PlottingId(_BaseDashId):

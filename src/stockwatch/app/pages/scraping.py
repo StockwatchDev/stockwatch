@@ -51,6 +51,13 @@ def init_layout() -> None:
                         )
                     ),
                     dbc.Row(dash.html.Hr()),
+                    dbc.Alert(
+                        "Failed to login",
+                        color="danger",
+                        dismissable=True,
+                        id=ScrapingId.LOGIN_FAIL,
+                        is_open=False,
+                    ),
                     dbc.Container(_get_scraping_form(), fluid=True),
                     dbc.Modal(
                         [
@@ -80,8 +87,8 @@ def init_layout() -> None:
 
 
 def _get_scraping_form() -> list[dbc.Row]:
-    folder = stockdir.get_portfolio_folder()
-    if (start_date := stockdir.get_first_date(folder)) is None:
+    folder = stockdir.get_stockdir()
+    if (start_date := stockdir.get_first_date(stockdir.get_portfolio_folder())) is None:
         start_date = date(2020, 1, 1)
 
     return [
@@ -103,13 +110,12 @@ def _get_scraping_form() -> list[dbc.Row]:
         ),
         dbc.Row(
             [
-                dbc.Col(dash.html.Label("Account ID:"), width=2, xl=1),
+                dbc.Col(dash.html.Label("Username:"), width=2, xl=1),
                 dbc.Col(
                     dbc.Input(
-                        placeholder="account ID",
-                        id=ScrapingId.ACCOUNT_ID,
-                        type="number",
-                        style={"appearance": "textfield"},
+                        placeholder="username",
+                        id=ScrapingId.USERNAME,
+                        type="text",
                     ),
                     width=7,
                 ),
@@ -119,10 +125,28 @@ def _get_scraping_form() -> list[dbc.Row]:
         ),
         dbc.Row(
             [
-                dbc.Col(dash.html.Label("Session ID:"), width=2, xl=1),
+                dbc.Col(dash.html.Label("Password:"), width=2, xl=1),
                 dbc.Col(
                     dbc.Input(
-                        placeholder="session ID", id=ScrapingId.SESSION_ID, type="text"
+                        placeholder="password",
+                        id=ScrapingId.PASSWORD,
+                        type="password",
+                    ),
+                    width=7,
+                ),
+            ],
+            align="center",
+            className="mb-3",
+        ),
+        dbc.Row(
+            [
+                dbc.Col(dash.html.Label("TOTP:"), width=2, xl=1),
+                dbc.Col(
+                    dbc.Input(
+                        placeholder="Google Authenticator code",
+                        id=ScrapingId.GOAUTH,
+                        type="text",
+                        maxlength=6,
                     ),
                     width=7,
                 ),
@@ -185,11 +209,14 @@ def _get_scraping_form() -> list[dbc.Row]:
 
 @dash.callback(
     Output(ScrapingId.EXECUTE, "disabled"),
-    Input(ScrapingId.SESSION_ID, "valid"),
-    Input(ScrapingId.ACCOUNT_ID, "valid"),
+    Input(ScrapingId.USERNAME, "valid"),
+    Input(ScrapingId.PASSWORD, "valid"),
+    Input(ScrapingId.GOAUTH, "valid"),
 )
-def _disable_execute(session_id_valid: bool, account_id_valid: bool) -> bool:
-    return not session_id_valid or not account_id_valid
+def _disable_execute(
+    username_valid: bool, password_valid: bool, goauth_valid: bool
+) -> bool:
+    return not (username_valid and password_valid and goauth_valid)
 
 
 @dash.callback(
@@ -200,58 +227,84 @@ def _stop_execution(_n_clicks: int) -> None:
 
 
 @dash.callback(
-    Output(ScrapingId.MODAL, "is_open"),
+    [
+        Output(ScrapingId.MODAL, "is_open"),
+        Output(ScrapingId.LOGIN_FAIL, "is_open"),
+    ],
     Input(ScrapingId.EXECUTE, "n_clicks"),
-    State(ScrapingId.SESSION_ID, "value"),
-    State(ScrapingId.ACCOUNT_ID, "value"),
+    State(ScrapingId.USERNAME, "value"),
+    State(ScrapingId.PASSWORD, "value"),
+    State(ScrapingId.GOAUTH, "value"),
     State(ScrapingId.START_DATE, "date"),
     State(ScrapingId.END_DATE, "date"),
 )
 def _execute_scraping(
     _execute_clicks: int,
-    session_id: str | None,
-    account_id: int | None,
+    username: str | None,
+    password: str | None,
+    goauth: str | None,
     start_date: str,
     end_date: str,
-) -> bool | dash._callback.NoUpdate:
-    if not session_id or not account_id:
+) -> tuple[bool, bool] | dash._callback.NoUpdate:
+    if not username or not password:
         return dash.no_update
+
+    if (
+        login := degiro.login(username=username, password=password, goauth=goauth)
+    ) is None:
+        # Here we should raise a popup or something?
+        return False, True
 
     started = _SCRAPE_THREAD.start(
         degiro.PortfolioImportData(
-            session_id,
-            account_id,
-            date.fromisoformat(start_date),
-            date.fromisoformat(end_date),
+            account_id=login[0],
+            session_id=login[1],
+            start_date=date.fromisoformat(start_date),
+            end_date=date.fromisoformat(end_date),
         )
     )
 
-    return started
+    return started, False
 
 
 ValidationOutput = namedtuple("ValidationOutput", ["valid", "invalid"])
 
 
 @dash.callback(
-    [Output(ScrapingId.SESSION_ID, "valid"), Output(ScrapingId.SESSION_ID, "invalid")],
-    Input(ScrapingId.SESSION_ID, "value"),
+    [Output(ScrapingId.PASSWORD, "valid"), Output(ScrapingId.PASSWORD, "invalid")],
+    Input(ScrapingId.PASSWORD, "value"),
 )
-def _validate_sessionid(sessionid: str | None) -> ValidationOutput:
-    if sessionid:
-        valid = degiro.is_valid_sessionid(sessionid)
-        return ValidationOutput(valid=valid, invalid=not valid)
-    return ValidationOutput(False, False)
+def _validate_sessionid(password: str | None) -> ValidationOutput:
+    if not password:
+        return ValidationOutput(False, True)
+    return ValidationOutput(True, False)
 
 
 @dash.callback(
-    [Output(ScrapingId.ACCOUNT_ID, "valid"), Output(ScrapingId.ACCOUNT_ID, "invalid")],
-    Input(ScrapingId.ACCOUNT_ID, "value"),
+    [Output(ScrapingId.GOAUTH, "valid"), Output(ScrapingId.GOAUTH, "invalid")],
+    Input(ScrapingId.GOAUTH, "value"),
 )
-def _validate_accountid(accountid: int | None) -> ValidationOutput:
-    if accountid:
-        valid = degiro.is_valid_accountid(accountid)
-        return ValidationOutput(valid=valid, invalid=not valid)
-    return ValidationOutput(False, False)
+def _validate_goauth(goauth: str | None) -> ValidationOutput:
+    if not goauth:
+        return ValidationOutput(True, False)
+
+    if not goauth.isnumeric():
+        return ValidationOutput(False, True)
+
+    if len(goauth) != 6:
+        return ValidationOutput(False, True)
+
+    return ValidationOutput(True, False)
+
+
+@dash.callback(
+    [Output(ScrapingId.USERNAME, "valid"), Output(ScrapingId.USERNAME, "invalid")],
+    Input(ScrapingId.USERNAME, "value"),
+)
+def _validate_accountid(username: str | None) -> ValidationOutput:
+    if not username:
+        return ValidationOutput(False, True)
+    return ValidationOutput(True, False)
 
 
 @dash.callback(
