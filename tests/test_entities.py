@@ -200,6 +200,20 @@ def test_realized_return(example_portfolio_1: SharePortfolio) -> None:
     assert example_portfolio_1.total_realized_return == 13.16
 
 
+def test_unrealized_return(example_portfolio_1: SharePortfolio) -> None:
+    non_existing_isin = "IE00B02KXL92"
+    assert example_portfolio_1.unrealized_return_of(non_existing_isin) == 0.0
+    assert example_portfolio_1.unrealized_return_of("IE00B441G979") == 160.72
+    assert example_portfolio_1.total_unrealized_return == 250.72
+
+
+def test_total_return(example_portfolio_1: SharePortfolio) -> None:
+    non_existing_isin = "IE00B02KXL92"
+    assert example_portfolio_1.total_return_of(non_existing_isin) == 0.0
+    assert example_portfolio_1.total_return_of("IE00B441G979") == 160.72 - 10.50
+    assert example_portfolio_1.total_return == 250.72 + 13.16
+
+
 def test_isins_names(example_portfolio_1: SharePortfolio) -> None:
     all_isins = example_portfolio_1.all_isins()
     all_isins_and_names = example_portfolio_1.all_isins_and_names()
@@ -293,27 +307,31 @@ def test_sell_and_buy_transaction(
     example_sell_transaction_1 = replace(
         example_sell_transaction_1, transaction_date=date.today() - timedelta(days=50)
     )
-    apply_transactions((example_sell_transaction_1,), portfolios)
-    example_sell_transaction_1 = replace(
-        example_sell_transaction_1, transaction_date=date.today() + timedelta(days=50)
-    )
-    apply_transactions((example_sell_transaction_1,), portfolios)
+    apply_transactions(
+        (example_sell_transaction_1,), portfolios
+    )  # no portfolio present before transaction date
     example_sell_transaction_1 = replace(
         example_sell_transaction_1,
         isin="IE00B441G979",
         transaction_date=date.today() - timedelta(days=9),
     )
-    apply_transactions((example_sell_transaction_1,), portfolios)
-    example_sell_transaction_1 = replace(
-        example_sell_transaction_1, transaction_date=date.today() + timedelta(days=50)
+    apply_transactions(
+        (example_sell_transaction_1,), portfolios
+    )  # position not present in last portfolio
+    example_buy_transaction = replace(
+        example_buy_transaction, transaction_date=date.today() + timedelta(days=50)
     )
-    apply_transactions((example_buy_transaction,), portfolios)
-    example_sell_transaction_1 = replace(
-        example_sell_transaction_1,
+    apply_transactions(
+        (example_buy_transaction,), portfolios
+    )  # no portfolio present after transaction date
+    example_buy_transaction = replace(
+        example_buy_transaction,
         isin="IE00B02KXL92",
         transaction_date=date.today() - timedelta(days=3),
     )
-    apply_transactions((example_buy_transaction,), portfolios)
+    apply_transactions(
+        (example_buy_transaction,), portfolios
+    )  # no position present after transaction date
 
 
 def test_dividend_transaction(
