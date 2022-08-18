@@ -49,7 +49,7 @@ class Config(ConfigBase):
             sections: dict[str, Any] = {}
             for f in _config_fields:
                 section_name = f.name
-                section = instantiate_config(
+                section = _instantiate_config(
                     section_name, stockwatch_config_stored[section_name]
                 )
                 sections[section_name] = section
@@ -62,7 +62,7 @@ class Config(ConfigBase):
         Config._instance = self
 
 
-def instantiate_config(
+def _instantiate_config(
     classname_to_instantiate: str, arg_dict: dict[str, Any]
 ) -> ConfigBase | None:
     """Return an instance of classname_to_instantiate, properly initialized"""
