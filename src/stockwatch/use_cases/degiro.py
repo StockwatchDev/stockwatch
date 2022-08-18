@@ -5,7 +5,7 @@ from datetime import date, timedelta
 
 import requests
 
-from stockwatch.use_cases.configuring import STOCKWATCH_CONFIG as CFG
+from stockwatch.use_cases.configuring import get_config
 
 from . import stockdir
 
@@ -14,7 +14,7 @@ def login(username: str, password: str, goauth: str | None) -> tuple[int, str] |
     """Login into the degiro site. Obtain a `intAccount` and `sessionId`, return None
     if the login failed.
     """
-    url: str = CFG.DeGiroServer.login_url
+    url: str = get_config().DeGiroServer.login_url
     curl_args: dict[str, str | dict[str, str]] = {
         "username": username,
         "password": password,
@@ -22,7 +22,7 @@ def login(username: str, password: str, goauth: str | None) -> tuple[int, str] |
     }
 
     if goauth:
-        url += CFG.DeGiroServer.ga_ext
+        url += get_config().DeGiroServer.ga_ext
         curl_args["oneTimePassword"] = goauth
 
     res = requests.post(url, json=curl_args)
@@ -39,7 +39,7 @@ def login(username: str, password: str, goauth: str | None) -> tuple[int, str] |
     session_id = str(session_id)
 
     # Let's also get the intAccount number.
-    url = CFG.DeGiroServer.clientnr_url
+    url = get_config().DeGiroServer.clientnr_url
     curl_args = {
         "sessionId": session_id,
     }
@@ -60,11 +60,11 @@ def get_portfolio_at(day: date, account: int, session_id: str) -> str:
     The method raises a RuntimeError if an error occurred while connecting
     to the DeGiro website.
     """
-    url = CFG.DeGiroServer.portfolio_url
+    url = get_config().DeGiroServer.portfolio_url
     curl_args: dict[str, str | int] = {
         "sessionId": session_id,
-        "country": CFG.DeGiroServer.country,
-        "lang": CFG.DeGiroServer.lang,
+        "country": get_config().DeGiroServer.country,
+        "lang": get_config().DeGiroServer.lang,
         "intAccount": account,
         "toDate": day.strftime("%d/%m/%Y"),
     }
@@ -86,11 +86,11 @@ def get_account_report(
     DeGiro website.
     """
 
-    url = CFG.DeGiroServer.account_url
+    url = get_config().DeGiroServer.account_url
     curl_args: dict[str, str | int] = {
         "sessionId": session_id,
-        "country": CFG.DeGiroServer.country,
-        "lang": CFG.DeGiroServer.lang,
+        "country": get_config().DeGiroServer.country,
+        "lang": get_config().DeGiroServer.lang,
         "intAccount": account,
         "fromDate": start_day.strftime("%d/%m/%Y"),
         "toDate": end_day.strftime("%d/%m/%Y"),

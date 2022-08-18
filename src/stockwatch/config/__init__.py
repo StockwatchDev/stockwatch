@@ -11,5 +11,4 @@ def get_stored_config() -> dict[str, Any]:
     path = pathlib.Path(__file__).parent / "stockwatch.toml"
     with path.open(mode="rb") as fptr:
         stockwatch_config_stored = tomllib.load(fptr)
-    print(f"{stockwatch_config_stored=}")
     return stockwatch_config_stored

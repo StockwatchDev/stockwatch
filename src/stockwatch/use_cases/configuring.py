@@ -1,8 +1,8 @@
 """Module for handling configuration."""
 import sys
 from abc import ABC
-from dataclasses import dataclass, fields
-from typing import Any
+from dataclasses import dataclass, fields, field
+from typing import Any, ClassVar
 
 from stockwatch.config import get_stored_config
 
@@ -31,7 +31,35 @@ class Config(ConfigBase):
 
     # pylint: disable=invalid-name
 
+    _instance: ClassVar["Config"] = field(init=False, repr=False)
     DeGiroServer: DeGiroServerConfig
+
+    @staticmethod
+    def get_instance() -> "Config":
+        """Static access method."""
+        try:
+            return Config._instance
+        except AttributeError as _:
+            stockwatch_config_stored = get_stored_config()
+            _config_fields = {
+                f
+                for f in fields(Config)
+                if f.init and f.name in stockwatch_config_stored.keys()
+            }
+            sections: dict[str, Any] = {}
+            for f in _config_fields:
+                section_name = f.name
+                section = DataClassUnpack.instantiate(
+                    section_name, stockwatch_config_stored[section_name]
+                )
+                sections[section_name] = section
+
+            Config(**sections)
+            return Config._instance
+
+    def __post_init__(self) -> None:
+        """Virtually private constructor."""
+        Config._instance = self
 
 
 class DataClassUnpack:  # pylint: disable=too-few-public-methods
@@ -47,29 +75,13 @@ class DataClassUnpack:  # pylint: disable=too-few-public-methods
                 sys.modules[__name__], f"{classname_to_instantiate}Config"
             )
         ):
-            print(f"No Config class known for section named {section_name}")
+            print(f"No Config class known for section named {classname_to_instantiate}")
             return None
         field_set = {f.name for f in fields(class_to_instantiate) if f.init}
         filtered_arg_dict = {k: v for k, v in arg_dict.items() if k in field_set}
         return class_to_instantiate(**filtered_arg_dict)  # type: ignore
 
 
-sections: dict[str, Any] = {}
-
-if not sections:
-    stockwatch_config_stored = get_stored_config()
-    _config_fields = {
-        f
-        for f in fields(Config)
-        if f.init and f.name in stockwatch_config_stored.keys()
-    }
-    for f in _config_fields:
-        section_name = f.name
-        section = DataClassUnpack.instantiate(
-            section_name, stockwatch_config_stored[section_name]
-        )
-        sections[section_name] = section
-
-    STOCKWATCH_CONFIG = Config(**sections)
-
-    print(STOCKWATCH_CONFIG)
+def get_config() -> Config:
+    """Return the config singleton"""
+    return Config.get_instance()
