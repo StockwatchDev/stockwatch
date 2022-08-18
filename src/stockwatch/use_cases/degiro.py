@@ -5,7 +5,7 @@ from datetime import date, timedelta
 
 import requests
 
-from stockwatch.config import stockwatch_config as CFG
+from stockwatch.use_cases.configuring import STOCKWATCH_CONFIG as CFG
 
 from . import stockdir
 
