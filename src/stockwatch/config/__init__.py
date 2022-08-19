@@ -1,14 +1,8 @@
-"""Module for handling configuration."""
-import pathlib
-from typing import Any
-
-import tomli as tomllib  # import tomllib in Python 3.11
+"""Module for storing configuration."""
+from pathlib import Path
 
 
-def get_stored_config() -> dict[str, Any]:
-    """Get the config stored in the toml file"""
+def get_configfile_path() -> Path:
+    """Return the path for the config directory"""
     # For now, we store the config file in the package
-    path = pathlib.Path(__file__).parent / "stockwatch.toml"
-    with path.open(mode="rb") as fptr:
-        stockwatch_config_stored = tomllib.load(fptr)
-    return stockwatch_config_stored
+    return Path(__file__).parent

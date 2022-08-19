@@ -1,4 +1,4 @@
-[DeGiroServer]
+[degiro_server]
 country = "NL"
 lang = "nl"
 ga_ext = "/totp"
