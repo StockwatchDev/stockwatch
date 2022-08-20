@@ -5,6 +5,7 @@ from datetime import date, timedelta
 from dataclasses import replace
 import pytest
 from stockwatch.entities import (
+    EMPTY_POSITION_NAME,
     SharePosition,
     SharePortfolio,
     ShareTransactionKind,
@@ -69,101 +70,101 @@ def example_dividend_transaction() -> ShareTransaction:
 @pytest.fixture
 def example_position_1() -> SharePosition:
     return SharePosition(
+        date.today(),
+        1190.72,
         "iShares MSCI World EUR Hedged UCITS ETF",
         "IE00B441G979",
         "EUR",
         1030.00,
         16,
         74.42,
-        1190.72,
         -10.50,
-        date.today(),
     )
 
 
 @pytest.fixture
 def example_position_2() -> SharePosition:
     return SharePosition(
+        date.today(),
+        1060.00,
         "Vanguard FTSE All-World UCITS ETF USD Dis",
         "IE00B3RBWM25",
         "EUR",
         970.00,
         10,
         106.00,
-        1060.00,
         23.66,
-        date.today(),
     )
 
 
 @pytest.fixture
 def example_position_3() -> SharePosition:
     return SharePosition(
+        date.today() - timedelta(days=21),
+        1035,
         "VanhEck Sustainable World Equal Weight UCITS ETF",
         "NL0010408704",
         "EUR",
         1000.08,
         36,
         28.75,
-        1035,
         86.50,
-        date.today() - timedelta(days=21),
     )
 
 
 @pytest.fixture
 def example_portfolio_1() -> SharePortfolio:
     sp1 = SharePosition(
+        date.today(),
+        1190.72,
         "iShares MSCI World EUR Hedged UCITS ETF",
         "IE00B441G979",
         "EUR",
         1030.00,
         16,
         74.42,
-        1190.72,
         -10.50,
-        date.today(),
     )
     sp2 = SharePosition(
+        date.today(),
+        1060.00,
         "Vanguard FTSE All-World UCITS ETF USD Dis",
         "IE00B3RBWM25",
         "EUR",
         970.00,
         10,
         106.00,
-        1060.00,
         23.66,
-        date.today(),
     )
-    return SharePortfolio({sp1.isin: sp1, sp2.isin: sp2}, date.today())
+    return SharePortfolio(date.today(), {sp1.isin: sp1, sp2.isin: sp2})
 
 
 @pytest.fixture
 def example_portfolio_2() -> SharePortfolio:
     sp1 = SharePosition(
+        date.today() - timedelta(days=21),
+        1035,
         "VanEck Sustainable World Equal Weight UCITS ETF",
         "NL0010408704",
         "EUR",
         1000.08,
         36,
         28.75,
-        1035,
         86.50,
-        date.today() - timedelta(days=21),
     )
     sp2 = SharePosition(
+        date.today() - timedelta(days=21),
+        1250.76,
         "Vanguard FTSE All-World UCITS ETF USD Dis",
         "IE00B3RBWM25",
         "EUR",
         970.00,
         12,
         104.23,
-        1250.76,
         23.66,
-        date.today() - timedelta(days=21),
     )
     return SharePortfolio(
-        {sp1.isin: sp1, sp2.isin: sp2}, date.today() - timedelta(days=21)
+        date.today() - timedelta(days=21), {sp1.isin: sp1, sp2.isin: sp2}
     )
 
 
@@ -177,40 +178,44 @@ def test_position_order(
 
 
 def test_value(example_portfolio_1: SharePortfolio) -> None:
-    assert example_portfolio_1.value_of("IE00B441G979") == 1190.72
+    assert example_portfolio_1.get_position("IE00B441G979").value == 1190.72
     # assert example_portfolio_1.total_value == 2250.72
 
 
 def test_investment(example_portfolio_1: SharePortfolio) -> None:
-    assert example_portfolio_1.investment_of("IE00B441G979") == 1030.00
+    assert example_portfolio_1.get_position("IE00B441G979").investment == 1030.00
     assert example_portfolio_1.total_investment == 2000.00
 
 
 def test_contains_get_position(example_portfolio_1: SharePortfolio) -> None:
     non_existing_isin = "IE00B02KXL92"
     assert not example_portfolio_1.contains(non_existing_isin)
-    assert example_portfolio_1.get_position(non_existing_isin) is None
+    assert (
+        example_portfolio_1.get_position(non_existing_isin).name == EMPTY_POSITION_NAME
+    )
     assert example_portfolio_1.get_position("IE00B441G979").isin == "IE00B441G979"
 
 
 def test_realized_return(example_portfolio_1: SharePortfolio) -> None:
     non_existing_isin = "IE00B02KXL92"
-    assert example_portfolio_1.realized_return_of(non_existing_isin) == 0.0
-    assert example_portfolio_1.realized_return_of("IE00B441G979") == -10.50
+    assert example_portfolio_1.get_position(non_existing_isin).realized == 0.0
+    assert example_portfolio_1.get_position("IE00B441G979").realized == -10.50
     assert example_portfolio_1.total_realized_return == 13.16
 
 
 def test_unrealized_return(example_portfolio_1: SharePortfolio) -> None:
     non_existing_isin = "IE00B02KXL92"
-    assert example_portfolio_1.unrealized_return_of(non_existing_isin) == 0.0
-    assert example_portfolio_1.unrealized_return_of("IE00B441G979") == 160.72
+    assert example_portfolio_1.get_position(non_existing_isin).unrealized == 0.0
+    assert example_portfolio_1.get_position("IE00B441G979").unrealized == 160.72
     assert example_portfolio_1.total_unrealized_return == 250.72
 
 
 def test_total_return(example_portfolio_1: SharePortfolio) -> None:
     non_existing_isin = "IE00B02KXL92"
-    assert example_portfolio_1.total_return_of(non_existing_isin) == 0.0
-    assert example_portfolio_1.total_return_of("IE00B441G979") == 160.72 - 10.50
+    assert example_portfolio_1.get_position(non_existing_isin).total_return == 0.0
+    assert (
+        example_portfolio_1.get_position("IE00B441G979").total_return == 160.72 - 10.50
+    )
     assert example_portfolio_1.total_return == 250.72 + 13.16
 
 
@@ -297,11 +302,15 @@ def test_sell_and_buy_transaction(
         example_buy_transaction,
     )
     apply_transactions(transactions, portfolios)
-    assert portfolios[1].investment_of(example_sell_transaction_1.isin) == 0.0
-    assert portfolios[1].realized_return_of(example_sell_transaction_1.isin) == 122.86
-    assert portfolios[1].investment_of(example_buy_transaction.isin) == 2060.0
-    assert portfolios[1].investment_of(example_sell_transaction_2.isin) == 808.33
-    assert portfolios[1].realized_return_of(example_sell_transaction_2.isin) == 72.49
+    assert portfolios[1].get_position(example_sell_transaction_1.isin).investment == 0.0
+    assert (
+        portfolios[1].get_position(example_sell_transaction_1.isin).realized == 122.86
+    )
+    assert portfolios[1].get_position(example_buy_transaction.isin).investment == 2060.0
+    assert (
+        portfolios[1].get_position(example_sell_transaction_2.isin).investment == 808.33
+    )
+    assert portfolios[1].get_position(example_sell_transaction_2.isin).realized == 72.49
 
     # and test the degenerate cases, that they do not raise an exception
     example_sell_transaction_1 = replace(
@@ -342,8 +351,13 @@ def test_dividend_transaction(
     portfolios = (example_portfolio_2, example_portfolio_1)
     transactions = (example_dividend_transaction,)
     apply_transactions(transactions, portfolios)
-    assert portfolios[1].investment_of(example_dividend_transaction.isin) == 970.0
-    assert portfolios[1].realized_return_of(example_dividend_transaction.isin) == 36.79
+    assert (
+        portfolios[1].get_position(example_dividend_transaction.isin).investment
+        == 970.0
+    )
+    assert (
+        portfolios[1].get_position(example_dividend_transaction.isin).realized == 36.79
+    )
 
     # and test the degenerate cases, that they do not raise an exception
     example_dividend_transaction = replace(

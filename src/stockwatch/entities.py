@@ -6,7 +6,9 @@ other module and only import Python stuff.
 from dataclasses import dataclass, field, replace
 from datetime import date
 from enum import Enum, auto
-from typing import Final
+
+
+EMPTY_POSITION_NAME = "Empty position"
 
 
 class ShareTransactionKind(Enum):
@@ -45,69 +47,83 @@ class SharePosition:  # pylint: disable=too-many-instance-attributes
 
     Attributes
     ----------
+    position_date   : the date for which the value of the share position is registered
+    value           : the current value of the shares, in EUR
     name            : the name of the share
     isin            : the ISIN code / Symbol string used to identify a share
     curr            : the currency shorthand in which the stock is traded, e.g. EUR
     investment      : the amount in EUR spent in purchasing the shares
     nr_stocks       : the number of shares
     price           : the current price of the shares, in curr
-    value           : the current value of the shares, in EUR
     realized        : the realized result in EUR (including trading costs)
-    position_date   : the date for which the value of the share position is registered
     """
 
-    sort_index1: date = field(init=False, repr=False)
-    sort_index2: float = field(init=False, repr=False)
+    position_date: date
+    value: float
     name: str
     isin: str
     curr: str
     investment: float
     nr_stocks: float
     price: float
-    value: float
     realized: float
-    position_date: date
+    unrealized: float = field(init=False)
+    total_return: float = field(init=False)
+
+    @classmethod
+    def empty_position(cls, the_date: date, the_isin: str) -> "SharePosition":
+        """Return an empty position dated the_date with isin the_isin"""
+        return SharePosition(
+            position_date=the_date,
+            value=0.0,
+            name=EMPTY_POSITION_NAME,
+            isin=the_isin,
+            curr="EUR",
+            investment=0.0,
+            nr_stocks=0.0,
+            price=1.0,
+            realized=0.0,
+        )
 
     def __post_init__(self) -> None:
         # because frozen=True, we need to use __setattr__ here:
-        object.__setattr__(self, "sort_index1", self.position_date)
-        object.__setattr__(self, "sort_index2", self.value)
-
-    @property
-    def unrealized(self) -> float:
-        """Return the unrealized return of this position."""
-        return self.value - self.investment
-
-    @property
-    def total_return(self) -> float:
-        """Return the total return of this position."""
-        return self.realized + self.unrealized
+        object.__setattr__(self, "unrealized", round(self.value - self.investment, 2))
+        object.__setattr__(self, "total_return", self.realized + self.unrealized)
 
 
-@dataclass(frozen=False, order=True)
+@dataclass(frozen=True, order=True)
 class SharePortfolio:
     """For representing a stock shares portfolio (i.e. multiple positions) at a certain date.
 
     Attributes
     ----------
-    share_positions         : the collection of share positions
+    share_positions         : the collection of share positions; key is the share isin
     portfolio_date          : the date of the registered share positions
     """
 
-    sort_index1: date = field(init=False, repr=False)
-    sort_index2: float = field(init=False, repr=False)
+    portfolio_date: date
     share_positions: dict[str, SharePosition]
-    portfolio_date: Final[date] = field()  # pylint: disable=invalid-name
+    total_value: float = field(init=False)
+    total_unrealized_return: float = field(init=False)
 
     def __post_init__(self) -> None:
-        self.sort_index1 = self.portfolio_date
-        self.sort_index2 = self.total_value
-
-    @property
-    def total_value(self) -> float:
-        """Return the total value of this portfolio."""
-        return round(
-            sum(share_pos.value for share_pos in self.share_positions.values()), 2
+        # because frozen=True, we need to use __setattr__ here:
+        object.__setattr__(
+            self,
+            "total_value",
+            round(
+                sum(share_pos.value for share_pos in self.share_positions.values()), 2
+            ),
+        )
+        object.__setattr__(
+            self,
+            "total_unrealized_return",
+            round(
+                sum(
+                    share_pos.unrealized for share_pos in self.share_positions.values()
+                ),
+                2,
+            ),
         )
 
     @property
@@ -125,13 +141,6 @@ class SharePortfolio:
         )
 
     @property
-    def total_unrealized_return(self) -> float:
-        """Return the total unrealized return of this portfolio."""
-        return round(
-            sum(share_pos.unrealized for share_pos in self.share_positions.values()), 2
-        )
-
-    @property
     def total_return(self) -> float:
         """Return the total return of this portfolio."""
         return round(
@@ -143,54 +152,11 @@ class SharePortfolio:
         """Return True if self has a share position with ISIN an_isin."""
         return an_isin in self.share_positions
 
-    def get_position(self, the_isin: str) -> SharePosition | None:
-        """Return the share position with ISIN the_isin or None if not present."""
-        return self.share_positions.get(the_isin, None)
-
-    def value_of(self, the_isin: str) -> float:
-        """Return the value in EUR of the share position with ISIN the_isin."""
-        return round(
-            self.share_positions[the_isin].value
-            if the_isin in self.share_positions
-            else 0.0,
-            2,
-        )
-
-    def investment_of(self, the_isin: str) -> float:
-        """Return the investment in EUR of the share position with ISIN the_isin."""
-        return round(
-            self.share_positions[the_isin].investment
-            if the_isin in self.share_positions
-            else 0.0,
-            2,
-        )
-
-    def realized_return_of(self, the_isin: str) -> float:
-        """Return the realized return in EUR of the share position with ISIN the_isin."""
-        return round(
-            self.share_positions[the_isin].realized
-            if the_isin in self.share_positions
-            else 0.0,
-            2,
-        )
-
-    def unrealized_return_of(self, the_isin: str) -> float:
-        """Return the realized return in EUR of the share position with ISIN the_isin."""
-        return round(
-            self.share_positions[the_isin].unrealized
-            if the_isin in self.share_positions
-            else 0.0,
-            2,
-        )
-
-    def total_return_of(self, the_isin: str) -> float:
-        """Return the realized return in EUR of the share position with ISIN the_isin."""
-        return round(
-            self.share_positions[the_isin].total_return
-            if the_isin in self.share_positions
-            else 0.0,
-            2,
-        )
+    def get_position(self, the_isin: str) -> SharePosition:
+        """Return the share position with ISIN the_isin or an empty one with just the isin if not present."""
+        if the_position := self.share_positions.get(the_isin, None):
+            return the_position
+        return SharePosition.empty_position(self.portfolio_date, the_isin)
 
     def all_isins(self) -> tuple[str, ...]:
         """Return the ISIN codes of the share positions."""
@@ -224,15 +190,15 @@ class SharePortfolio:
             )
         else:
             self.share_positions[isin] = SharePosition(
+                position_date=self.portfolio_date,
+                value=0.0,
                 name=name,
                 isin=isin,
                 curr=curr,
                 investment=new_investment,  # expected to be 0.0
                 nr_stocks=0.0,
                 price=1.0,
-                value=0.0,
                 realized=new_realization,
-                position_date=self.portfolio_date,
             )
 
 

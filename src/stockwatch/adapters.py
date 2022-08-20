@@ -79,12 +79,12 @@ def positions_plotdata(share_portfolios: tuple[SharePortfolio, ...]) -> Position
     positions_data.isins_and_names.extend(
         sorted(
             all_isins_and_names.items(),
-            key=lambda x: share_portfolios[-1].value_of(x[0]),
+            key=lambda x: share_portfolios[-1].get_position(x[0]).value,
         )
     )
 
     for (isin, _) in positions_data.isins_and_names:
         # vertical axis to be the value of each position in the portfolio
-        values = [share_pf.value_of(isin) for share_pf in sorted_portfolios]
+        values = [share_pf.get_position(isin).value for share_pf in sorted_portfolios]
         positions_data.isins_and_values[isin] = values
     return positions_data

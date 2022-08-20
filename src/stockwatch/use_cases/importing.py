@@ -139,21 +139,21 @@ def process_portfolios() -> tuple[SharePortfolio, ...]:
                     price = round(float(row["Slotkoers"].replace(",", ".")), 2)
                     value = round(float(row["Waarde in EUR"].replace(",", ".")), 2)
                     the_position = SharePosition(
+                        position_date=file_date,
+                        value=value,
                         name=name,
                         isin=isin,
                         curr=curr,
                         investment=0.0,
                         nr_stocks=nr_stocks,
                         price=price,
-                        value=value,
                         realized=0.0,
-                        position_date=file_date,
                     )
                     sep_stocks[isin] = the_position
 
         if sep_stocks:
             the_portfolio = SharePortfolio(
-                share_positions=sep_stocks, portfolio_date=file_date
+                portfolio_date=file_date, share_positions=sep_stocks
             )
             share_portfolios.append(the_portfolio)
     return tuple(share_portfolios)
@@ -213,15 +213,15 @@ def _determine_index_values(
 
     if price := _get_first_valid_price(index_prices, index_date):
         return SharePosition(
+            position_date=index_date,
+            value=nr_stocks * price,
             name=index_name.replace("_", " "),
             isin="",
             curr="EUR",
             nr_stocks=nr_stocks,
             price=price,
-            value=nr_stocks * price,
             investment=invested,
             realized=realized,
-            position_date=index_date,
         )
     return None
 
