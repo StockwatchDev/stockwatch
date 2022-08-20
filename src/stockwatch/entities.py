@@ -3,10 +3,11 @@
 This package has a clean architecture. Hence, this module should not depend on any
 other module and only import Python stuff.
 """
+from __future__ import annotations
+
 from dataclasses import dataclass, field, replace
 from datetime import date
 from enum import Enum, auto
-
 
 EMPTY_POSITION_NAME = "Empty position"
 
@@ -71,7 +72,7 @@ class SharePosition:  # pylint: disable=too-many-instance-attributes
     total_return: float = field(init=False)
 
     @classmethod
-    def empty_position(cls, the_date: date, the_isin: str) -> "SharePosition":
+    def empty_position(cls, the_date: date, the_isin: str) -> SharePosition:
         """Return an empty position dated the_date with isin the_isin"""
         return SharePosition(
             position_date=the_date,
