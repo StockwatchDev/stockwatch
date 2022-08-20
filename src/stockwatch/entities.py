@@ -103,8 +103,8 @@ class SharePortfolio:
     """
 
     portfolio_date: date
-    share_positions: dict[str, SharePosition]
     total_value: float = field(init=False)
+    share_positions: dict[str, SharePosition]
     total_unrealized_return: float = field(init=False)
 
     def __post_init__(self) -> None:
