@@ -4,10 +4,12 @@ import csv
 from datetime import date, datetime, timedelta
 
 from stockwatch.entities import (
+    IsinStr,
     SharePortfolio,
     SharePosition,
     ShareTransaction,
     ShareTransactionKind,
+    apply_transactions,
 )
 
 from . import stockdir
@@ -15,7 +17,7 @@ from . import stockdir
 
 def _process_buy_transaction_row(
     transaction_date: date,
-    isin: str,
+    isin: IsinStr,
     row: dict[str, str],
 ) -> ShareTransaction:
     descr = row["Omschrijving"].split()
@@ -24,13 +26,13 @@ def _process_buy_transaction_row(
     price = float(descr[key_index + 3].replace(",", "."))
     curr = row["Mutatie"]
     return ShareTransaction(
-        ShareTransactionKind.BUY, isin, curr, nr_stocks, price, transaction_date
+        transaction_date, ShareTransactionKind.BUY, isin, curr, nr_stocks, price
     )
 
 
 def _process_sell_transaction_row(
     transaction_date: date,
-    isin: str,
+    isin: IsinStr,
     row: dict[str, str],
 ) -> ShareTransaction:
     descr = row["Omschrijving"].split()
@@ -39,25 +41,35 @@ def _process_sell_transaction_row(
     price = float(descr[key_index + 3].replace(",", "."))
     curr = row["Mutatie"]
     return ShareTransaction(
-        ShareTransactionKind.SELL, isin, curr, nr_stocks, price, transaction_date
+        transaction_date,
+        ShareTransactionKind.SELL,
+        isin,
+        curr,
+        nr_stocks,
+        price,
     )
 
 
 def _process_dividend_transaction_row(
     transaction_date: date,
-    isin: str,
+    isin: IsinStr,
     row: dict[str, str],
 ) -> ShareTransaction:
     amount = float(row["Bedrag"].replace(",", "."))
     curr = row["Mutatie"]
     return ShareTransaction(
-        ShareTransactionKind.DIVIDEND, isin, curr, 1, amount, transaction_date
+        transaction_date,
+        ShareTransactionKind.DIVIDEND,
+        isin,
+        curr,
+        1,
+        amount,
     )
 
 
 def _process_transaction_row(
     transaction_date: date,
-    isin: str,
+    isin: IsinStr,
     row: dict[str, str],
 ) -> ShareTransaction | None:
     descr = row["Omschrijving"].split()
@@ -83,7 +95,7 @@ def _process_transaction_row(
     return None
 
 
-def process_transactions(isins: set[str]) -> tuple[ShareTransaction, ...]:
+def process_transactions(isins: set[IsinStr]) -> tuple[ShareTransaction, ...]:
     """Get a list of all the transactions from the CSV files in the account folder.
 
     The csv files should be formatted as done by De Giro and should named as follows:
@@ -118,45 +130,69 @@ def process_transactions(isins: set[str]) -> tuple[ShareTransaction, ...]:
     return tuple(transactions)
 
 
-def process_portfolios() -> tuple[SharePortfolio, ...]:
+def process_portfolios() -> tuple[
+    set[IsinStr], dict[date, dict[IsinStr, SharePosition]]
+]:
     """Create the dated portfolios from the Portfolio csv's found in the portfolio folder.
 
     The csv files should be formatted as done by De Giro and should named as follows:
     yymmdd_Portfolio.csv
     """
-    share_portfolios = []
+    share_portfolio_data: dict[date, dict[IsinStr, SharePosition]] = {}
+    all_isins: set[IsinStr] = set()
 
+    # start with the oldest and work towards the newest portfolios
+    previous_date = None
     for file_path in sorted(stockdir.get_portfolio_folder().glob("*.csv")):
         file_date = datetime.strptime(file_path.name[:6], "%y%m%d").date()
+        if file_date in share_portfolio_data:
+            print(
+                f"Error: multiple files with date {file_date}, this will lead to errors."
+            )
+        share_positions = {}
+        isins_in_file: set[IsinStr] = set()
         with file_path.open(mode="r") as csv_file:
-            sep_stocks = {}
             for row in csv.DictReader(csv_file):
                 # we're only interested in real stock positions (not cash)
                 if isin := row["Symbool/ISIN"]:
+                    isins_in_file.add(isin)
                     name = row["Product"]
+                    if not isin in all_isins:
+                        # create empty positions for all previous portfolios
+                        for spf_date, previous_spf in share_portfolio_data.items():
+                            previous_spf[isin] = SharePosition.empty_position(
+                                position_date=spf_date, isin=isin, name=name
+                            )
+                        all_isins.add(isin)
                     curr = row["Lokale waarde"].split()[0]
                     nr_stocks = float(row["Aantal"].replace(",", ".", 2))
                     price = round(float(row["Slotkoers"].replace(",", ".")), 2)
                     value = round(float(row["Waarde in EUR"].replace(",", ".")), 2)
+                    # investment and realization will be set via transactions
                     the_position = SharePosition(
                         position_date=file_date,
                         value=value,
-                        name=name,
                         isin=isin,
+                        name=name,
                         curr=curr,
                         investment=0.0,
                         nr_stocks=nr_stocks,
                         price=price,
                         realized=0.0,
                     )
-                    sep_stocks[isin] = the_position
+                    share_positions[isin] = the_position
+        if previous_date:
+            # add empty positions for isins that are no longer present
+            for sold_isin in all_isins - isins_in_file:
+                sold_name = share_portfolio_data[previous_date][sold_isin].name
+                share_positions[sold_isin] = SharePosition.empty_position(
+                    position_date=file_date, isin=sold_isin, name=sold_name
+                )
 
-        if sep_stocks:
-            the_portfolio = SharePortfolio(
-                portfolio_date=file_date, share_positions=sep_stocks
-            )
-            share_portfolios.append(the_portfolio)
-    return tuple(share_portfolios)
+        share_portfolio_data[file_date] = share_positions
+        previous_date = file_date
+
+    return all_isins, share_portfolio_data
 
 
 def _get_first_valid_price(
@@ -215,8 +251,8 @@ def _determine_index_values(
         return SharePosition(
             position_date=index_date,
             value=nr_stocks * price,
+            isin="index",  # this is a problem if we use dict with key = isin
             name=index_name.replace("_", " "),
-            isin="",
             curr="EUR",
             nr_stocks=nr_stocks,
             price=price,
@@ -265,3 +301,17 @@ def process_index_prices() -> dict[str, dict[date, float]]:
         }
 
     return ret_val
+
+
+def get_portfolios_index_positions() -> tuple[
+    tuple[SharePortfolio, ...], list[tuple[SharePosition, ...]]
+]:
+    """Return all portfolios and equivalent index positions."""
+    all_isins, spfs = process_portfolios()
+
+    transactions = process_transactions(all_isins)
+    apply_transactions(transactions, spfs)
+
+    # _INDICES = use_cases.process_index_prices()
+
+    return tuple(), []

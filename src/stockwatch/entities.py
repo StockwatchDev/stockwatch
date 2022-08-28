@@ -9,7 +9,11 @@ from dataclasses import dataclass, field, replace
 from datetime import date
 from enum import Enum, auto
 
-EMPTY_POSITION_NAME = "Empty position"
+
+IsinStr = str
+
+
+UNKNOWN_POSITION_NAME = "Name Unknown"
 
 
 class ShareTransactionKind(Enum):
@@ -20,7 +24,7 @@ class ShareTransactionKind(Enum):
     DIVIDEND = auto()
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, order=True)
 class ShareTransaction:
     """For representing a stock shares transaction at a certain date.
 
@@ -34,12 +38,12 @@ class ShareTransaction:
     transaction_date  : the date for which the value of the share position is registered
     """
 
+    transaction_date: date
     kind: ShareTransactionKind
     isin: str
     curr: str
     nr_stocks: float
     price: float
-    transaction_date: date
 
 
 @dataclass(frozen=True, order=True)
@@ -61,8 +65,8 @@ class SharePosition:  # pylint: disable=too-many-instance-attributes
 
     position_date: date
     value: float
-    name: str
     isin: str
+    name: str
     curr: str
     investment: float
     nr_stocks: float
@@ -72,24 +76,33 @@ class SharePosition:  # pylint: disable=too-many-instance-attributes
     total_return: float = field(init=False)
 
     @classmethod
-    def empty_position(cls, the_date: date, the_isin: str) -> SharePosition:
+    def empty_position(
+        cls,
+        position_date: date,
+        isin: str,
+        name: str = UNKNOWN_POSITION_NAME,
+        realized: float = 0.0,
+    ) -> SharePosition:
         """Return an empty position dated the_date with isin the_isin"""
         return SharePosition(
-            position_date=the_date,
+            position_date=position_date,
             value=0.0,
-            name=EMPTY_POSITION_NAME,
-            isin=the_isin,
+            isin=isin,
+            name=name,
             curr="EUR",
             investment=0.0,
             nr_stocks=0.0,
             price=1.0,
-            realized=0.0,
+            realized=realized,
         )
 
     def __post_init__(self) -> None:
         # because frozen=True, we need to use __setattr__ here:
         object.__setattr__(self, "unrealized", round(self.value - self.investment, 2))
         object.__setattr__(self, "total_return", self.realized + self.unrealized)
+
+
+PortfoliosDictionary = dict[date, dict[IsinStr, SharePosition]]
 
 
 @dataclass(frozen=True, order=True)
@@ -105,7 +118,10 @@ class SharePortfolio:
     portfolio_date: date
     total_value: float = field(init=False)
     share_positions: dict[str, SharePosition]
+    total_investment: float = field(init=False)
     total_unrealized_return: float = field(init=False)
+    total_realized_return: float = field(init=False)
+    total_return: float = field(init=False)
 
     def __post_init__(self) -> None:
         # because frozen=True, we need to use __setattr__ here:
@@ -118,6 +134,16 @@ class SharePortfolio:
         )
         object.__setattr__(
             self,
+            "total_investment",
+            round(
+                sum(
+                    share_pos.investment for share_pos in self.share_positions.values()
+                ),
+                2,
+            ),
+        )
+        object.__setattr__(
+            self,
             "total_unrealized_return",
             round(
                 sum(
@@ -126,28 +152,26 @@ class SharePortfolio:
                 2,
             ),
         )
-
-    @property
-    def total_investment(self) -> float:
-        """Return the total investment of this portfolio."""
-        return round(
-            sum(share_pos.investment for share_pos in self.share_positions.values()), 2
+        object.__setattr__(
+            self,
+            "total_realized_return",
+            round(
+                sum(share_pos.realized for share_pos in self.share_positions.values()),
+                2,
+            ),
         )
-
-    @property
-    def total_realized_return(self) -> float:
-        """Return the total realized return of this portfolio."""
-        return round(
-            sum(share_pos.realized for share_pos in self.share_positions.values()), 2
+        object.__setattr__(
+            self,
+            "total_return",
+            round(
+                sum(
+                    share_pos.total_return
+                    for share_pos in self.share_positions.values()
+                ),
+                2,
+            ),
         )
-
-    @property
-    def total_return(self) -> float:
-        """Return the total return of this portfolio."""
-        return round(
-            sum(share_pos.total_return for share_pos in self.share_positions.values()),
-            2,
-        )
+        assert self.is_date_consistent()
 
     def contains(self, an_isin: str) -> bool:
         """Return True if self has a share position with ISIN an_isin."""
@@ -176,31 +200,15 @@ class SharePortfolio:
             for share_pos in self.share_positions.values()
         )
 
-    def update_investment_realization(  # pylint: disable=too-many-arguments
-        self,
-        new_investment: float,
-        new_realization: float,
-        name: str,
-        isin: str,
-        curr: str,
-    ) -> None:
-        """Add a realization and/or investment to the sharepos with the specified isin."""
-        if pos := self.get_position(isin):
-            self.share_positions[isin] = replace(
-                pos, investment=new_investment, realized=new_realization
-            )
-        else:
-            self.share_positions[isin] = SharePosition(
-                position_date=self.portfolio_date,
-                value=0.0,
-                name=name,
-                isin=isin,
-                curr=curr,
-                investment=new_investment,  # expected to be 0.0
-                nr_stocks=0.0,
-                price=1.0,
-                realized=new_realization,
-            )
+
+def portfolios_dictionary_2_portfolios(
+    spf_dict: PortfoliosDictionary,
+) -> tuple[SharePortfolio, ...]:
+    """Return a tuple of SharePortfolios that represent spf_dict"""
+    spf_list = [
+        SharePortfolio(spf_date, spf_dict) for spf_date, spf_dict in spf_dict.items()
+    ]
+    return tuple(sorted(spf_list))
 
 
 def earliest_portfolio_date(share_portfolios: tuple[SharePortfolio, ...]) -> date:
@@ -239,41 +247,74 @@ def closest_portfolio_before_date(
     return None
 
 
-def _update_investment_realization(  # pylint: disable=too-many-arguments
-    new_investment: float,
-    new_realization: float,
-    transaction_date: date,
-    name: str,
-    isin: str,
-    curr: str,
-    portfolios: tuple[SharePortfolio, ...],
-) -> None:
-    """Add a realization and/or investment amount to each portfolio dated
-    after the transaction_date.
-    """
-    portfolios_to_modify = [
-        spf for spf in portfolios if spf.portfolio_date >= transaction_date
-    ]
-    for spf in portfolios_to_modify:
-        spf.update_investment_realization(
-            new_investment, new_realization, name, isin, curr
-        )
-
-
 def apply_transactions(
-    transactions: tuple[ShareTransaction, ...], portfolios: tuple[SharePortfolio, ...]
-) -> None:
+    transactions: tuple[ShareTransaction, ...],
+    portfolios: dict[date, dict[IsinStr, SharePosition]],
+) -> dict[date, dict[IsinStr, SharePosition]]:
     """Process transactions to add the investment and realization of the portfolios."""
-    for transaction in transactions:
-        match transaction.kind:
-            case ShareTransactionKind.BUY:
-                _process_buy_transaction(transaction, portfolios)
-            case ShareTransactionKind.SELL:
-                _process_sell_transaction(transaction, portfolios)
-            case ShareTransactionKind.DIVIDEND:
-                _process_dividend_transaction(transaction, portfolios)
-            case _:
-                print(f"Cannot process unknown transaction kind {transaction.kind}")
+    if len(transactions) == 0:
+        return portfolios
+    sorted_portfolios = sorted(list(portfolios.items()), key=lambda x: x[0])
+    sorted_transactions = sorted(list(transactions))
+    trans_idx = 0
+    transac = sorted_transactions[trans_idx]
+    for pf_idx, date_portfol in enumerate(sorted_portfolios):
+        if trans_idx >= len(transactions):
+            # all transactions have been processed
+            break
+        current_date = date_portfol[0]
+        while current_date >= transac.transaction_date:
+            match transac.kind:
+                case ShareTransactionKind.BUY:
+                    investment = round(transac.nr_stocks * transac.price, 2)
+                    realization = 0.0
+                    print(
+                        f"{transac.kind.name} dd {transac.transaction_date}: {investment}, {realization}"
+                    )
+                case ShareTransactionKind.SELL:
+                    investment = 0.0
+                    realization = 0.0
+                    if pf_idx == 0 or not (
+                        (
+                            prev_pos := sorted_portfolios[pf_idx - 1][1].get(
+                                transac.isin, None
+                            )
+                        )
+                        and (prev_pos.nr_stocks > 0.0)
+                    ):
+                        print(
+                            "Cannot process sell transaction, no position found to determine buy price"
+                        )
+                    else:
+                        buy_price = prev_pos.investment / prev_pos.nr_stocks
+                        investment = round(-transac.nr_stocks * buy_price, 2)
+                        realization = round(
+                            transac.nr_stocks * (transac.price - buy_price), 2
+                        )
+                    print(
+                        f"{transac.kind.name} dd {transac.transaction_date}: {investment}, {realization}"
+                    )
+                case ShareTransactionKind.DIVIDEND:
+                    investment = 0.0
+                    realization = round(transac.nr_stocks * transac.price, 2)
+                    print(
+                        f"{transac.kind.name} dd {transac.transaction_date}: {investment}, {realization}"
+                    )
+            for dt_spf in sorted_portfolios[pf_idx:]:
+                shpf = dt_spf[1]
+                if share_pos := shpf.get(transac.isin, None):
+                    shpf[transac.isin] = replace(
+                        share_pos,
+                        investment=share_pos.investment + investment,
+                        realized=share_pos.realized + realization,
+                    )
+                    print(f"{shpf[transac.isin]}=")
+            trans_idx += 1
+            if trans_idx >= len(transactions):
+                break
+            transac = sorted_transactions[trans_idx]
+
+    return portfolios
 
 
 def get_all_isins(portfolios: tuple[SharePortfolio, ...]) -> set[str]:
@@ -282,111 +323,3 @@ def get_all_isins(portfolios: tuple[SharePortfolio, ...]) -> set[str]:
     for porto in portfolios:
         ret_val.update(porto.all_isins())
     return ret_val
-
-
-def _process_buy_transaction(
-    transaction: ShareTransaction, portfolios: tuple[SharePortfolio, ...]
-) -> None:
-    assert (
-        transaction.kind == ShareTransactionKind.BUY
-    ), f"Buy transaction expected, got {transaction.kind.name}"
-
-    if not (
-        next_portfolio := closest_portfolio_after_date(
-            portfolios, transaction.transaction_date
-        )
-    ):
-        print(
-            "Cannot process buy transaction, no portfolio present after transaction date"
-        )
-        return
-    if not (next_pos := next_portfolio.get_position(transaction.isin)):
-        print(
-            "Cannot process buy transaction, no position present after transaction date"
-        )
-        return
-
-    investment = transaction.nr_stocks * transaction.price
-    realization = 0.0
-    _update_investment_realization(
-        new_investment=round(next_pos.investment + investment, 2),
-        new_realization=round(next_pos.realized + realization, 2),
-        transaction_date=transaction.transaction_date,
-        name=next_pos.name,  # for a BUY transaction, the name is not important
-        isin=next_pos.isin,
-        curr=next_pos.curr,
-        portfolios=portfolios,
-    )
-
-
-def _process_sell_transaction(
-    transaction: ShareTransaction, portfolios: tuple[SharePortfolio, ...]
-) -> None:
-    assert (
-        transaction.kind == ShareTransactionKind.SELL
-    ), f"Sell transaction expected, got {transaction.kind.name}"
-
-    current_portfolio = closest_portfolio_before_date(
-        portfolios, transaction.transaction_date
-    )
-    if not current_portfolio:
-        print(
-            "Cannot process sell transaction, no portfolio present before transaction date"
-        )
-        return
-
-    if not (
-        (current_pos := current_portfolio.get_position(transaction.isin))
-        and (current_pos.nr_stocks > 0.0)
-    ):
-        print(
-            "Cannot process sell transaction, position not present in last portfolio before"
-            f" the transaction date: {transaction.transaction_date}"
-        )
-        return
-
-    buy_price = current_pos.investment / current_pos.nr_stocks
-    realization = round(transaction.nr_stocks * (transaction.price - buy_price), 2)
-    investment = round(-transaction.nr_stocks * buy_price, 2)
-    _update_investment_realization(
-        new_investment=round(current_pos.investment + investment, 2),
-        new_realization=round(current_pos.realized + realization, 2),
-        transaction_date=transaction.transaction_date,
-        name=current_pos.name,
-        isin=current_pos.isin,
-        curr=current_pos.curr,
-        portfolios=portfolios,
-    )
-
-
-def _process_dividend_transaction(
-    transaction: ShareTransaction, portfolios: tuple[SharePortfolio, ...]
-) -> None:
-    assert (
-        transaction.kind == ShareTransactionKind.DIVIDEND
-    ), f"Dividend transaction expected, got {transaction.kind.name}"
-
-    current_portfolio = closest_portfolio_before_date(
-        portfolios, transaction.transaction_date
-    )
-    if not current_portfolio:
-        print(
-            "Cannot process sell transaction, no portfolio present before transaction date"
-        )
-        return
-    if not (current_pos := current_portfolio.get_position(transaction.isin)):
-        print(
-            "Cannot process dividend transaction, no position present before transaction date"
-        )
-        return
-
-    realization = round(transaction.nr_stocks * transaction.price, 2)
-    _update_investment_realization(
-        new_investment=current_pos.investment,
-        new_realization=round(current_pos.realized + realization, 2),
-        transaction_date=transaction.transaction_date,
-        name=current_pos.name,
-        isin=current_pos.isin,
-        curr=current_pos.curr,
-        portfolios=portfolios,
-    )
