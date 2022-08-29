@@ -375,6 +375,7 @@ def test_sell_and_buy_transaction(
     apply_transactions(
         (example_buy_transaction,), portfolios
     )  # no position present after transaction date
+    apply_transactions((), portfolios)  # empty transactions tuple
 
 
 def test_double_buy_transaction(
@@ -382,15 +383,17 @@ def test_double_buy_transaction(
     example_pfdict_3w_ago: SharePortfolio,
     example_buy_transaction: ShareTransaction,
 ) -> None:
-    portfolios = (example_pfdict_3w_ago, example_pfdict_today)
+    portfolios = example_pfdict_3w_ago | example_pfdict_today
     example_buy_transaction_half_1 = replace(example_buy_transaction, nr_stocks=8.0)
     example_buy_transaction_half_2 = replace(example_buy_transaction, nr_stocks=8.0)
     transactions = (
         example_buy_transaction_half_1,
         example_buy_transaction_half_2,
     )
-    apply_transactions(transactions, portfolios)
-    assert portfolios[1].get_position(example_buy_transaction.isin).investment == 2060.0
+    date_after = list(example_pfdict_today.keys())[0]
+    isin_buy = example_buy_transaction.isin
+    processed_portfolios = apply_transactions(transactions, portfolios)
+    assert processed_portfolios[date_after][isin_buy].investment == 2060.0
 
 
 def test_double_sell_transaction(
@@ -398,10 +401,7 @@ def test_double_sell_transaction(
     example_pfdict_3w_ago: SharePortfolio,
     example_sell_transaction_1: ShareTransaction,
 ) -> None:
-    portfolios = (
-        example_pfdict_3w_ago,
-        example_pfdict_today,
-    )
+    portfolios = example_pfdict_3w_ago | example_pfdict_today
     example_sell_transaction_1_half_1 = replace(
         example_sell_transaction_1, nr_stocks=18.0
     )
@@ -412,11 +412,11 @@ def test_double_sell_transaction(
         example_sell_transaction_1_half_1,
         example_sell_transaction_1_half_2,
     )
-    apply_transactions(transactions, portfolios)
-    assert portfolios[1].get_position(example_sell_transaction_1.isin).investment == 0.0
-    assert (
-        portfolios[1].get_position(example_sell_transaction_1.isin).realized == 122.86
-    )
+    date_after = list(example_pfdict_today.keys())[0]
+    isin_sell = example_sell_transaction_1.isin
+    processed_portfolios = apply_transactions(transactions, portfolios)
+    assert processed_portfolios[date_after][isin_sell].investment == 0.0
+    assert processed_portfolios[date_after][isin_sell].realized == 122.86
 
 
 def test_dividend_transaction(
@@ -424,16 +424,13 @@ def test_dividend_transaction(
     example_pfdict_3w_ago: SharePortfolio,
     example_dividend_transaction: ShareTransaction,
 ) -> None:
-    portfolios = (example_pfdict_3w_ago, example_pfdict_today)
+    portfolios = example_pfdict_3w_ago | example_pfdict_today
     transactions = (example_dividend_transaction,)
-    apply_transactions(transactions, portfolios)
-    assert (
-        portfolios[1].get_position(example_dividend_transaction.isin).investment
-        == 970.0
-    )
-    assert (
-        portfolios[1].get_position(example_dividend_transaction.isin).realized == 36.79
-    )
+    date_after = list(example_pfdict_today.keys())[0]
+    isin_div = example_dividend_transaction.isin
+    processed_portfolios = apply_transactions(transactions, portfolios)
+    assert processed_portfolios[date_after][isin_div].investment == 970.0
+    assert processed_portfolios[date_after][isin_div].realized == 36.79
 
     # and test the degenerate cases, that they do not raise an exception
     example_dividend_transaction = replace(

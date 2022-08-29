@@ -9,7 +9,6 @@ from dataclasses import dataclass, field, replace
 from datetime import date
 from enum import Enum, auto
 
-
 IsinStr = str
 
 
@@ -305,8 +304,8 @@ def apply_transactions(
                 if share_pos := shpf.get(transac.isin, None):
                     shpf[transac.isin] = replace(
                         share_pos,
-                        investment=share_pos.investment + investment,
-                        realized=share_pos.realized + realization,
+                        investment=round(share_pos.investment + investment, 2),
+                        realized=round(share_pos.realized + realization, 2),
                     )
                     print(f"{shpf[transac.isin]}=")
             trans_idx += 1
