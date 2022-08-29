@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
 from datetime import date
-from enum import Enum, auto
+from enum import IntEnum, auto
 
 IsinStr = str
 
@@ -15,7 +15,7 @@ IsinStr = str
 UNKNOWN_POSITION_NAME = "Name Unknown"
 
 
-class ShareTransactionKind(Enum):
+class ShareTransactionKind(IntEnum):
     """Enum with the type of possible transactions."""
 
     BUY = auto()
@@ -266,9 +266,6 @@ def apply_transactions(
                 case ShareTransactionKind.BUY:
                     investment = round(transac.nr_stocks * transac.price, 2)
                     realization = 0.0
-                    print(
-                        f"{transac.kind.name} dd {transac.transaction_date}: {investment}, {realization}"
-                    )
                 case ShareTransactionKind.SELL:
                     investment = 0.0
                     realization = 0.0
@@ -289,15 +286,9 @@ def apply_transactions(
                         realization = round(
                             transac.nr_stocks * (transac.price - buy_price), 2
                         )
-                    print(
-                        f"{transac.kind.name} dd {transac.transaction_date}: {investment}, {realization}"
-                    )
                 case ShareTransactionKind.DIVIDEND:
                     investment = 0.0
                     realization = round(transac.nr_stocks * transac.price, 2)
-                    print(
-                        f"{transac.kind.name} dd {transac.transaction_date}: {investment}, {realization}"
-                    )
             for dt_spf in sorted_portfolios[pf_idx:]:
                 shpf = dt_spf[1]
                 if share_pos := shpf.get(transac.isin, None):
@@ -306,7 +297,6 @@ def apply_transactions(
                         investment=round(share_pos.investment + investment, 2),
                         realized=round(share_pos.realized + realization, 2),
                     )
-                    print(f"{shpf[transac.isin]}=")
             trans_idx += 1
             if trans_idx >= len(transactions):
                 break
