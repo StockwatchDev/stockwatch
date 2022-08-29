@@ -10,6 +10,7 @@ from stockwatch.entities import (
     ShareTransaction,
     ShareTransactionKind,
     apply_transactions,
+    portfolios_dictionary_2_portfolios,
 )
 
 from . import stockdir
@@ -130,7 +131,7 @@ def process_transactions(isins: set[IsinStr]) -> tuple[ShareTransaction, ...]:
     return tuple(transactions)
 
 
-def process_portfolios() -> tuple[
+def process_portfolios() -> tuple[  # pylint: disable=[too-many-locals]
     set[IsinStr], dict[date, dict[IsinStr, SharePosition]]
 ]:
     """Create the dated portfolios from the Portfolio csv's found in the portfolio folder.
@@ -307,11 +308,20 @@ def get_portfolios_index_positions() -> tuple[
     tuple[SharePortfolio, ...], list[tuple[SharePosition, ...]]
 ]:
     """Return all portfolios and equivalent index positions."""
-    all_isins, spfs = process_portfolios()
+    # first get the positions (investment and realized result both equal 0.0)
+    all_isins, spfdict = process_portfolios()
 
+    # second get the transactions
     transactions = process_transactions(all_isins)
-    apply_transactions(transactions, spfs)
+
+    # TODO: third determine exchange rate and apply to transactions
+
+    # fourth apply transactions to positions to determine investment and realized result
+    processed_spfdict = apply_transactions(transactions, spfdict)
+
+    # fifth convert dicts to tuple with shareportfolios
+    spfs = portfolios_dictionary_2_portfolios(processed_spfdict)
 
     # _INDICES = use_cases.process_index_prices()
 
-    return tuple(), []
+    return spfs, []

@@ -10,6 +10,7 @@ from .importing import (
     process_indices,
     process_portfolios,
     process_transactions,
+    get_portfolios_index_positions,
 )
 
 __all__ = [
@@ -17,4 +18,5 @@ __all__ = [
     "process_indices",
     "process_portfolios",
     "process_transactions",
+    "get_portfolios_index_positions",
 ]

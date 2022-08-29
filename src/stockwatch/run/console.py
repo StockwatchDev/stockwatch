@@ -1,10 +1,10 @@
 """Run module for starting the stockwatch application in the console."""
-from stockwatch import analysis, entities, use_cases
+from stockwatch import analysis, use_cases
 
 
 def run() -> int:
     """The main function to run the stockwatcher."""
-    share_portfolios = use_cases.process_portfolios()
+    share_portfolios, _ = use_cases.get_portfolios_index_positions()
     print(
         "All consistent?",
         all(
@@ -12,10 +12,6 @@ def run() -> int:
         ),
     )
 
-    transactions = use_cases.process_transactions(
-        isins=entities.get_all_isins(share_portfolios),
-    )
-    entities.apply_transactions(transactions, share_portfolios)
     fig1 = analysis.plot_returns(share_portfolios)
     fig2 = analysis.plot_positions(share_portfolios)
 

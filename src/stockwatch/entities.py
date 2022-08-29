@@ -261,8 +261,7 @@ def apply_transactions(
         if trans_idx >= len(transactions):
             # all transactions have been processed
             break
-        current_date = date_portfol[0]
-        while current_date >= transac.transaction_date:
+        while date_portfol[0] >= transac.transaction_date:
             match transac.kind:
                 case ShareTransactionKind.BUY:
                     investment = round(transac.nr_stocks * transac.price, 2)
