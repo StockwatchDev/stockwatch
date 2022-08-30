@@ -116,7 +116,7 @@ class SharePortfolio:
 
     portfolio_date: date
     total_value: float = field(init=False)
-    share_positions: dict[str, SharePosition]
+    share_positions: tuple[SharePosition, ...]
     total_investment: float = field(init=False)
     total_unrealized_return: float = field(init=False)
     total_realized_return: float = field(init=False)
@@ -127,17 +127,13 @@ class SharePortfolio:
         object.__setattr__(
             self,
             "total_value",
-            round(
-                sum(share_pos.value for share_pos in self.share_positions.values()), 2
-            ),
+            round(sum(share_pos.value for share_pos in self.share_positions), 2),
         )
         object.__setattr__(
             self,
             "total_investment",
             round(
-                sum(
-                    share_pos.investment for share_pos in self.share_positions.values()
-                ),
+                sum(share_pos.investment for share_pos in self.share_positions),
                 2,
             ),
         )
@@ -145,9 +141,7 @@ class SharePortfolio:
             self,
             "total_unrealized_return",
             round(
-                sum(
-                    share_pos.unrealized for share_pos in self.share_positions.values()
-                ),
+                sum(share_pos.unrealized for share_pos in self.share_positions),
                 2,
             ),
         )
@@ -155,7 +149,7 @@ class SharePortfolio:
             self,
             "total_realized_return",
             round(
-                sum(share_pos.realized for share_pos in self.share_positions.values()),
+                sum(share_pos.realized for share_pos in self.share_positions),
                 2,
             ),
         )
@@ -163,10 +157,7 @@ class SharePortfolio:
             self,
             "total_return",
             round(
-                sum(
-                    share_pos.total_return
-                    for share_pos in self.share_positions.values()
-                ),
+                sum(share_pos.total_return for share_pos in self.share_positions),
                 2,
             ),
         )
@@ -174,29 +165,29 @@ class SharePortfolio:
 
     def contains(self, an_isin: str) -> bool:
         """Return True if self has a share position with ISIN an_isin."""
-        return an_isin in self.share_positions
+        return an_isin in self.all_isins()
 
     def get_position(self, the_isin: str) -> SharePosition:
         """Return the share position with ISIN the_isin or an empty one with just the isin if not present."""
-        if the_position := self.share_positions.get(the_isin, None):
-            return the_position
+        if selected_positions := [
+            the_pos for the_pos in self.share_positions if the_pos.isin == the_isin
+        ]:
+            return selected_positions[0]
         return SharePosition.empty_position(self.portfolio_date, the_isin)
 
     def all_isins(self) -> tuple[str, ...]:
         """Return the ISIN codes of the share positions."""
-        return tuple(self.share_positions.keys())
+        return tuple(share_pos.isin for share_pos in self.share_positions)
 
     def all_isins_and_names(self) -> dict[str, str]:
         """Return the ISIN codes and names of the share positions."""
-        return {
-            isin: share_pos.name for isin, share_pos in self.share_positions.items()
-        }
+        return {share_pos.isin: share_pos.name for share_pos in self.share_positions}
 
     def is_date_consistent(self) -> bool:
         """Return True if the share positions dates all match self.portfolio_date."""
         return all(
             share_pos.position_date == self.portfolio_date
-            for share_pos in self.share_positions.values()
+            for share_pos in self.share_positions
         )
 
 
@@ -205,7 +196,8 @@ def portfolios_dictionary_2_portfolios(
 ) -> tuple[SharePortfolio, ...]:
     """Return a tuple of SharePortfolios that represent spf_dict"""
     spf_list = [
-        SharePortfolio(spf_date, spf_dict) for spf_date, spf_dict in spf_dict.items()
+        SharePortfolio(spf_date, tuple(sorted(spf_dict.values())))
+        for spf_date, spf_dict in spf_dict.items()
     ]
     return tuple(sorted(spf_list))
 
