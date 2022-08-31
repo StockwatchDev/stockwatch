@@ -34,3 +34,6 @@ class Config(ConfigBase):
 def get_config() -> Config:
     """Return the config singleton"""
     return Config.get_instance()
+
+
+print(get_config().degiro_server.clientnr_url)

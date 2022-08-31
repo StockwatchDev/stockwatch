@@ -1,13 +1,16 @@
 """Module for handling configuration."""
 from pathlib import Path
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field, fields
+from dataclasses import dataclass, fields
 from typing import Any, TypeVar
 
 import tomli as tomllib  # import tomllib in Python 3.11
 
 
 TConfig = TypeVar("TConfig", bound="ConfigBase")
+
+
+_ALL_CONFIGS: dict[str, Any] = {}
 
 
 @dataclass(frozen=True)
@@ -21,10 +24,6 @@ class ConfigSectionBase(ABC):
 class ConfigBase(ABC):
     """Base class for main Config class"""
 
-    # _instance should have type TConfig, but so far no way to specify that properly
-    # Therefore, method get_instance has two times type: ignore in the return statements
-    _instance: "ConfigBase" = field(init=False, repr=False)
-
     @staticmethod
     @abstractmethod
     def get_configfile_path() -> Path:
@@ -33,9 +32,8 @@ class ConfigBase(ABC):
     @classmethod
     def get_instance(cls: type[TConfig]) -> TConfig:
         """Access method for the singleton."""
-        try:
-            return cls._instance  # type: ignore
-        except AttributeError as _:
+        _the_config_or_none = _ALL_CONFIGS.get(cls.__name__)
+        if _the_config_or_none is None:
             stockwatch_config_stored = cls._get_stored_config()
             _config_fields = {
                 fld
@@ -50,8 +48,12 @@ class ConfigBase(ABC):
                 )
                 sections[section_name] = section
 
-            cls(**sections)
-            return cls._instance  # type: ignore
+            _the_config = cls(**sections)
+            _ALL_CONFIGS[cls.__name__] = _the_config
+            print(f"Created: {_the_config}")
+        else:
+            _the_config = _the_config_or_none
+        return _the_config
 
     @classmethod
     def _get_stored_config(cls) -> dict[str, Any]:
@@ -77,7 +79,3 @@ class ConfigBase(ABC):
         field_set = {f.name for f in fields(class_to_instantiate) if f.init}
         filtered_arg_dict = {k: v for k, v in arg_dict.items() if k in field_set}
         return class_to_instantiate(**filtered_arg_dict)  # type: ignore
-
-    def __post_init__(self: TConfig) -> None:
-        """Virtually private constructor."""
-        type(self)._instance = self
