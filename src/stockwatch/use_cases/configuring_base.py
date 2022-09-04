@@ -34,12 +34,16 @@ class ConfigBase(ABC):
         """Access method for the singleton."""
         _the_config_or_none = _ALL_CONFIGS.get(cls.__name__)
         if _the_config_or_none is None:
+            # no config has been made yet, so let's instantiate one
+            # get whatever is stored in the config file
             stockwatch_config_stored = cls._get_stored_config()
+            # filter out fields that are both stored and an attribute of the Config
             _config_fields = {
                 fld
                 for fld in fields(cls)
                 if fld.init and fld.name in stockwatch_config_stored.keys()
             }
+            # instantiate the sections and keep them in a dict
             sections: dict[str, Any] = {}
             for fld in _config_fields:
                 section_name = fld.name
@@ -48,9 +52,9 @@ class ConfigBase(ABC):
                 )
                 sections[section_name] = section
 
+            # instantiate the Config with the sections and keep it in the global store
             _the_config = cls(**sections)
             _ALL_CONFIGS[cls.__name__] = _the_config
-            print(f"Created: {_the_config}")
         else:
             _the_config = _the_config_or_none
         return _the_config
@@ -71,11 +75,11 @@ class ConfigBase(ABC):
     def _instantiate_section_config(
         cls: type[TConfig], section_to_instantiate: str, arg_dict: dict[str, Any]
     ) -> ConfigSectionBase | None:
-        """Return an instance of classname_to_instantiate, properly initialized"""
-        section_dict = {f.name: f.type for f in fields(cls) if f.init}
-        if not (class_to_instantiate := section_dict.get(section_to_instantiate)):
-            print(f"No Config class known for section named '{section_to_instantiate}'")
-            return None
+        """Return an instance of section_to_instantiate, properly initialized"""
+        # we are sure that section_to_instantiate is a field of cls
+        class_to_instantiate = [
+            f.type for f in fields(cls) if f.init and f.name == section_to_instantiate
+        ][0]
         field_set = {f.name for f in fields(class_to_instantiate) if f.init}
         filtered_arg_dict = {k: v for k, v in arg_dict.items() if k in field_set}
         return class_to_instantiate(**filtered_arg_dict)  # type: ignore
