@@ -8,8 +8,9 @@ from __future__ import annotations
 from dataclasses import dataclass, field, replace
 from datetime import date
 from enum import IntEnum, auto
+from typing import NewType
 
-IsinStr = str
+IsinStr = NewType("IsinStr", str)
 
 
 UNKNOWN_POSITION_NAME = "Name Unknown"
@@ -39,7 +40,7 @@ class ShareTransaction:
 
     transaction_date: date
     kind: ShareTransactionKind
-    isin: str
+    isin: IsinStr
     curr: str
     nr_stocks: float
     price: float
@@ -64,7 +65,7 @@ class SharePosition:  # pylint: disable=too-many-instance-attributes
 
     position_date: date
     value: float
-    isin: str
+    isin: IsinStr
     name: str
     curr: str
     investment: float
@@ -78,7 +79,7 @@ class SharePosition:  # pylint: disable=too-many-instance-attributes
     def empty_position(
         cls,
         position_date: date,
-        isin: str,
+        isin: IsinStr,
         name: str = UNKNOWN_POSITION_NAME,
         realized: float = 0.0,
     ) -> SharePosition:
@@ -163,11 +164,11 @@ class SharePortfolio:
         )
         assert self.is_date_consistent()
 
-    def contains(self, an_isin: str) -> bool:
+    def contains(self, an_isin: IsinStr) -> bool:
         """Return True if self has a share position with ISIN an_isin."""
         return an_isin in self.all_isins()
 
-    def get_position(self, the_isin: str) -> SharePosition:
+    def get_position(self, the_isin: IsinStr) -> SharePosition:
         """Return the share position with ISIN the_isin or an empty one with just the isin if not present."""
         if selected_positions := [
             the_pos for the_pos in self.share_positions if the_pos.isin == the_isin
@@ -175,11 +176,11 @@ class SharePortfolio:
             return selected_positions[0]
         return SharePosition.empty_position(self.portfolio_date, the_isin)
 
-    def all_isins(self) -> tuple[str, ...]:
+    def all_isins(self) -> tuple[IsinStr, ...]:
         """Return the ISIN codes of the share positions."""
         return tuple(share_pos.isin for share_pos in self.share_positions)
 
-    def all_isins_and_names(self) -> dict[str, str]:
+    def all_isins_and_names(self) -> dict[IsinStr, str]:
         """Return the ISIN codes and names of the share positions."""
         return {share_pos.isin: share_pos.name for share_pos in self.share_positions}
 
@@ -297,9 +298,9 @@ def apply_transactions(
     return portfolios
 
 
-def get_all_isins(portfolios: tuple[SharePortfolio, ...]) -> set[str]:
+def get_all_isins(portfolios: tuple[SharePortfolio, ...]) -> set[IsinStr]:
     """Get all the ISIN's present in the portfolios."""
-    ret_val: set[str] = set()
+    ret_val: set[IsinStr] = set()
     for porto in portfolios:
         ret_val.update(porto.all_isins())
     return ret_val

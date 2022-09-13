@@ -117,7 +117,7 @@ def process_transactions(isins: set[IsinStr]) -> tuple[ShareTransaction, ...]:
         csv_reader = csv.DictReader(contents)
         for row in reversed(list(csv_reader)):
             # we're only interested in real stock positions (not cash)
-            if (isin := row["ISIN"]) in isins:
+            if (isin := IsinStr(row["ISIN"])) in isins:
                 transaction_date = datetime.strptime(row["Datum"], "%d-%m-%Y").date()
 
                 transaction = _process_transaction_row(
@@ -155,7 +155,7 @@ def process_portfolios() -> tuple[  # pylint: disable=[too-many-locals]
         with file_path.open(mode="r") as csv_file:
             for row in csv.DictReader(csv_file):
                 # we're only interested in real stock positions (not cash)
-                if isin := row["Symbool/ISIN"]:
+                if isin := IsinStr(row["Symbool/ISIN"]):
                     isins_in_file.add(isin)
                     name = row["Product"]
                     if not isin in all_isins:
@@ -252,7 +252,7 @@ def _determine_index_values(
         return SharePosition(
             position_date=index_date,
             value=nr_stocks * price,
-            isin="index",  # this is a problem if we use dict with key = isin
+            isin=IsinStr("index"),  # this is a problem if we use dict with key = isin
             name=index_name.replace("_", " "),
             curr="EUR",
             nr_stocks=nr_stocks,

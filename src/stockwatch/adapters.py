@@ -7,7 +7,7 @@ depend on external frameworks and also not contain any business- or application 
 from dataclasses import dataclass, field
 from datetime import date
 
-from .entities import SharePortfolio
+from .entities import IsinStr, SharePortfolio
 
 
 @dataclass(frozen=True)
@@ -27,8 +27,8 @@ class PositionsData:
     """A list of stock positions at a number of dates."""
 
     dates: list[date] = field(default_factory=list)
-    isins_and_names: list[tuple[str, str]] = field(default_factory=list)
-    isins_and_values: dict[str, list[float]] = field(default_factory=dict)
+    isins_and_names: list[tuple[IsinStr, str]] = field(default_factory=list)
+    isins_and_values: dict[IsinStr, list[float]] = field(default_factory=dict)
 
 
 def returns_plotdata(share_portfolios: tuple[SharePortfolio, ...]) -> ReturnsData:
