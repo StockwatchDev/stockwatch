@@ -6,8 +6,8 @@ other module and only import Python stuff.
 from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
-from datetime import date
-from enum import IntEnum, auto
+from datetime import date, datetime
+from enum import Enum, auto
 from typing import NewType
 
 IsinStr = NewType("IsinStr", str)
@@ -16,7 +16,7 @@ IsinStr = NewType("IsinStr", str)
 UNKNOWN_POSITION_NAME = "Name Unknown"
 
 
-class ShareTransactionKind(IntEnum):
+class ShareTransactionKind(Enum):
     """Enum with the type of possible transactions."""
 
     BUY = auto()
@@ -30,20 +30,25 @@ class ShareTransaction:
 
     Attributes
     ----------
-    kind              : the kind of transaction
-    isin              : the ISIN code / Symbol string used to identify a share
-    curr              : the currency shorthand in which the transaction is done, e.g. EUR
-    nr_stocks         : the number of items in the transaction
-    price             : the price per item, in curr
-    transaction_date  : the date for which the value of the share position is registered
+    transaction_datetime  : the date for which the value of the share position is registered
+    isin                  : the ISIN code / Symbol string used to identify a share
+    curr                  : the currency shorthand in which the transaction is done, e.g. EUR
+    nr_stocks             : the number of items in the transaction
+    price                 : the price per item, in curr
+    kind                  : the kind of transaction
     """
 
-    transaction_date: date
-    kind: ShareTransactionKind
+    transaction_datetime: datetime
     isin: IsinStr
     curr: str
     nr_stocks: float
     price: float
+    kind: ShareTransactionKind
+
+    @property
+    def transaction_date(self) -> date:
+        "Transaction date"
+        return self.transaction_datetime.date()
 
 
 @dataclass(frozen=True, order=True)

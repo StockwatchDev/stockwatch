@@ -17,7 +17,7 @@ from . import stockdir
 
 
 def _process_buy_transaction_row(
-    transaction_date: date,
+    transaction_datetime: datetime,
     isin: IsinStr,
     row: dict[str, str],
 ) -> ShareTransaction:
@@ -27,12 +27,12 @@ def _process_buy_transaction_row(
     price = float(descr[key_index + 3].replace(",", "."))
     curr = row["Mutatie"]
     return ShareTransaction(
-        transaction_date, ShareTransactionKind.BUY, isin, curr, nr_stocks, price
+        transaction_datetime, isin, curr, nr_stocks, price, ShareTransactionKind.BUY
     )
 
 
 def _process_sell_transaction_row(
-    transaction_date: date,
+    transaction_datetime: datetime,
     isin: IsinStr,
     row: dict[str, str],
 ) -> ShareTransaction:
@@ -42,34 +42,34 @@ def _process_sell_transaction_row(
     price = float(descr[key_index + 3].replace(",", "."))
     curr = row["Mutatie"]
     return ShareTransaction(
-        transaction_date,
-        ShareTransactionKind.SELL,
+        transaction_datetime,
         isin,
         curr,
         nr_stocks,
         price,
+        ShareTransactionKind.SELL,
     )
 
 
 def _process_dividend_transaction_row(
-    transaction_date: date,
+    transaction_datetime: datetime,
     isin: IsinStr,
     row: dict[str, str],
 ) -> ShareTransaction:
     amount = float(row["Bedrag"].replace(",", "."))
     curr = row["Mutatie"]
     return ShareTransaction(
-        transaction_date,
-        ShareTransactionKind.DIVIDEND,
+        transaction_datetime,
         isin,
         curr,
         1,
         amount,
+        ShareTransactionKind.DIVIDEND,
     )
 
 
 def _process_transaction_row(
-    transaction_date: date,
+    transaction_datetime: datetime,
     isin: IsinStr,
     row: dict[str, str],
 ) -> ShareTransaction | None:
@@ -77,19 +77,19 @@ def _process_transaction_row(
 
     if "Koop" in descr:
         return _process_buy_transaction_row(
-            transaction_date=transaction_date,
+            transaction_datetime=transaction_datetime,
             isin=isin,
             row=row,
         )
     if "Verkoop" in descr:
         return _process_sell_transaction_row(
-            transaction_date=transaction_date,
+            transaction_datetime=transaction_datetime,
             isin=isin,
             row=row,
         )
     if "Dividend" in descr:
         return _process_dividend_transaction_row(
-            transaction_date=transaction_date,
+            transaction_datetime=transaction_datetime,
             isin=isin,
             row=row,
         )
@@ -118,10 +118,13 @@ def process_transactions(isins: set[IsinStr]) -> tuple[ShareTransaction, ...]:
         for row in reversed(list(csv_reader)):
             # we're only interested in real stock positions (not cash)
             if (isin := IsinStr(row["ISIN"])) in isins:
-                transaction_date = datetime.strptime(row["Datum"], "%d-%m-%Y").date()
+                date_time_str = row["Datum"] + ";" + row["Tijd"]
+                transaction_datetime = datetime.strptime(
+                    date_time_str, "%d-%m-%Y;%H:%M"
+                )
 
                 transaction = _process_transaction_row(
-                    transaction_date=transaction_date,
+                    transaction_datetime=transaction_datetime,
                     isin=isin,
                     row=row,
                 )
@@ -216,7 +219,7 @@ def _determine_index_values(
     nr_stocks = 0.0
 
     for transaction in transactions:
-        if transaction.transaction_date > index_date:
+        if transaction.transaction_datetime.date() > index_date:
             continue
         if transaction.kind == ShareTransactionKind.DIVIDEND:
             continue
@@ -230,7 +233,7 @@ def _determine_index_values(
 
         if not (
             index_price := _get_first_valid_price(
-                index_prices, transaction.transaction_date
+                index_prices, transaction.transaction_datetime.date()
             )
         ):
             continue
