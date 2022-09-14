@@ -1,7 +1,7 @@
 # pylint: disable=redefined-outer-name
 # pylint: disable=missing-module-docstring
 # pylint: disable=missing-function-docstring
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from dataclasses import replace
 import pytest
 from stockwatch.entities import (
@@ -25,7 +25,7 @@ from stockwatch.entities import (
 @pytest.fixture
 def example_sell_transaction_1() -> ShareTransaction:
     return ShareTransaction(
-        transaction_date=date.today() - timedelta(days=9),
+        transaction_datetime=datetime.today() - timedelta(days=9),
         kind=ShareTransactionKind.SELL,
         isin="NL0010408704",
         curr="EUR",
@@ -37,7 +37,7 @@ def example_sell_transaction_1() -> ShareTransaction:
 @pytest.fixture
 def example_sell_transaction_2() -> ShareTransaction:
     return ShareTransaction(
-        transaction_date=date.today() - timedelta(days=12),
+        transaction_datetime=datetime.today() - timedelta(days=12),
         kind=ShareTransactionKind.SELL,
         isin="IE00B3RBWM25",
         curr="EUR",
@@ -49,7 +49,7 @@ def example_sell_transaction_2() -> ShareTransaction:
 @pytest.fixture
 def example_buy_transaction() -> ShareTransaction:
     return ShareTransaction(
-        transaction_date=date.today() - timedelta(days=7),
+        transaction_datetime=datetime.today() - timedelta(days=7),
         kind=ShareTransactionKind.BUY,
         isin="IE00B441G979",
         curr="EUR",
@@ -61,7 +61,7 @@ def example_buy_transaction() -> ShareTransaction:
 @pytest.fixture
 def example_dividend_transaction() -> ShareTransaction:
     return ShareTransaction(
-        transaction_date=date.today() - timedelta(days=7),
+        transaction_datetime=datetime.today() - timedelta(days=7),
         kind=ShareTransactionKind.DIVIDEND,
         isin="IE00B3RBWM25",
         curr="EUR",
@@ -73,7 +73,7 @@ def example_dividend_transaction() -> ShareTransaction:
 @pytest.fixture
 def example_position_1() -> SharePosition:
     return SharePosition(
-        date.today(),
+        datetime.today(),
         1190.72,
         "IE00B441G979",
         "iShares MSCI World EUR Hedged UCITS ETF",
@@ -88,7 +88,7 @@ def example_position_1() -> SharePosition:
 @pytest.fixture
 def example_position_2() -> SharePosition:
     return SharePosition(
-        date.today(),
+        datetime.today(),
         1060.00,
         "IE00B3RBWM25",
         "Vanguard FTSE All-World UCITS ETF USD Dis",
@@ -103,7 +103,7 @@ def example_position_2() -> SharePosition:
 @pytest.fixture
 def example_position_3() -> SharePosition:
     return SharePosition(
-        date.today() - timedelta(days=21),
+        datetime.today() - timedelta(days=21),
         1035,
         "NL0010408704",
         "VanhEck Sustainable World Equal Weight UCITS ETF",
@@ -348,7 +348,8 @@ def test_sell_and_buy_transaction(
 
     # and test the degenerate cases, that they do not raise an exception
     example_sell_transaction_1 = replace(
-        example_sell_transaction_1, transaction_date=date.today() - timedelta(days=50)
+        example_sell_transaction_1,
+        transaction_datetime=datetime.today() - timedelta(days=50),
     )
     apply_transactions(
         (example_sell_transaction_1,), portfolios
@@ -356,13 +357,14 @@ def test_sell_and_buy_transaction(
     example_sell_transaction_1 = replace(
         example_sell_transaction_1,
         isin="IE00B441G979",
-        transaction_date=date.today() - timedelta(days=9),
+        transaction_datetime=datetime.today() - timedelta(days=9),
     )
     apply_transactions(
         (example_sell_transaction_1,), portfolios
     )  # position not present in last portfolio
     example_buy_transaction = replace(
-        example_buy_transaction, transaction_date=date.today() + timedelta(days=50)
+        example_buy_transaction,
+        transaction_datetime=datetime.today() + timedelta(days=50),
     )
     apply_transactions(
         (example_buy_transaction,), portfolios
@@ -370,7 +372,7 @@ def test_sell_and_buy_transaction(
     example_buy_transaction = replace(
         example_buy_transaction,
         isin="IE00B02KXL92",
-        transaction_date=date.today() - timedelta(days=3),
+        transaction_datetime=datetime.today() - timedelta(days=3),
     )
     apply_transactions(
         (example_buy_transaction,), portfolios
@@ -434,12 +436,13 @@ def test_dividend_transaction(
 
     # and test the degenerate cases, that they do not raise an exception
     example_dividend_transaction = replace(
-        example_dividend_transaction, transaction_date=date.today() - timedelta(days=50)
+        example_dividend_transaction,
+        transaction_datetime=datetime.today() - timedelta(days=50),
     )
     apply_transactions((example_dividend_transaction,), portfolios)
     example_dividend_transaction = replace(
         example_dividend_transaction,
         isin="IE00B02KXL92",
-        transaction_date=date.today() - timedelta(days=9),
+        transaction_datetime=datetime.today() - timedelta(days=9),
     )
     apply_transactions((example_dividend_transaction,), portfolios)
