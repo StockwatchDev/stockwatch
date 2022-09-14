@@ -104,7 +104,9 @@ class SharePosition:  # pylint: disable=too-many-instance-attributes
     def __post_init__(self) -> None:
         # because frozen=True, we need to use __setattr__ here:
         object.__setattr__(self, "unrealized", round(self.value - self.investment, 2))
-        object.__setattr__(self, "total_return", self.realized + self.unrealized)
+        object.__setattr__(
+            self, "total_return", round(self.realized + self.unrealized, 2)
+        )
 
 
 PortfoliosDictionary = dict[date, dict[IsinStr, SharePosition]]
@@ -121,52 +123,33 @@ class SharePortfolio:
     """
 
     portfolio_date: date
-    total_value: float = field(init=False)
-    share_positions: tuple[SharePosition, ...]
-    total_investment: float = field(init=False)
-    total_unrealized_return: float = field(init=False)
-    total_realized_return: float = field(init=False)
+    value: float = field(init=False)
+    investment: float = field(init=False)
+    unrealized: float = field(init=False)
+    realized: float = field(init=False)
     total_return: float = field(init=False)
+    share_positions: tuple[SharePosition, ...]
 
     def __post_init__(self) -> None:
         # because frozen=True, we need to use __setattr__ here:
-        object.__setattr__(
-            self,
-            "total_value",
-            round(sum(share_pos.value for share_pos in self.share_positions), 2),
-        )
-        object.__setattr__(
-            self,
-            "total_investment",
-            round(
-                sum(share_pos.investment for share_pos in self.share_positions),
-                2,
-            ),
-        )
-        object.__setattr__(
-            self,
-            "total_unrealized_return",
-            round(
-                sum(share_pos.unrealized for share_pos in self.share_positions),
-                2,
-            ),
-        )
-        object.__setattr__(
-            self,
-            "total_realized_return",
-            round(
-                sum(share_pos.realized for share_pos in self.share_positions),
-                2,
-            ),
-        )
-        object.__setattr__(
-            self,
+        for attribute in (
+            "value",
+            "investment",
+            "unrealized",
+            "realized",
             "total_return",
-            round(
-                sum(share_pos.total_return for share_pos in self.share_positions),
-                2,
-            ),
-        )
+        ):
+            object.__setattr__(
+                self,
+                attribute,
+                round(
+                    sum(
+                        getattr(share_pos, attribute)
+                        for share_pos in self.share_positions
+                    ),
+                    2,
+                ),
+            )
         assert self.is_date_consistent()
 
     def contains(self, an_isin: IsinStr) -> bool:

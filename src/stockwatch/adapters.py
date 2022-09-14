@@ -43,14 +43,14 @@ def returns_plotdata(share_portfolios: tuple[SharePortfolio, ...]) -> ReturnsDat
     )
 
     returns_data.investments.extend(
-        [share_pf.total_investment for share_pf in sorted_portfolios]
+        [share_pf.investment for share_pf in sorted_portfolios]
     )
-    returns_data.totals.extend([share_pf.total_value for share_pf in sorted_portfolios])
+    returns_data.totals.extend([share_pf.value for share_pf in sorted_portfolios])
     returns_data.realized_returns.extend(
-        [share_pf.total_realized_return for share_pf in sorted_portfolios]
+        [share_pf.realized for share_pf in sorted_portfolios]
     )
     returns_data.unrealized_returns.extend(
-        [share_pf.total_unrealized_return for share_pf in sorted_portfolios]
+        [share_pf.unrealized for share_pf in sorted_portfolios]
     )
     returns_data.returns.extend(
         [share_pf.total_return for share_pf in sorted_portfolios]

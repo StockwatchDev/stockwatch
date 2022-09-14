@@ -204,13 +204,13 @@ def test_position_order(
 def test_value(example_pfdict_3w_ago: PortfoliosDictionary) -> None:
     spf = portfolios_dictionary_2_portfolios(example_pfdict_3w_ago)[0]
     assert spf.get_position("NL0010408704").value == 1035.0
-    assert spf.total_value == 2285.76
+    assert spf.value == 2285.76
 
 
 def test_investment(example_pfdict_3w_ago: PortfoliosDictionary) -> None:
     spf = portfolios_dictionary_2_portfolios(example_pfdict_3w_ago)[0]
     assert spf.get_position("NL0010408704").investment == 1000.08
-    assert spf.total_investment == 1970.08
+    assert spf.investment == 1970.08
 
 
 def test_contains_get_position(example_pfdict_3w_ago: PortfoliosDictionary) -> None:
@@ -226,7 +226,7 @@ def test_realized_return(example_pfdict_3w_ago: PortfoliosDictionary) -> None:
     non_existing_isin = "IE00B02KXL92"
     assert spf.get_position(non_existing_isin).realized == 0.0
     assert spf.get_position("IE00B441G979").realized == -10.50
-    assert spf.total_realized_return == 99.66
+    assert spf.realized == 99.66
 
 
 def test_unrealized_return(example_pfdict_3w_ago: PortfoliosDictionary) -> None:
@@ -234,7 +234,7 @@ def test_unrealized_return(example_pfdict_3w_ago: PortfoliosDictionary) -> None:
     non_existing_isin = "IE00B02KXL92"
     assert spf.get_position(non_existing_isin).unrealized == 0.0
     assert spf.get_position("IE00B3RBWM25").unrealized == 280.76
-    assert spf.total_unrealized_return == 315.68
+    assert spf.unrealized == 315.68
 
 
 def test_total_return(example_pfdict_3w_ago: PortfoliosDictionary) -> None:
