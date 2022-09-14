@@ -180,15 +180,19 @@ class SharePortfolio:
         )
 
 
-def portfolios_dictionary_2_portfolios(
+def to_portfolios(
     spf_dict: PortfoliosDictionary,
 ) -> tuple[SharePortfolio, ...]:
     """Return a tuple of SharePortfolios that represent spf_dict"""
-    spf_list = [
-        SharePortfolio(spf_date, tuple(sorted(spf_dict.values())))
-        for spf_date, spf_dict in spf_dict.items()
+    sps_list = [
+        # sps_dict.values() is a list of SharePositions
+        # sort them to have a defined order
+        # sorting order is defined by SharePosition attribute order
+        # first by date (equal for all in the list), then by value
+        SharePortfolio(spf_date, tuple(sorted(sps_dict.values())))
+        for spf_date, sps_dict in spf_dict.items()
     ]
-    return tuple(sorted(spf_list))
+    return tuple(sorted(sps_list))
 
 
 def earliest_portfolio_date(share_portfolios: tuple[SharePortfolio, ...]) -> date:

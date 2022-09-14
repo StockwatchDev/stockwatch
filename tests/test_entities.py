@@ -18,7 +18,7 @@ from stockwatch.entities import (
     apply_transactions,
     IsinStr,
     PortfoliosDictionary,
-    portfolios_dictionary_2_portfolios,
+    to_portfolios,
 )
 
 
@@ -202,19 +202,19 @@ def test_position_order(
 
 
 def test_value(example_pfdict_3w_ago: PortfoliosDictionary) -> None:
-    spf = portfolios_dictionary_2_portfolios(example_pfdict_3w_ago)[0]
+    spf = to_portfolios(example_pfdict_3w_ago)[0]
     assert spf.get_position("NL0010408704").value == 1035.0
     assert spf.value == 2285.76
 
 
 def test_investment(example_pfdict_3w_ago: PortfoliosDictionary) -> None:
-    spf = portfolios_dictionary_2_portfolios(example_pfdict_3w_ago)[0]
+    spf = to_portfolios(example_pfdict_3w_ago)[0]
     assert spf.get_position("NL0010408704").investment == 1000.08
     assert spf.investment == 1970.08
 
 
 def test_contains_get_position(example_pfdict_3w_ago: PortfoliosDictionary) -> None:
-    spf = portfolios_dictionary_2_portfolios(example_pfdict_3w_ago)[0]
+    spf = to_portfolios(example_pfdict_3w_ago)[0]
     non_existing_isin = "IE00B02KXL92"
     assert not spf.contains(non_existing_isin)
     assert spf.get_position(non_existing_isin).name == UNKNOWN_POSITION_NAME
@@ -222,7 +222,7 @@ def test_contains_get_position(example_pfdict_3w_ago: PortfoliosDictionary) -> N
 
 
 def test_realized_return(example_pfdict_3w_ago: PortfoliosDictionary) -> None:
-    spf = portfolios_dictionary_2_portfolios(example_pfdict_3w_ago)[0]
+    spf = to_portfolios(example_pfdict_3w_ago)[0]
     non_existing_isin = "IE00B02KXL92"
     assert spf.get_position(non_existing_isin).realized == 0.0
     assert spf.get_position("IE00B441G979").realized == -10.50
@@ -230,7 +230,7 @@ def test_realized_return(example_pfdict_3w_ago: PortfoliosDictionary) -> None:
 
 
 def test_unrealized_return(example_pfdict_3w_ago: PortfoliosDictionary) -> None:
-    spf = portfolios_dictionary_2_portfolios(example_pfdict_3w_ago)[0]
+    spf = to_portfolios(example_pfdict_3w_ago)[0]
     non_existing_isin = "IE00B02KXL92"
     assert spf.get_position(non_existing_isin).unrealized == 0.0
     assert spf.get_position("IE00B3RBWM25").unrealized == 280.76
@@ -238,7 +238,7 @@ def test_unrealized_return(example_pfdict_3w_ago: PortfoliosDictionary) -> None:
 
 
 def test_total_return(example_pfdict_3w_ago: PortfoliosDictionary) -> None:
-    spf = portfolios_dictionary_2_portfolios(example_pfdict_3w_ago)[0]
+    spf = to_portfolios(example_pfdict_3w_ago)[0]
     non_existing_isin = "IE00B02KXL92"
     assert spf.get_position(non_existing_isin).total_return == 0.0
     assert spf.get_position("IE00B3RBWM25").total_return == 304.42
@@ -246,7 +246,7 @@ def test_total_return(example_pfdict_3w_ago: PortfoliosDictionary) -> None:
 
 
 def test_isins_names(example_pfdict_3w_ago: PortfoliosDictionary) -> None:
-    spf = portfolios_dictionary_2_portfolios(example_pfdict_3w_ago)[0]
+    spf = to_portfolios(example_pfdict_3w_ago)[0]
     all_isins = spf.all_isins()
     all_isins_and_names = spf.all_isins_and_names()
     assert len(all_isins) == 3
@@ -259,7 +259,7 @@ def test_isins_names(example_pfdict_3w_ago: PortfoliosDictionary) -> None:
 
 
 def test_is_date_consistent(example_pfdict_3w_ago: PortfoliosDictionary) -> None:
-    spf = portfolios_dictionary_2_portfolios(example_pfdict_3w_ago)[0]
+    spf = to_portfolios(example_pfdict_3w_ago)[0]
     assert spf.is_date_consistent()
 
 
@@ -267,8 +267,8 @@ def test_portfolio_order(
     example_pfdict_3w_ago: PortfoliosDictionary,
     example_pfdict_today: PortfoliosDictionary,
 ) -> None:
-    spf_3w = portfolios_dictionary_2_portfolios(example_pfdict_3w_ago)[0]
-    spf_td = portfolios_dictionary_2_portfolios(example_pfdict_today)[0]
+    spf_3w = to_portfolios(example_pfdict_3w_ago)[0]
+    spf_td = to_portfolios(example_pfdict_today)[0]
     assert spf_3w < spf_td
 
 
@@ -276,9 +276,7 @@ def test_earliest_latest_date(
     example_pfdict_3w_ago: PortfoliosDictionary,
     example_pfdict_today: PortfoliosDictionary,
 ) -> None:
-    spfs = portfolios_dictionary_2_portfolios(
-        example_pfdict_3w_ago | example_pfdict_today
-    )
+    spfs = to_portfolios(example_pfdict_3w_ago | example_pfdict_today)
     assert earliest_portfolio_date(spfs) in example_pfdict_3w_ago
     assert latest_portfolio_date(spfs) in example_pfdict_today
 
@@ -287,9 +285,7 @@ def test_closest_portfolio(
     example_pfdict_3w_ago: PortfoliosDictionary,
     example_pfdict_today: PortfoliosDictionary,
 ) -> None:
-    spfs = portfolios_dictionary_2_portfolios(
-        example_pfdict_3w_ago | example_pfdict_today
-    )
+    spfs = to_portfolios(example_pfdict_3w_ago | example_pfdict_today)
     earliest_date = date.today() - timedelta(days=21)
     latest_date = date.today()
     assert closest_portfolio_after_date(spfs, latest_date + timedelta(days=1)) is None
@@ -312,9 +308,7 @@ def test_get_all_isins(
     example_pfdict_3w_ago: PortfoliosDictionary,
     example_pfdict_today: PortfoliosDictionary,
 ) -> None:
-    spfs = portfolios_dictionary_2_portfolios(
-        example_pfdict_3w_ago | example_pfdict_today
-    )
+    spfs = to_portfolios(example_pfdict_3w_ago | example_pfdict_today)
     all_isins = get_all_isins(spfs)
     assert len(all_isins) == 3
     assert "NL0010408704" in all_isins

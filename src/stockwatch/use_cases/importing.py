@@ -10,7 +10,7 @@ from stockwatch.entities import (
     ShareTransaction,
     ShareTransactionKind,
     apply_transactions,
-    portfolios_dictionary_2_portfolios,
+    to_portfolios,
 )
 
 from . import stockdir
@@ -323,7 +323,7 @@ def get_portfolios_index_positions() -> tuple[
     processed_spfdict = apply_transactions(transactions, spfdict)
 
     # fifth convert dicts to tuple with shareportfolios
-    spfs = portfolios_dictionary_2_portfolios(processed_spfdict)
+    spfs = to_portfolios(processed_spfdict)
 
     # _INDICES = use_cases.process_index_prices()
 
