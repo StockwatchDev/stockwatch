@@ -5,6 +5,7 @@ from datetime import date, datetime, timedelta
 
 from stockwatch.entities import (
     IsinStr,
+    PortfoliosDictionary,
     SharePortfolio,
     SharePosition,
     ShareTransaction,
@@ -135,14 +136,14 @@ def process_transactions(isins: set[IsinStr]) -> tuple[ShareTransaction, ...]:
 
 
 def process_portfolios() -> tuple[  # pylint: disable=[too-many-locals]
-    set[IsinStr], dict[date, dict[IsinStr, SharePosition]]
+    set[IsinStr], PortfoliosDictionary
 ]:
     """Create the dated portfolios from the Portfolio csv's found in the portfolio folder.
 
     The csv files should be formatted as done by De Giro and should named as follows:
     yymmdd_Portfolio.csv
     """
-    share_portfolio_data: dict[date, dict[IsinStr, SharePosition]] = {}
+    share_portfolio_data: PortfoliosDictionary = {}
     all_isins: set[IsinStr] = set()
 
     # start with the oldest and work towards the newest portfolios
@@ -311,7 +312,7 @@ def get_portfolios_index_positions() -> tuple[
     tuple[SharePortfolio, ...], list[tuple[SharePosition, ...]]
 ]:
     """Return all portfolios and equivalent index positions."""
-    # first get the positions (investment and realized result both equal 0.0)
+    # first get the positions (investment and returns both equal 0.0)
     all_isins, spfdict = process_portfolios()
 
     # second get the transactions
@@ -319,7 +320,7 @@ def get_portfolios_index_positions() -> tuple[
 
     # TODO: third determine exchange rate and apply to transactions
 
-    # fourth apply transactions to positions to determine investment and realized result
+    # fourth apply transactions to positions to determine investment and returns
     processed_spfdict = apply_transactions(transactions, spfdict)
 
     # fifth convert dicts to tuple with shareportfolios

@@ -109,6 +109,7 @@ class SharePosition:  # pylint: disable=too-many-instance-attributes
         )
 
 
+# next line placed here because of SharePosition
 PortfoliosDictionary = dict[date, dict[IsinStr, SharePosition]]
 
 
@@ -231,61 +232,83 @@ def closest_portfolio_before_date(
     return None
 
 
+def _get_transaction_result(
+    transaction: ShareTransaction, prev_pos: SharePosition | None
+) -> tuple[float, float]:
+    match transaction.kind:
+        case ShareTransactionKind.BUY:
+            investment = round(transaction.nr_stocks * transaction.price, 2)
+            realization = 0.0
+        case ShareTransactionKind.SELL:
+            investment = 0.0
+            realization = 0.0
+            if not prev_pos:
+                print(
+                    f"Cannot process sell transaction dated {transaction.transaction_date}, no position found to determine buy price"
+                )
+            elif prev_pos.nr_stocks == 0:
+                print(
+                    f"Cannot process sell transaction dated {transaction.transaction_date}, no stocks present to determine buy price"
+                )
+            else:
+                buy_price = prev_pos.investment / prev_pos.nr_stocks
+                investment = round(-transaction.nr_stocks * buy_price, 2)
+                realization = round(
+                    transaction.nr_stocks * (transaction.price - buy_price), 2
+                )
+        case ShareTransactionKind.DIVIDEND:
+            investment = 0.0
+            realization = round(transaction.nr_stocks * transaction.price, 2)
+
+    return investment, realization
+
+
 def apply_transactions(
     transactions: tuple[ShareTransaction, ...],
-    portfolios: dict[date, dict[IsinStr, SharePosition]],
-) -> dict[date, dict[IsinStr, SharePosition]]:
+    portfolios: PortfoliosDictionary,
+) -> PortfoliosDictionary:
     """Process transactions to add the investment and realization of the portfolios."""
-    if len(transactions) == 0:
-        return portfolios
     sorted_portfolios = sorted(list(portfolios.items()), key=lambda x: x[0])
     sorted_transactions = sorted(list(transactions))
-    trans_idx = 0
-    transac = sorted_transactions[trans_idx]
-    for pf_idx, date_portfol in enumerate(sorted_portfolios):
-        if trans_idx >= len(transactions):
-            # all transactions have been processed
-            break
-        while date_portfol[0] >= transac.transaction_date:
-            match transac.kind:
-                case ShareTransactionKind.BUY:
-                    investment = round(transac.nr_stocks * transac.price, 2)
-                    realization = 0.0
-                case ShareTransactionKind.SELL:
-                    investment = 0.0
-                    realization = 0.0
-                    if pf_idx == 0 or not (
-                        (
-                            prev_pos := sorted_portfolios[pf_idx - 1][1].get(
-                                transac.isin, None
-                            )
-                        )
-                        and (prev_pos.nr_stocks > 0.0)
-                    ):
-                        print(
-                            "Cannot process sell transaction, no position found to determine buy price"
-                        )
-                    else:
-                        buy_price = prev_pos.investment / prev_pos.nr_stocks
-                        investment = round(-transac.nr_stocks * buy_price, 2)
-                        realization = round(
-                            transac.nr_stocks * (transac.price - buy_price), 2
-                        )
-                case ShareTransactionKind.DIVIDEND:
-                    investment = 0.0
-                    realization = round(transac.nr_stocks * transac.price, 2)
-            for dt_spf in sorted_portfolios[pf_idx:]:
-                shpf = dt_spf[1]
-                if share_pos := shpf.get(transac.isin, None):
-                    shpf[transac.isin] = replace(
+
+    idx_of_first_pf_to_process = 0
+    idx_of_portfolio_after_transaction = -1  # -1 means not determined yet
+    for transaction in sorted_transactions:
+        # find the index of the first portfolio on or after the transaction date
+        # as transactions are sorted for date,
+        # we can start searching from idx_of_first_pf_to_process
+        for idx, (port_date, portfolio) in enumerate(
+            sorted_portfolios[idx_of_first_pf_to_process:]
+        ):
+            if port_date >= transaction.transaction_date:
+                # the first portfolio on or after the transaction date is found
+                # it is positioned idx positions later than idx_of_first_pf_to_process:
+                idx_of_portfolio_after_transaction = idx_of_first_pf_to_process + idx
+                break
+
+        # for the sell transaction we need to find the last position before the transaction
+        prev_position: SharePosition | None = None
+        if (
+            transaction.kind == ShareTransactionKind.SELL
+            and idx_of_portfolio_after_transaction > 0
+        ):
+            prev_position = sorted_portfolios[idx_of_portfolio_after_transaction - 1][
+                1
+            ].get(transaction.isin)
+
+        investment, realization = _get_transaction_result(transaction, prev_position)
+
+        if idx_of_portfolio_after_transaction >= 0:
+            idx_of_first_pf_to_process = idx_of_portfolio_after_transaction
+            for port_date, portfolio in sorted_portfolios[idx_of_first_pf_to_process:]:
+                if share_pos := portfolio.get(transaction.isin):
+                    portfolio[transaction.isin] = replace(
                         share_pos,
                         investment=round(share_pos.investment + investment, 2),
                         realized=round(share_pos.realized + realization, 2),
                     )
-            trans_idx += 1
-            if trans_idx >= len(transactions):
-                break
-            transac = sorted_transactions[trans_idx]
+            # prepare for the next round
+            idx_of_portfolio_after_transaction = -1
 
     return portfolios
 

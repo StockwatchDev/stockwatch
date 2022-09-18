@@ -16,7 +16,6 @@ from stockwatch.entities import (
     closest_portfolio_before_date,
     get_all_isins,
     apply_transactions,
-    IsinStr,
     PortfoliosDictionary,
     to_portfolios,
 )
@@ -317,8 +316,8 @@ def test_get_all_isins(
 
 
 def test_sell_and_buy_transaction(
-    example_pfdict_today: dict[date, dict[IsinStr, SharePosition]],
-    example_pfdict_3w_ago: dict[date, dict[IsinStr, SharePosition]],
+    example_pfdict_today: PortfoliosDictionary,
+    example_pfdict_3w_ago: PortfoliosDictionary,
     example_sell_transaction_1: ShareTransaction,
     example_sell_transaction_2: ShareTransaction,
     example_buy_transaction: ShareTransaction,
