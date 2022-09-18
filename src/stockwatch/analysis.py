@@ -5,7 +5,7 @@ application logic, nor any adapters.
 """
 import plotly.graph_objects as go
 
-from .adapters import positions_plotdata, returns_plotdata
+from .adapters import ReturnsData, PositionsData
 from .entities import SharePortfolio, SharePosition
 
 
@@ -24,7 +24,7 @@ def plot_returns(
     indices: list[tuple[SharePosition, ...]] | None = None,
 ) -> go.Figure:
     """Plot the returns of a portfolio."""
-    returns_data = returns_plotdata(share_portfolios)
+    returns_data = ReturnsData.from_portfolios(share_portfolios)
 
     fig = _create_figure()
     fig.update_layout(hovermode="x unified")
@@ -116,7 +116,7 @@ def plot_returns(
 def plot_positions(share_portfolios: tuple[SharePortfolio, ...]) -> go.Figure:
     """Plot the value of all positions in the portfolios through time."""
 
-    positions_data = positions_plotdata(share_portfolios)
+    positions_data = PositionsData.from_portfolios(share_portfolios)
 
     fig = _create_figure()
     for (isin, name) in positions_data.isins_and_names:
