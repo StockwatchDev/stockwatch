@@ -266,7 +266,7 @@ def _get_transaction_result(
 def apply_transactions(
     transactions: tuple[ShareTransaction, ...],
     portfolios: PortfoliosDictionary,
-) -> PortfoliosDictionary:
+) -> None:
     """Process transactions to add the investment and realization of the portfolios."""
     sorted_portfolios = sorted(list(portfolios.items()), key=lambda x: x[0])
     sorted_transactions = sorted(list(transactions))
@@ -309,8 +309,6 @@ def apply_transactions(
                     )
             # prepare for the next round
             idx_of_portfolio_after_transaction = -1
-
-    return portfolios
 
 
 def get_all_isins(portfolios: tuple[SharePortfolio, ...]) -> set[IsinStr]:

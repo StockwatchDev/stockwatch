@@ -332,12 +332,12 @@ def test_sell_and_buy_transaction(
     isin_sell_1 = example_sell_transaction_1.isin
     isin_sell_2 = example_sell_transaction_2.isin
     isin_buy = example_buy_transaction.isin
-    processed_portfolios = apply_transactions(transactions, portfolios)
-    assert processed_portfolios[date_after][isin_sell_1].investment == 0.0
-    assert processed_portfolios[date_after][isin_sell_1].realized == 122.86
-    assert processed_portfolios[date_after][isin_buy].investment == 2060.0
-    assert processed_portfolios[date_after][isin_sell_2].investment == 808.33
-    assert processed_portfolios[date_after][isin_sell_2].realized == 72.49
+    apply_transactions(transactions, portfolios)
+    assert portfolios[date_after][isin_sell_1].investment == 0.0
+    assert portfolios[date_after][isin_sell_1].realized == 122.86
+    assert portfolios[date_after][isin_buy].investment == 2060.0
+    assert portfolios[date_after][isin_sell_2].investment == 808.33
+    assert portfolios[date_after][isin_sell_2].realized == 72.49
 
     # and test the degenerate cases, that they do not raise an exception
     example_sell_transaction_1 = replace(
@@ -387,8 +387,8 @@ def test_double_buy_transaction(
     )
     date_after = list(example_pfdict_today.keys())[0]
     isin_buy = example_buy_transaction.isin
-    processed_portfolios = apply_transactions(transactions, portfolios)
-    assert processed_portfolios[date_after][isin_buy].investment == 2060.0
+    apply_transactions(transactions, portfolios)
+    assert portfolios[date_after][isin_buy].investment == 2060.0
 
 
 def test_double_sell_transaction(
@@ -409,9 +409,9 @@ def test_double_sell_transaction(
     )
     date_after = list(example_pfdict_today.keys())[0]
     isin_sell = example_sell_transaction_1.isin
-    processed_portfolios = apply_transactions(transactions, portfolios)
-    assert processed_portfolios[date_after][isin_sell].investment == 0.0
-    assert processed_portfolios[date_after][isin_sell].realized == 122.86
+    apply_transactions(transactions, portfolios)
+    assert portfolios[date_after][isin_sell].investment == 0.0
+    assert portfolios[date_after][isin_sell].realized == 122.86
 
 
 def test_dividend_transaction(
@@ -423,9 +423,9 @@ def test_dividend_transaction(
     transactions = (example_dividend_transaction,)
     date_after = list(example_pfdict_today.keys())[0]
     isin_div = example_dividend_transaction.isin
-    processed_portfolios = apply_transactions(transactions, portfolios)
-    assert processed_portfolios[date_after][isin_div].investment == 970.0
-    assert processed_portfolios[date_after][isin_div].realized == 36.79
+    apply_transactions(transactions, portfolios)
+    assert portfolios[date_after][isin_div].investment == 970.0
+    assert portfolios[date_after][isin_div].realized == 36.79
 
     # and test the degenerate cases, that they do not raise an exception
     example_dividend_transaction = replace(

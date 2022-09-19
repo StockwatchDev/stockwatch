@@ -329,10 +329,10 @@ def get_portfolios_index_positions() -> tuple[
     # TODO: third determine exchange rate and apply to transactions
 
     # fourth apply transactions to positions to determine investment and returns
-    processed_spfdict = apply_transactions(transactions, spfdict)
+    apply_transactions(transactions, spfdict)
 
     # fifth convert dicts to tuple with shareportfolios
-    spfs = to_portfolios(processed_spfdict)
+    spfs = to_portfolios(spfdict)
 
     # TODO: implement the processing of index prices
     # indices = use_cases.process_index_prices()
