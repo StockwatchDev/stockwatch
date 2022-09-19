@@ -336,6 +336,6 @@ def get_portfolios_index_positions() -> tuple[
 
     # TODO: implement the processing of index prices
     # indices = use_cases.process_index_prices()
-    indices = []
+    indices: list[tuple[SharePosition, ...]] = []
 
     return spfs, indices
