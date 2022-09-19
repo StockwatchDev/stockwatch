@@ -2,6 +2,7 @@
 files."""
 import csv
 from datetime import date, datetime, timedelta
+from typing import Any
 
 from stockwatch.entities import (
     IsinStr,
@@ -135,9 +136,30 @@ def process_transactions(isins: set[IsinStr]) -> tuple[ShareTransaction, ...]:
     return tuple(transactions)
 
 
-def process_portfolios() -> tuple[  # pylint: disable=[too-many-locals]
-    set[IsinStr], PortfoliosDictionary
-]:
+def _to_share_position(
+    position_date: date, position_row: dict[str | Any, str | Any]
+) -> SharePosition:
+    isin = IsinStr(position_row["Symbool/ISIN"])
+    name = position_row["Product"]
+    curr = position_row["Lokale waarde"].split()[0]
+    nr_stocks = float(position_row["Aantal"].replace(",", ".", 2))
+    price = round(float(position_row["Slotkoers"].replace(",", ".")), 2)
+    value = round(float(position_row["Waarde in EUR"].replace(",", ".")), 2)
+    # investment and realization will be set via transactions
+    return SharePosition(
+        position_date=position_date,
+        value=value,
+        isin=isin,
+        name=name,
+        curr=curr,
+        investment=0.0,
+        nr_stocks=nr_stocks,
+        price=price,
+        realized=0.0,
+    )
+
+
+def process_portfolios() -> tuple[set[IsinStr], PortfoliosDictionary]:
     """Create the dated portfolios from the Portfolio csv's found in the portfolio folder.
 
     The csv files should be formatted as done by De Giro and should named as follows:
@@ -161,30 +183,16 @@ def process_portfolios() -> tuple[  # pylint: disable=[too-many-locals]
                 # we're only interested in real stock positions (not cash)
                 if isin := IsinStr(row["Symbool/ISIN"]):
                     isins_in_file.add(isin)
-                    name = row["Product"]
+                    the_position = _to_share_position(file_date, row)
                     if not isin in all_isins:
                         # create empty positions for all previous portfolios
                         for spf_date, previous_spf in share_portfolio_data.items():
                             previous_spf[isin] = SharePosition.empty_position(
-                                position_date=spf_date, isin=isin, name=name
+                                position_date=spf_date,
+                                isin=isin,
+                                name=the_position.name,
                             )
                         all_isins.add(isin)
-                    curr = row["Lokale waarde"].split()[0]
-                    nr_stocks = float(row["Aantal"].replace(",", ".", 2))
-                    price = round(float(row["Slotkoers"].replace(",", ".")), 2)
-                    value = round(float(row["Waarde in EUR"].replace(",", ".")), 2)
-                    # investment and realization will be set via transactions
-                    the_position = SharePosition(
-                        position_date=file_date,
-                        value=value,
-                        isin=isin,
-                        name=name,
-                        curr=curr,
-                        investment=0.0,
-                        nr_stocks=nr_stocks,
-                        price=price,
-                        realized=0.0,
-                    )
                     share_positions[isin] = the_position
         if previous_date:
             # add empty positions for isins that are no longer present
@@ -256,7 +264,7 @@ def _determine_index_values(
         return SharePosition(
             position_date=index_date,
             value=nr_stocks * price,
-            isin=IsinStr("index"),  # this is a problem if we use dict with key = isin
+            isin=IsinStr(index_name),
             name=index_name.replace("_", " "),
             curr="EUR",
             nr_stocks=nr_stocks,
@@ -326,6 +334,8 @@ def get_portfolios_index_positions() -> tuple[
     # fifth convert dicts to tuple with shareportfolios
     spfs = to_portfolios(processed_spfdict)
 
-    # _INDICES = use_cases.process_index_prices()
+    # TODO: implement the processing of index prices
+    # indices = use_cases.process_index_prices()
+    indices = []
 
-    return spfs, []
+    return spfs, indices
