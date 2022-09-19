@@ -284,9 +284,10 @@ def test_closest_portfolio(
     example_pfdict_3w_ago: PortfoliosDictionary,
     example_pfdict_today: PortfoliosDictionary,
 ) -> None:
-    spfs = to_portfolios(example_pfdict_3w_ago | example_pfdict_today)
-    earliest_date = date.today() - timedelta(days=21)
-    latest_date = date.today()
+    combined_pf_dict = example_pfdict_3w_ago | example_pfdict_today
+    spfs = to_portfolios(combined_pf_dict)
+    earliest_date = min(combined_pf_dict.keys())
+    latest_date = max(combined_pf_dict.keys())
     assert closest_portfolio_after_date(spfs, latest_date + timedelta(days=1)) is None
     assert (
         closest_portfolio_after_date(spfs, latest_date - timedelta(days=1)) == spfs[1]
