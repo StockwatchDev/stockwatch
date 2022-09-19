@@ -5,7 +5,7 @@ application logic, nor any adapters.
 """
 import plotly.graph_objects as go
 
-from .adapters import ReturnsData, PositionsData
+from .adapters import PositionsData, ReturnsData
 from .entities import SharePortfolio, SharePosition
 
 
