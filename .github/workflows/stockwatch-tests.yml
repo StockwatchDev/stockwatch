@@ -1,0 +1,50 @@
+# Run this job on pushes to `main`, and for pull requests. If you don't specify
+# `branches: [main], then this actions runs _twice_ on pull requests, which is
+# annoying.
+name: "Stockwatch Merge Checks"
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Setup python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.10'
+
+      - name: Cache poetry install
+        uses: actions/cache@v2
+        with:
+          path: ~/.local
+          key: poetry-1.1.13-0
+
+      - name: Cache poetry deps
+        id: cache-deps
+        uses: actions/cache@v2
+        with:
+          path: .venv
+          key: pydeps-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Cache tox deps
+        id: tox-deps
+        uses: actions/cache@v2
+        with:
+          path: .tox/py310
+          key: toxdeps-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.1.13
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Run tests
+        run: poetry run tox
