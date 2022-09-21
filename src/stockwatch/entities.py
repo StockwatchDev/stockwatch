@@ -306,8 +306,9 @@ def apply_transactions(
         investment, realization = _get_transaction_result(transaction, prev_position)
 
         if idx_of_portfolio_after_transaction >= 0:
-            idx_of_first_pf_to_process = idx_of_portfolio_after_transaction
-            for port_date, portfolio in sorted_portfolios[idx_of_first_pf_to_process:]:
+            for port_date, portfolio in sorted_portfolios[
+                idx_of_portfolio_after_transaction:
+            ]:
                 if share_pos := portfolio.get(transaction.isin):
                     portfolio[transaction.isin] = replace(
                         share_pos,
@@ -315,6 +316,7 @@ def apply_transactions(
                         realized=round(share_pos.realized + realization, 2),
                     )
             # prepare for the next round
+            idx_of_first_pf_to_process = idx_of_portfolio_after_transaction
             idx_of_portfolio_after_transaction = -1
 
 
