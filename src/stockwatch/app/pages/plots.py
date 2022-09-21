@@ -1,6 +1,4 @@
 """All dash specific callbacks and layout related to the plots page."""
-from datetime import date
-
 import dash
 import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
@@ -8,9 +6,8 @@ import plotly.graph_objects as go
 from stockwatch import analysis, entities, use_cases
 from stockwatch.app import ids
 
-_PORTOS: tuple[entities.SharePortfolio, ...] | None = None
-_TRANSACTIONS: tuple[entities.ShareTransaction, ...] | None = None
-_INDICES: dict[str, dict[date, float]] | None = None
+_PORTOS: tuple[entities.SharePortfolio, ...] = ()
+_INDICES: list[tuple[entities.SharePosition, ...]] = []
 
 
 def _get_layout() -> dash.html.Div:
@@ -79,17 +76,9 @@ layout = _get_layout()
 )
 def _update_portfolios(_: int, refresh_clicks: int) -> int | dash._callback.NoUpdate:
     global _PORTOS  # pylint: disable=global-statement
-    global _TRANSACTIONS  # pylint: disable=global-statement
     global _INDICES  # pylint: disable=global-statement
 
-    _PORTOS = use_cases.process_portfolios()
-
-    _TRANSACTIONS = use_cases.process_transactions(
-        isins=entities.get_all_isins(_PORTOS)
-    )
-    entities.apply_transactions(_TRANSACTIONS, _PORTOS)
-
-    _INDICES = use_cases.process_index_prices()
+    _PORTOS, _INDICES = use_cases.get_portfolios_index_positions()
 
     return refresh_clicks + 1
 
@@ -112,12 +101,6 @@ def _draw_portfolio_graph_total(_clicks: int) -> dash.dcc.Graph:
     if not _PORTOS:
         return go.Figure()
 
-    index_positions = (
-        use_cases.process_indices(
-            _INDICES, _TRANSACTIONS, [x.portfolio_date for x in _PORTOS]
-        )
-        if _INDICES and _TRANSACTIONS
-        else []
-    )
+    index_positions: list[tuple[entities.SharePosition, ...]] = []
 
     return analysis.plot_returns(_PORTOS, index_positions)

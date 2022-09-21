@@ -6,6 +6,7 @@ entities module (apart from plain Python).
 
 from . import degiro, importing, stockdir
 from .importing import (
+    get_portfolios_index_positions,
     process_index_prices,
     process_indices,
     process_portfolios,
@@ -13,6 +14,7 @@ from .importing import (
 )
 
 __all__ = [
+    "get_portfolios_index_positions",
     "process_index_prices",
     "process_indices",
     "process_portfolios",
