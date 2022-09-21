@@ -8,6 +8,7 @@ import tomli as tomllib  # import tomllib in Python 3.11
 
 
 TConfig = TypeVar("TConfig", bound="ConfigBase")
+TConfigSection = TypeVar("TConfigSection", bound="ConfigSectionBase")
 
 
 _ALL_CONFIGS: dict[int, Any] = {}
@@ -35,29 +36,36 @@ class ConfigBase(ABC):
 
         if (_the_config_or_none := _ALL_CONFIGS.get(id(cls))) is None:
             # no config has been made yet, so let's instantiate one
-            # get whatever is stored in the config file
-            stockwatch_config_stored = cls._get_stored_config()
-            # filter out fields that are both stored and an attribute of the Config
-            _config_fields = {
-                fld
-                for fld in fields(cls)
-                if fld.init and fld.name in stockwatch_config_stored.keys()
-            }
-            # instantiate the sections and keep them in a dict
-            sections: dict[str, Any] = {}
-            for fld in _config_fields:
-                section_name = fld.name
-                section = cls._instantiate_section_config(
-                    section_name, stockwatch_config_stored[section_name]
-                )
-                sections[section_name] = section
-
-            # instantiate the Config with the sections and keep it in the global store
-            _the_config = cls(**sections)
+            # and keep it in the global store
+            _the_config = cls._create_instance()
             _ALL_CONFIGS[id(cls)] = _the_config
         else:
             _the_config = _the_config_or_none
         return _the_config
+
+    @classmethod
+    def _create_instance(cls: type[TConfig]) -> TConfig:
+        """Instantiate the Config."""
+
+        # get whatever is stored in the config file
+        config_stored = cls._get_stored_config()
+        # filter out fields that are both stored and an attribute of the Config
+        _config_fields = {
+            fld for fld in fields(cls) if fld.init and fld.name in config_stored.keys()
+        }
+        # instantiate the sections and keep them in a dict
+        # actually sections: dict[str, TConfigSection]
+        # but MyPy doesn't swallow that
+        sections: dict[str, Any] = {}
+        for fld in _config_fields:
+            section_name = fld.name
+            section = cls._instantiate_section_config(
+                section_name, config_stored[section_name]
+            )
+            sections[section_name] = section
+
+        # instantiate the Config with the sections
+        return cls(**sections)
 
     @classmethod
     def _get_stored_config(cls) -> dict[str, Any]:
@@ -74,7 +82,7 @@ class ConfigBase(ABC):
     @classmethod
     def _instantiate_section_config(
         cls: type[TConfig], section_to_instantiate: str, arg_dict: dict[str, Any]
-    ) -> ConfigSectionBase | None:
+    ) -> TConfigSection | None:
         """Return an instance of section_to_instantiate, properly initialized"""
         # we are sure that section_to_instantiate is a field of cls
         class_to_instantiate = [
