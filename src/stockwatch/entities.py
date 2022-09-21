@@ -279,7 +279,6 @@ def apply_transactions(
     sorted_transactions = sorted(list(transactions))
 
     idx_of_first_pf_to_process = 0
-    idx_of_portfolio_after_transaction = -1  # -1 means not determined yet
     for transaction in sorted_transactions:
         # find the index of the first portfolio on or after the transaction date
         # as transactions are sorted for date,
@@ -292,6 +291,10 @@ def apply_transactions(
                 # it is positioned idx positions later than idx_of_first_pf_to_process:
                 idx_of_portfolio_after_transaction = idx_of_first_pf_to_process + idx
                 break
+        else:
+            # No portfolio found after the transaction date
+            # hence further processing not needed
+            break
 
         # for the sell transaction we need to find the last position before the transaction
         prev_position: SharePosition | None = None
@@ -305,19 +308,18 @@ def apply_transactions(
 
         investment, realization = _get_transaction_result(transaction, prev_position)
 
-        if idx_of_portfolio_after_transaction >= 0:
-            for port_date, portfolio in sorted_portfolios[
-                idx_of_portfolio_after_transaction:
-            ]:
-                if share_pos := portfolio.get(transaction.isin):
-                    portfolio[transaction.isin] = replace(
-                        share_pos,
-                        investment=round(share_pos.investment + investment, 2),
-                        realized=round(share_pos.realized + realization, 2),
-                    )
-            # prepare for the next round
-            idx_of_first_pf_to_process = idx_of_portfolio_after_transaction
-            idx_of_portfolio_after_transaction = -1
+        for port_date, portfolio in sorted_portfolios[
+            idx_of_portfolio_after_transaction:
+        ]:
+            if share_pos := portfolio.get(transaction.isin):
+                portfolio[transaction.isin] = replace(
+                    share_pos,
+                    investment=round(share_pos.investment + investment, 2),
+                    realized=round(share_pos.realized + realization, 2),
+                )
+        # prepare for the next round
+        idx_of_first_pf_to_process = idx_of_portfolio_after_transaction
+        idx_of_portfolio_after_transaction = -1
 
 
 def get_all_isins(portfolios: tuple[SharePortfolio, ...]) -> set[IsinStr]:
