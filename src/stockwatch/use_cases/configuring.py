@@ -14,7 +14,7 @@ class DeGiroServerConfig(ConfigSectionBase):
     lang: str
     ga_ext: str
     login_url: str
-    clientnr_url: str
+    client_url: str
     portfolio_url: str
     account_url: str
 

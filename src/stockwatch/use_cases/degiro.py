@@ -39,7 +39,7 @@ def login(username: str, password: str, goauth: str | None) -> tuple[int, str] |
     session_id = str(session_id)
 
     # Let's also get the intAccount number.
-    url = get_config().degiro_server.clientnr_url
+    url = get_config().degiro_server.client_url
     curl_args = {
         "sessionId": session_id,
     }
