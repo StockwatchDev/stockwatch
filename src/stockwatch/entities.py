@@ -59,13 +59,15 @@ class SharePosition:  # pylint: disable=too-many-instance-attributes
     ----------
     position_date   : the date for which the value of the share position is registered
     value           : the current value of the shares, in EUR
-    name            : the name of the share
     isin            : the ISIN code / Symbol string used to identify a share
+    name            : the name of the share
     curr            : the currency shorthand in which the stock is traded, e.g. EUR
     investment      : the amount in EUR spent in purchasing the shares
     nr_stocks       : the number of shares
     price           : the current price of the shares, in curr
-    realized        : the realized result in EUR (including trading costs)
+    realized        : the realized return in EUR (including trading costs, ex tax)
+    unrealized      : the unrealized return in EUR, i.e., value - investment
+    total_return    : the sum of realized and unrealized return
     """
 
     position_date: date
@@ -119,15 +121,20 @@ class SharePortfolio:
 
     Attributes
     ----------
-    share_positions         : the collection of share positions; key is the share isin
-    portfolio_date          : the date of the registered share positions
+    portfolio_date  : the date for which the value of the share portfolio is registered
+    value           : the current value of the portfolio, in EUR
+    investment      : the amount in EUR spent in purchasing the portfolio
+    realized        : the realized return in EUR (including trading costs, ex tax)
+    unrealized      : the unrealized return in EUR, i.e., value - investment
+    total_return    : the sum of realized and unrealized return
+    share_positions : the collection of share positions
     """
 
     portfolio_date: date
     value: float = field(init=False)
     investment: float = field(init=False)
-    unrealized: float = field(init=False)
     realized: float = field(init=False)
+    unrealized: float = field(init=False)
     total_return: float = field(init=False)
     share_positions: tuple[SharePosition, ...]
 
@@ -136,8 +143,8 @@ class SharePortfolio:
         for attribute in (
             "value",
             "investment",
-            "unrealized",
             "realized",
+            "unrealized",
             "total_return",
         ):
             object.__setattr__(
