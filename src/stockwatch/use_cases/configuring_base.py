@@ -56,13 +56,10 @@ class ConfigBase(ABC):
         # instantiate the sections and keep them in a dict
         # actually sections: dict[str, TConfigSection]
         # but MyPy doesn't swallow that
-        sections: dict[str, Any] = {}
-        for fld in _config_fields:
-            section_name = fld.name
-            section = cls._instantiate_section_config(
-                section_name, config_stored[section_name]
-            )
-            sections[section_name] = section
+        sections: dict[str, Any] = {
+            fld.name: cls._instantiate_section_config(fld.name, config_stored[fld.name])
+            for fld in _config_fields
+        }
 
         # instantiate the Config with the sections
         return cls(**sections)
@@ -82,7 +79,7 @@ class ConfigBase(ABC):
     @classmethod
     def _instantiate_section_config(
         cls: type[TConfig], section_to_instantiate: str, arg_dict: dict[str, Any]
-    ) -> TConfigSection | None:
+    ) -> TConfigSection:
         """Return an instance of section_to_instantiate, properly initialized"""
         # we are sure that section_to_instantiate is a field of cls
         class_to_instantiate = [
