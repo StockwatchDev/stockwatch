@@ -10,7 +10,7 @@ import tomli as tomllib  # import tomllib in Python 3.11
 TConfig = TypeVar("TConfig", bound="ConfigBase")
 
 
-_ALL_CONFIGS: dict[str, Any] = {}
+_ALL_CONFIGS: dict[int, Any] = {}
 
 
 @dataclass(frozen=True)
@@ -33,7 +33,7 @@ class ConfigBase(ABC):
     def get_instance(cls: type[TConfig]) -> TConfig:
         """Access method for the singleton."""
 
-        if (_the_config_or_none := _ALL_CONFIGS.get(cls.__name__)) is None:
+        if (_the_config_or_none := _ALL_CONFIGS.get(id(cls))) is None:
             # no config has been made yet, so let's instantiate one
             # get whatever is stored in the config file
             stockwatch_config_stored = cls._get_stored_config()
@@ -54,7 +54,7 @@ class ConfigBase(ABC):
 
             # instantiate the Config with the sections and keep it in the global store
             _the_config = cls(**sections)
-            _ALL_CONFIGS[cls.__name__] = _the_config
+            _ALL_CONFIGS[id(cls)] = _the_config
         else:
             _the_config = _the_config_or_none
         return _the_config
