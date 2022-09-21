@@ -32,8 +32,8 @@ class ConfigBase(ABC):
     @classmethod
     def get_instance(cls: type[TConfig]) -> TConfig:
         """Access method for the singleton."""
-        _the_config_or_none = _ALL_CONFIGS.get(cls.__name__)
-        if _the_config_or_none is None:
+
+        if (_the_config_or_none := _ALL_CONFIGS.get(cls.__name__)) is None:
             # no config has been made yet, so let's instantiate one
             # get whatever is stored in the config file
             stockwatch_config_stored = cls._get_stored_config()
