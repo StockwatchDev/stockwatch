@@ -81,10 +81,12 @@ class ConfigBase(ABC):
         cls: type[TConfig], section_to_instantiate: str, arg_dict: dict[str, Any]
     ) -> TConfigSection:
         """Return an instance of section_to_instantiate, properly initialized"""
-        # we are sure that section_to_instantiate is a field of cls
-        class_to_instantiate = [
+        # pre-condition: section_to_instantiate is an initializable field of cls
+        # hence, we are sure that list comprehension below returns a list of length 1
+        classes_to_instantiate = [
             f.type for f in fields(cls) if f.init and f.name == section_to_instantiate
-        ][0]
-        field_set = {f.name for f in fields(class_to_instantiate) if f.init}
+        ]
+        assert len(classes_to_instantiate) == 1
+        field_set = {f.name for f in fields(classes_to_instantiate[0]) if f.init}
         filtered_arg_dict = {k: v for k, v in arg_dict.items() if k in field_set}
-        return class_to_instantiate(**filtered_arg_dict)  # type: ignore
+        return classes_to_instantiate[0](**filtered_arg_dict)  # type: ignore
