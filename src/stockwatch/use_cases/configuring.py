@@ -29,8 +29,3 @@ class Config(ConfigBase):
     def get_configfile_path() -> Path:
         """Return the fully qualified path for the configfile"""
         return get_configfile_path() / "stockwatch.toml"
-
-
-def get_config() -> Config:
-    """Return the config singleton"""
-    return Config.get_instance()

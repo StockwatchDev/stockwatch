@@ -31,7 +31,7 @@ class ConfigBase(ABC):
         """Return the fully qualified path for the configfile"""
 
     @classmethod
-    def get_instance(cls: type[TConfig]) -> TConfig:
+    def get(cls: type[TConfig]) -> TConfig:
         """Access method for the singleton."""
 
         if (_the_config_or_none := _ALL_CONFIGS.get(id(cls))) is None:
