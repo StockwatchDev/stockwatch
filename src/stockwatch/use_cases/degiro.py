@@ -5,7 +5,7 @@ from datetime import date, timedelta
 
 import requests
 
-from stockwatch.use_cases.configuring import Config, get_config
+from stockwatch.use_cases.configuring import Config
 
 from . import stockdir
 
