@@ -2,8 +2,8 @@
 from dataclasses import dataclass
 from pathlib import Path
 
-from stockwatch.use_cases.configuring_base import ConfigBase, ConfigSectionBase
 from stockwatch.config import get_configfile_path
+from stockwatch.use_cases.configuring_base import ConfigBase, ConfigSectionBase
 
 
 @dataclass(frozen=True)

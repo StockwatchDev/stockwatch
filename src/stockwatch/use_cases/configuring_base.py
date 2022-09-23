@@ -1,11 +1,10 @@
 """Module for handling configuration."""
-from pathlib import Path
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, fields
+from pathlib import Path
 from typing import Any, TypeVar
 
 import tomli as tomllib  # import tomllib in Python 3.11
-
 
 TConfig = TypeVar("TConfig", bound="ConfigBase")
 TConfigSection = TypeVar("TConfigSection", bound="ConfigSectionBase")
