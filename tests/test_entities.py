@@ -72,7 +72,7 @@ def example_dividend_transaction() -> ShareTransaction:
 @pytest.fixture
 def example_position_1() -> SharePosition:
     return SharePosition(
-        datetime.today(),
+        datetime.today().date(),
         1190.72,
         "IE00B441G979",
         "iShares MSCI World EUR Hedged UCITS ETF",
@@ -87,7 +87,7 @@ def example_position_1() -> SharePosition:
 @pytest.fixture
 def example_position_2() -> SharePosition:
     return SharePosition(
-        datetime.today(),
+        datetime.today().date(),
         1060.00,
         "IE00B3RBWM25",
         "Vanguard FTSE All-World UCITS ETF USD Dis",
@@ -102,7 +102,7 @@ def example_position_2() -> SharePosition:
 @pytest.fixture
 def example_position_3() -> SharePosition:
     return SharePosition(
-        datetime.today() - timedelta(days=21),
+        (datetime.today() - timedelta(days=21)).date(),
         1035,
         "NL0010408704",
         "VanhEck Sustainable World Equal Weight UCITS ETF",

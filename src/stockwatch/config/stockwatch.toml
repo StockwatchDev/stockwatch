@@ -1,0 +1,8 @@
+[degiro_server]
+country = "NL"
+lang = "nl"
+ga_ext = "/totp"
+login_url = "https://trader.degiro.nl/login/secure/login"
+client_url = "https://trader.degiro.nl/pa/secure/client"
+portfolio_url = "https://trader.degiro.nl/reporting/secure/v3/positionReport/csv"
+account_url = "https://trader.degiro.nl/reporting/secure/v3/cashAccountReport/csv"
