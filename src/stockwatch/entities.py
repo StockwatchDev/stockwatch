@@ -13,7 +13,8 @@ from typing import NewType
 IsinStr = NewType("IsinStr", str)
 
 
-UNKNOWN_POSITION_NAME = "Name Unknown"
+UNKNOWN_POSITION_NAME: str = "Name Unknown"
+ZERO_MARGIN: float = 0.05
 
 
 class ShareTransactionKind(Enum):
@@ -61,9 +62,36 @@ class CurrencyExchange:  # pylint: disable=too-many-instance-attributes
         "Exchange date"
         return self.exchange_datetime.date()
 
+    @property
+    def value_trans_remaining(self) -> float:
+        "The part of value_to that has not yet been traced to a transaction"
+        return -self.value_from - self.value_trans
+
+    def try_to_apply_exchange(self, the_transaction: ShareTransaction) -> bool:
+        "Retrun True if the amount traced to transactions equals the value_to"
+        if the_transaction.transaction_datetime >= self.exchange_datetime:
+            # the transaction has to be before the currency exchange
+            return False
+        if not the_transaction.curr == self.curr_from:
+            # not the right currency
+            return False
+        assert not the_transaction.nr_stocks == 0
+        transaction_value = the_transaction.nr_stocks * the_transaction.price
+        if abs(self.value_trans_remaining - transaction_value) < -ZERO_MARGIN:
+            # value of transaction is larger than what remains in the exchange
+            return False
+        the_transaction.curr = self.curr_to
+        self.value_trans += transaction_value
+        the_transaction.price = transaction_value / (
+            self.exchange_rate_exact * the_transaction.nr_stocks
+        )
+
+        return True
+
     def has_been_traced_fully(self) -> bool:
-        "Retrun True if the amount traced to transactions equal the value_to"
-        return self.value_trans - self.value_to == 0.0
+        "Retrun True if the amount traced to transactions equals the value_to"
+        # we'll allow for a little margin
+        return abs(self.value_trans_remaining) < ZERO_MARGIN
 
 
 @dataclass(frozen=True, order=True)
