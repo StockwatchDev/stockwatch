@@ -46,5 +46,9 @@ jobs:
           virtualenvs-create: true
           virtualenvs-in-project: true
 
+      - name: Install packages
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction --no-root
+
       - name: Run tests
         run: poetry run tox
