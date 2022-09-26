@@ -6,8 +6,10 @@ from typing import Any, TypeVar
 
 import tomli as tomllib  # import tomllib in Python 3.11
 
-TConfig = TypeVar("TConfig", bound="ConfigBase")
-TConfigSection = TypeVar("TConfigSection", bound="ConfigSectionBase")
+TConfig = TypeVar("TConfig", bound="ConfigBase")  # pylint: disable=invalid-name
+TConfigSection = TypeVar(  # pylint: disable=invalid-name
+    "TConfigSection", bound="ConfigSectionBase"
+)
 
 
 _ALL_CONFIGS: dict[int, Any] = {}

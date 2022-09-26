@@ -25,7 +25,7 @@ def login(username: str, password: str, goauth: str | None) -> tuple[int, str] |
         url += Config.get().degiro_server.ga_ext
         curl_args["oneTimePassword"] = goauth
 
-    res = requests.post(url, json=curl_args)
+    res = requests.post(url, json=curl_args, timeout=10)
 
     if not res.ok:
         print("failed wrong password")
@@ -44,7 +44,7 @@ def login(username: str, password: str, goauth: str | None) -> tuple[int, str] |
         "sessionId": session_id,
     }
 
-    res = requests.get(url, params=curl_args)
+    res = requests.get(url, params=curl_args, timeout=10)
 
     if not res.ok:
         print("Failed to obtain account info")
@@ -69,7 +69,7 @@ def get_portfolio_at(day: date, account: int, session_id: str) -> str:
         "toDate": day.strftime("%d/%m/%Y"),
     }
 
-    res = requests.get(url, params=curl_args)
+    res = requests.get(url, params=curl_args, timeout=10)
 
     if res.ok:
         return str(res.text)
@@ -96,7 +96,7 @@ def get_account_report(
         "toDate": end_day.strftime("%d/%m/%Y"),
     }
 
-    res = requests.get(url, params=curl_args)
+    res = requests.get(url, params=curl_args, timeout=10)
 
     if res.ok:
         return str(res.text)
