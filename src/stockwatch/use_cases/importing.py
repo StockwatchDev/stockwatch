@@ -5,6 +5,7 @@ from datetime import date, datetime, timedelta
 from typing import Any
 
 from stockwatch.entities import (
+    CurrencyExchange,
     IsinStr,
     PortfoliosDictionary,
     SharePortfolio,
@@ -70,6 +71,15 @@ def _process_dividend_transaction_row(
     )
 
 
+def _process_valuta_exchange_row(row: dict[str, str]) -> CurrencyExchange:
+    exchange_rate = float(row["FX"].replace(",", "."))
+    date_time_str = row["Datum"] + ";" + row["Tijd"]
+    exchange_datetime = datetime.strptime(date_time_str, "%d-%m-%Y;%H:%M")
+    curr_from = row["Mutatie"]
+    value_from = round(float(row["Bedrag"].replace(",", ".")), 2)
+    return CurrencyExchange(exchange_datetime, exchange_rate, value_from, curr_from)
+
+
 def _process_transaction_row(
     transaction_datetime: datetime,
     isin: IsinStr,
@@ -110,6 +120,7 @@ def process_transactions(isins: set[IsinStr]) -> tuple[ShareTransaction, ...]:
         print(f"No transactions file can be found at: {transactions_file}")
         return tuple()
 
+    exchanges: list[CurrencyExchange] = []
     transactions: list[ShareTransaction] = []
     with transactions_file.open(mode="r") as csv_file:
         contents = csv_file.readlines()
@@ -117,6 +128,11 @@ def process_transactions(isins: set[IsinStr]) -> tuple[ShareTransaction, ...]:
         # and the balance; modify contents[0] here to include header for amount
         contents[0] = contents[0].replace("Mutatie,,", "Mutatie,Bedrag,")
         csv_reader = csv.DictReader(contents)
+        # first collect valuta transactions
+        for row in reversed(list(csv_reader)):
+            if row["Omschrijving"] == "Valuta Debitering" and row["Bedrag"][0] == "-":
+                exchanges.append(_process_valuta_exchange_row(row))
+        print(f"{exchanges}")
         for row in reversed(list(csv_reader)):
             # we're only interested in real stock positions (not cash)
             if (isin := IsinStr(row["ISIN"])) in isins:
@@ -142,7 +158,7 @@ def _to_share_position(
     isin = IsinStr(position_row["Symbool/ISIN"])
     name = position_row["Product"]
     curr = position_row["Lokale waarde"].split()[0]
-    nr_stocks = float(position_row["Aantal"].replace(",", ".", 2))
+    nr_stocks = float(position_row["Aantal"].replace(",", "."))
     price = round(float(position_row["Slotkoers"].replace(",", ".")), 2)
     value = round(float(position_row["Waarde in EUR"].replace(",", ".")), 2)
     # investment and realization will be set via transactions

@@ -24,6 +24,48 @@ class ShareTransactionKind(Enum):
     DIVIDEND = auto()
 
 
+@dataclass(frozen=False, order=True)
+class CurrencyExchange:  # pylint: disable=too-many-instance-attributes
+    """For representing an exchange at a certain date.
+
+    Attributes
+    ----------
+    exchange_datetime     : the date for which the exchange is registered
+    exchange_rate         : the rate of exchange applied in the transaction
+    value_from            : the amount before the exchange, in curr_from
+    curr_from             : the currency shorthand before the exchange, e.g. USD
+    exchange_rate_exact   : the rate of exchange that is exactly value_to / -value_from (no init)
+    value_to              : the amount after the exchange, in curr_to (no init)
+    value_trans           : the amount that was traced back to transactions (no init)
+    curr_to               : the currency shorthand after the exchange; always EUR (no init)
+    """
+
+    exchange_datetime: datetime
+    exchange_rate: float
+    value_from: float
+    curr_from: str
+    exchange_rate_exact: float = field(init=False)
+    value_to: float = field(init=False)
+    value_trans: float = field(init=False)
+    curr_to: str = field(init=False)
+
+    def __post_init__(self) -> None:
+        assert self.exchange_rate > 0.0
+        self.value_to = round(-self.value_from / self.exchange_rate, 2)
+        self.curr_to = "EUR"
+        self.exchange_rate_exact = -self.value_from / self.value_to
+        self.value_trans = 0.0
+
+    @property
+    def exchange_date(self) -> date:
+        "Exchange date"
+        return self.exchange_datetime.date()
+
+    def has_been_traced_fully(self) -> bool:
+        "Retrun True if the amount traced to transactions equal the value_to"
+        return self.value_trans - self.value_to == 0.0
+
+
 @dataclass(frozen=True, order=True)
 class ShareTransaction:
     """For representing a stock shares transaction at a certain date.
@@ -66,8 +108,8 @@ class SharePosition:  # pylint: disable=too-many-instance-attributes
     nr_stocks       : the number of shares
     price           : the current price of the shares, in curr
     realized        : the realized return in EUR (including trading costs, ex tax)
-    unrealized      : the unrealized return in EUR, i.e., value - investment
-    total_return    : the sum of realized and unrealized return
+    unrealized      : the unrealized return in EUR, i.e., value - investment (no init)
+    total_return    : the sum of realized and unrealized return (no init)
     """
 
     position_date: date
