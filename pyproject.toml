@@ -14,7 +14,7 @@ dash-extensions = "^0.0.71"
 dash-bootstrap-templates = "^1.0.5"
 
 [tool.poetry.dev-dependencies]
-pytest = "^7.0"
+pytest = "^7.1"
 black = "^22.1.0"
 mypy = ">=0.942"
 tox = "^3.24.5"
