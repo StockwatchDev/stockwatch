@@ -64,34 +64,19 @@ class CurrencyExchange:  # pylint: disable=too-many-instance-attributes
 
     @property
     def value_trans_remaining(self) -> float:
-        "The part of value_to that has not yet been traced to a transaction"
+        "The part of -value_from that has not yet been traced to a transaction"
         return -self.value_from - self.value_trans
-
-    def try_to_apply_exchange(self, the_transaction: ShareTransaction) -> bool:
-        "Retrun True if the amount traced to transactions equals the value_to"
-        if the_transaction.transaction_datetime >= self.exchange_datetime:
-            # the transaction has to be before the currency exchange
-            return False
-        if not the_transaction.curr == self.curr_from:
-            # not the right currency
-            return False
-        assert not the_transaction.nr_stocks == 0
-        transaction_value = the_transaction.nr_stocks * the_transaction.price
-        if abs(self.value_trans_remaining - transaction_value) < -ZERO_MARGIN:
-            # value of transaction is larger than what remains in the exchange
-            return False
-        the_transaction.curr = self.curr_to
-        self.value_trans += transaction_value
-        the_transaction.price = transaction_value / (
-            self.exchange_rate_exact * the_transaction.nr_stocks
-        )
-
-        return True
 
     def has_been_traced_fully(self) -> bool:
         "Retrun True if the amount traced to transactions equals the value_to"
         # we'll allow for a little margin
         return abs(self.value_trans_remaining) < ZERO_MARGIN
+
+    def can_take_exchange_value(self, the_value: float) -> bool:
+        "Retrun True if the_value fits in value_trans_remaining"
+        if the_value < 0.0:
+            return self.value_trans_remaining - the_value < ZERO_MARGIN
+        return self.value_trans_remaining - the_value > -ZERO_MARGIN
 
 
 @dataclass(frozen=True, order=True)
@@ -106,6 +91,7 @@ class ShareTransaction:
     nr_stocks             : the number of items in the transaction
     price                 : the price per item, in curr
     kind                  : the kind of transaction
+    value_in_eur          : the value of the transaction in EUR
     """
 
     transaction_datetime: datetime
@@ -114,6 +100,7 @@ class ShareTransaction:
     nr_stocks: float
     price: float
     kind: ShareTransactionKind
+    value_in_eur: float
 
     @property
     def transaction_date(self) -> date:
