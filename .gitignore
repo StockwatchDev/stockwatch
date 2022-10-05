@@ -52,6 +52,7 @@ Thumbs.db
 *.mov
 *.wmv
 
+# Vim specific configuration
 .vim
 
 # stockwatch data
@@ -59,3 +60,7 @@ stocks/
 
 # Playground folder for local develop scripts
 develop/
+
+# The generated coverage report
+coverage.xml
+
