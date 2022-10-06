@@ -22,7 +22,7 @@ class ConfigSectionBase(ABC):
 
 # The next line has a type: ignore because MyPy has a problem with @abstractmethod
 # If you comment the line with @abstractmethod, you can do type checking
-@dataclass(frozen=True)  # type: ignore
+@dataclass(frozen=True)
 class ConfigBase(ABC):
     """Base class for main Config class"""
 
@@ -58,7 +58,7 @@ class ConfigBase(ABC):
         # actually sections: dict[str, TConfigSection]
         # but MyPy doesn't swallow that
         sections: dict[str, Any] = {
-            fld.name: cls._instantiate_section_config(fld.name, config_stored[fld.name])
+            fld.name: cls._instantiate_section_config(fld.type, config_stored[fld.name])
             for fld in _config_fields
         }
 
@@ -79,15 +79,17 @@ class ConfigBase(ABC):
 
     @classmethod
     def _instantiate_section_config(
-        cls: type[TConfig], section_to_instantiate: str, arg_dict: dict[str, Any]
+        cls: type[TConfig],
+        class_to_instantiate: type[TConfigSection],
+        arg_dict: dict[str, Any],
     ) -> TConfigSection:
-        """Return an instance of section_to_instantiate, properly initialized"""
-        # pre-condition: section_to_instantiate is an initializable field of cls
-        # hence, we are sure that list comprehension below returns a list of length 1
-        classes_to_instantiate = [
-            f.type for f in fields(cls) if f.init and f.name == section_to_instantiate
-        ]
-        assert len(classes_to_instantiate) == 1
-        field_set = {f.name for f in fields(classes_to_instantiate[0]) if f.init}
+        """Return an instance of class_to_instantiate, properly initialized"""
+        # pre-condition: class_to_instantiate is the class of an initializable field of cls
+        assert (
+            len([f for f in fields(cls) if f.init and f.type == class_to_instantiate])
+            > 0
+        )
+
+        field_set = {f.name for f in fields(class_to_instantiate) if f.init}
         filtered_arg_dict = {k: v for k, v in arg_dict.items() if k in field_set}
-        return classes_to_instantiate[0](**filtered_arg_dict)  # type: ignore
+        return class_to_instantiate(**filtered_arg_dict)
