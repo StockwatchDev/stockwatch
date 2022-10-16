@@ -26,6 +26,9 @@ jobs:
           virtualenvs-create: true
           virtualenvs-in-project: true
 
+      - name: Check lockfile
+        run: poetry lock --check
+
       - name: Install packages
         run: poetry install --no-interaction --no-root --only testrunner
 
