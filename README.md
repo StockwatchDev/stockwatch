@@ -1,6 +1,6 @@
 <h1 id="header">Stockwatch</h1>
 
-[![Build Status](https://github.com/StockwatchDev/stockwatch/actions/workflows/stockwatch-tests.yml/badge.svg)](https://github.com/StockwatchDev/stockwatch/actions)
+[![Build Status](https://github.com/StockwatchDev/stockwatch/actions/workflows/stockwatch-tests.yml/badge.svg?branch=develop)](https://github.com/StockwatchDev/stockwatch/actions)
 [![codecov](https://codecov.io/gh/StockwatchDev/stockwatch/branch/develop/graph/badge.svg)](https://app.codecov.io/gh/StockwatchDev/stockwatch)
 [![Checked with mypy](http://www.mypy-lang.org/static/mypy_badge.svg)](http://mypy-lang.org/)
 [![linting: pylint](https://img.shields.io/badge/linting-pylint-yellowgreen)](https://github.com/PyCQA/pylint)
