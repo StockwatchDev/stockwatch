@@ -225,7 +225,7 @@ def disable_execute(
 )
 def stop_execution(_n_clicks: int) -> None:
     """Callback to stop execution."""
-    runtime.scraping.get_thread().stop()
+    runtime.get_scrape_thread().stop()
 
 
 @dash.callback(
@@ -258,7 +258,7 @@ def execute_scraping(
         # Here we should raise a popup or something?
         return False, True
 
-    started = runtime.scraping.get_thread().start(
+    started = runtime.get_scrape_thread().start(
         degiro.PortfolioImportData(
             account_id=login[0],
             session_id=login[1],
@@ -326,7 +326,7 @@ def set_interval(is_open: bool) -> bool:
 )
 def update_progress_bar(_iter: int) -> int:
     """Callback to update the progress bar fill."""
-    return runtime.scraping.get_thread().progress
+    return runtime.get_scrape_thread().progress
 
 
 @dash.callback(
@@ -334,15 +334,14 @@ def update_progress_bar(_iter: int) -> int:
 )
 def update_progress_info(_iter: int) -> str:
     """Callback to update the progress bar info text."""
-    if runtime.scraping.get_thread().finished:
+    if runtime.get_scrape_thread().finished:
         return ""
 
     days_left = (
-        runtime.scraping.get_thread().end_date
-        - runtime.scraping.get_thread().current_date
+        runtime.get_scrape_thread().end_date - runtime.get_scrape_thread().current_date
     ).days + 1
     return (
-        f"Currently processing: {runtime.scraping.get_thread().current_date} - still "
+        f"Currently processing: {runtime.get_scrape_thread().current_date} - still "
         f"{days_left} days to go"
     )
 
@@ -352,8 +351,8 @@ def update_progress_info(_iter: int) -> str:
 )
 def update_progress_finished(_iter: int) -> str | dash._callback.NoUpdate:
     """Callback to switch the page when finished."""
-    if not runtime.scraping.get_thread().created:
+    if not runtime.get_scrape_thread().created:
         return dash.no_update
-    if not runtime.scraping.get_thread().finished:
+    if not runtime.get_scrape_thread().finished:
         return dash.no_update
     return PageIds.PLOTS

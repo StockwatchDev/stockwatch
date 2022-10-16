@@ -6,9 +6,9 @@ import random
 
 import dash
 
+from stockwatch.app import runtime
 from stockwatch.app.ids import PageIds
 from stockwatch.app.pages import scraping
-from stockwatch.app.runtime import scraping as scraping_runtime
 
 
 def test_disable_execute() -> None:
@@ -34,7 +34,9 @@ def test_stop_execution(monkeypatch) -> None:
 
     for _ in range(10):
         mocked_thread = MockedThread()
-        monkeypatch.setattr(scraping_runtime, "get_thread", lambda: mocked_thread)
+        monkeypatch.setattr(
+            runtime, "get_scrape_thread", lambda: mocked_thread
+        )
 
         assert mocked_thread.stopped is False
         scraping.stop_execution(random.randint(-1000, 1000))
@@ -88,7 +90,7 @@ def validate_update_progress_bar(monkeypatch) -> None:
             self.progress = 0
 
     mocked_thread = MockedThread()
-    monkeypatch.setattr(scraping_runtime, "get_thread", lambda: mocked_thread)
+    monkeypatch.setattr(runtime, "get_scrape_thread", lambda: mocked_thread)
 
     for i in range(10):
         mocked_thread.progress = random.randint(0, 1000)
@@ -110,7 +112,7 @@ def test_update_progress(monkeypatch) -> None:
     mocked_thread = MockedThread()
     mocked_thread.finished = True
 
-    monkeypatch.setattr(scraping_runtime, "get_thread", lambda: mocked_thread)
+    monkeypatch.setattr(runtime, "get_scrape_thread", lambda: mocked_thread)
     assert not scraping.update_progress_info(10)
 
     mocked_thread.finished = False
@@ -132,7 +134,9 @@ def test_update_progress_finished(monkeypatch) -> None:
             mocked_thread.created = created
             mocked_thread.finished = finished
 
-            monkeypatch.setattr(scraping_runtime, "get_thread", lambda: mocked_thread)
+            monkeypatch.setattr(
+                runtime, "get_scrape_thread", lambda: mocked_thread
+            )
 
             ret = scraping.update_progress_finished(random.randint(0, 1000))
 
