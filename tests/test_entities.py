@@ -30,6 +30,7 @@ def example_sell_transaction_1() -> ShareTransaction:
         curr="EUR",
         nr_stocks=36.0,
         price=28.79,
+        value_in_eur=round(36.0 * 28.79, 2),
     )
 
 
@@ -42,6 +43,7 @@ def example_sell_transaction_2() -> ShareTransaction:
         curr="EUR",
         nr_stocks=2.0,
         price=105.25,
+        value_in_eur=round(2.0 * 105.25, 2),
     )
 
 
@@ -54,6 +56,7 @@ def example_buy_transaction() -> ShareTransaction:
         curr="EUR",
         nr_stocks=16.0,
         price=64.375,
+        value_in_eur=round(16.0 * 64.375, 2),
     )
 
 
@@ -66,6 +69,7 @@ def example_dividend_transaction() -> ShareTransaction:
         curr="EUR",
         nr_stocks=1.0,
         price=13.13,
+        value_in_eur=round(1.0 * 13.13, 2),
     )
 
 
