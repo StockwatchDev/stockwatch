@@ -6,10 +6,10 @@ import dash
 import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output, State
 
+from stockwatch.app import runtime
 from stockwatch.app.ids import HeaderIds, PageIds, ScrapingId
 from stockwatch.use_cases import degiro, stockdir
 
-_SCRAPE_THREAD = degiro.ScrapeThread()
 layout = dash.dash.html.Div()
 
 
@@ -213,17 +213,19 @@ def _get_scraping_form() -> list[dbc.Row]:
     Input(ScrapingId.PASSWORD, "valid"),
     Input(ScrapingId.GOAUTH, "valid"),
 )
-def _disable_execute(
+def disable_execute(
     username_valid: bool, password_valid: bool, goauth_valid: bool
 ) -> bool:
+    """Callback to disable the execute button."""
     return not (username_valid and password_valid and goauth_valid)
 
 
 @dash.callback(
     Output(ScrapingId.PLACEHOLDER, "n_clicks"), Input(ScrapingId.CLOSE, "n_clicks")
 )
-def _stop_execution(_n_clicks: int) -> None:
-    _SCRAPE_THREAD.stop()
+def stop_execution(_n_clicks: int) -> None:
+    """Callback to stop execution."""
+    runtime.get_scrape_thread().stop()
 
 
 @dash.callback(
@@ -238,7 +240,7 @@ def _stop_execution(_n_clicks: int) -> None:
     State(ScrapingId.START_DATE, "date"),
     State(ScrapingId.END_DATE, "date"),
 )
-def _execute_scraping(
+def execute_scraping(
     _execute_clicks: int,
     username: str | None,
     password: str | None,
@@ -246,6 +248,7 @@ def _execute_scraping(
     start_date: str,
     end_date: str,
 ) -> tuple[bool, bool] | dash._callback.NoUpdate:
+    """Callback to start the scraping thread."""
     if not username or not password:
         return dash.no_update
 
@@ -255,7 +258,7 @@ def _execute_scraping(
         # Here we should raise a popup or something?
         return False, True
 
-    started = _SCRAPE_THREAD.start(
+    started = runtime.get_scrape_thread().start(
         degiro.PortfolioImportData(
             account_id=login[0],
             session_id=login[1],
@@ -274,7 +277,8 @@ ValidationOutput = namedtuple("ValidationOutput", ["valid", "invalid"])
     [Output(ScrapingId.PASSWORD, "valid"), Output(ScrapingId.PASSWORD, "invalid")],
     Input(ScrapingId.PASSWORD, "value"),
 )
-def _validate_sessionid(password: str | None) -> ValidationOutput:
+def validate_password(password: str | None) -> ValidationOutput:
+    """Callback to validate the current password."""
     if not password:
         return ValidationOutput(False, True)
     return ValidationOutput(True, False)
@@ -284,7 +288,8 @@ def _validate_sessionid(password: str | None) -> ValidationOutput:
     [Output(ScrapingId.GOAUTH, "valid"), Output(ScrapingId.GOAUTH, "invalid")],
     Input(ScrapingId.GOAUTH, "value"),
 )
-def _validate_goauth(goauth: str | None) -> ValidationOutput:
+def validate_goauth(goauth: str | None) -> ValidationOutput:
+    """Callback to validate the google authenticator code."""
     if not goauth:
         return ValidationOutput(True, False)
 
@@ -301,7 +306,8 @@ def _validate_goauth(goauth: str | None) -> ValidationOutput:
     [Output(ScrapingId.USERNAME, "valid"), Output(ScrapingId.USERNAME, "invalid")],
     Input(ScrapingId.USERNAME, "value"),
 )
-def _validate_accountid(username: str | None) -> ValidationOutput:
+def validate_accountid(username: str | None) -> ValidationOutput:
+    """Callback to validate the account id."""
     if not username:
         return ValidationOutput(False, True)
     return ValidationOutput(True, False)
@@ -310,27 +316,32 @@ def _validate_accountid(username: str | None) -> ValidationOutput:
 @dash.callback(
     Output(ScrapingId.INTERVAL, "disabled"), Input(ScrapingId.MODAL, "is_open")
 )
-def _set_interval(is_open: bool) -> bool:
+def set_interval(is_open: bool) -> bool:
+    """Callback to enable the interval timer."""
     return not is_open
 
 
 @dash.callback(
     Output(ScrapingId.PROGRESS, "value"), Input(ScrapingId.INTERVAL, "n_intervals")
 )
-def _update_progress_bar(_iter: int) -> int:
-    return _SCRAPE_THREAD.progress
+def update_progress_bar(_iter: int) -> int:
+    """Callback to update the progress bar fill."""
+    return runtime.get_scrape_thread().progress
 
 
 @dash.callback(
     Output(ScrapingId.CURRENT, "children"), Input(ScrapingId.INTERVAL, "n_intervals")
 )
-def _update_progress_info(_iter: int) -> str:
-    if _SCRAPE_THREAD.finished:
+def update_progress_info(_iter: int) -> str:
+    """Callback to update the progress bar info text."""
+    if runtime.get_scrape_thread().finished:
         return ""
 
-    days_left = (_SCRAPE_THREAD.end_date - _SCRAPE_THREAD.current_date).days + 1
+    days_left = (
+        runtime.get_scrape_thread().end_date - runtime.get_scrape_thread().current_date
+    ).days + 1
     return (
-        f"Currently processing: {_SCRAPE_THREAD.current_date} - still "
+        f"Currently processing: {runtime.get_scrape_thread().current_date} - still "
         f"{days_left} days to go"
     )
 
@@ -338,9 +349,10 @@ def _update_progress_info(_iter: int) -> str:
 @dash.callback(
     Output(HeaderIds.LOCATION, "pathname"), Input(ScrapingId.INTERVAL, "n_intervals")
 )
-def _update_progress_finished(_iter: int) -> str | dash._callback.NoUpdate:
-    if not _SCRAPE_THREAD.created:
+def update_progress_finished(_iter: int) -> str | dash._callback.NoUpdate:
+    """Callback to switch the page when finished."""
+    if not runtime.get_scrape_thread().created:
         return dash.no_update
-    if not _SCRAPE_THREAD.finished:
+    if not runtime.get_scrape_thread().finished:
         return dash.no_update
     return PageIds.PLOTS
