@@ -39,10 +39,7 @@ def apply_exchange(
         return 0.0
     for curr_exch in exchange_options:
         if curr_exch.can_take_exchange_value(value_in_curr):
-            curr_exch.value_trans += value_in_curr
-            print(curr_exch)
-            print(round(value_in_curr * curr_exch.exchange_rate_exact, 2))
-            return round(value_in_curr * curr_exch.exchange_rate_exact, 2)
+            return curr_exch.take_exchange(value_in_curr)
     return 0.0
 
 
@@ -179,16 +176,16 @@ def process_transactions(isins: set[IsinStr]) -> tuple[ShareTransaction, ...]:
         # headers are missing for columns with the transaction amount
         # and the balance; modify contents[0] here to include header for amount
         contents[0] = contents[0].replace("Mutatie,,", "Mutatie,Bedrag,")
-        csv_reader = csv.DictReader(contents)
+        all_transactions = list(csv.DictReader(contents))
         # first collect valuta transactions
-        for row in reversed(list(csv_reader)):
+        for row in reversed(all_transactions):
             # Exchanges apply only for amounts first received in other currencies
             # and subsequently exchanged into EUR.
             # The exchange rate is found in lines labeled "Valuta Debitering"
             if row["Omschrijving"] == "Valuta Debitering" and row["Mutatie"] != "EUR":
                 exchanges.append(_process_valuta_exchange_row(row))
         print(f"{exchanges}")
-        for row in reversed(list(csv_reader)):
+        for row in reversed(all_transactions):
             # we're only interested in real stock positions (not cash)
             if (isin := IsinStr(row["ISIN"])) in isins:
                 transaction = _process_transaction_row(

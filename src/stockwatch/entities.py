@@ -33,7 +33,7 @@ class CurrencyExchange:  # pylint: disable=too-many-instance-attributes
     ----------
     exchange_datetime     : the date for which the exchange is registered
     exchange_rate         : the rate of exchange applied in the transaction
-    value_from            : the amount before the exchange, in curr_from
+    value_from            : the amount before the exchange, in curr_from (usually negative)
     curr_from             : the currency shorthand before the exchange, e.g. USD
     exchange_rate_exact   : the rate of exchange that is exactly value_to / -value_from (no init)
     value_to              : the amount after the exchange, in curr_to (no init)
@@ -52,6 +52,7 @@ class CurrencyExchange:  # pylint: disable=too-many-instance-attributes
 
     def __post_init__(self) -> None:
         assert self.exchange_rate > 0.0
+        assert abs(self.value_from) > 0.0
         self.value_to = round(-self.value_from / self.exchange_rate, 2)
         self.curr_to = "EUR"
         self.exchange_rate_exact = -self.value_from / self.value_to
@@ -76,14 +77,20 @@ class CurrencyExchange:  # pylint: disable=too-many-instance-attributes
         "Return True if the_value fits in value_trans_remaining"
         if self.has_been_traced_fully():
             return False
-        # the_value must have the same sign as value_trans
-        if the_value * self.value_from < 0.0:
+        # the_value must have the same sign as value_trans_remaining
+        if the_value * self.value_trans_remaining < 0.0:
             return False
         if the_value < 0.0:
             # we'll allow for a (positive) little margin
             return self.value_trans_remaining - the_value < ZERO_MARGIN
         # we'll allow for a (negative) little margin
         return self.value_trans_remaining - the_value > -ZERO_MARGIN
+
+    def take_exchange(self, value_in_curr: float) -> float:
+        "Apply the exchange to value_in_current, return the value in EUR"
+        assert self.can_take_exchange_value(value_in_curr)
+        self.value_trans += value_in_curr
+        return round(value_in_curr / self.exchange_rate_exact, 2)
 
 
 @dataclass(frozen=True, order=True)
