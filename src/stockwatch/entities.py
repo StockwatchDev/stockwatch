@@ -77,7 +77,7 @@ class CurrencyExchange:  # pylint: disable=too-many-instance-attributes
         if self.has_been_traced_fully():
             return False
         # the_value must have the same sign as value_trans
-        if the_value * self.value_trans < 0.0:
+        if the_value * self.value_from < 0.0:
             return False
         if the_value < 0.0:
             # we'll allow for a (positive) little margin
