@@ -25,7 +25,7 @@ def apply_exchange(
     value_in_curr: float,
     exchanges: list[CurrencyExchange],
 ) -> float:
-    "Retrun the value in EUR by tracing the currency exchange that fits or 0.0 if there's no fit"
+    "Return the value in EUR by tracing the currency exchange that fits or 0.0 if there's no fit"
     exchange_options = sorted(
         [
             curr_ex
@@ -182,7 +182,10 @@ def process_transactions(isins: set[IsinStr]) -> tuple[ShareTransaction, ...]:
         csv_reader = csv.DictReader(contents)
         # first collect valuta transactions
         for row in reversed(list(csv_reader)):
-            if row["Omschrijving"] == "Valuta Debitering" and row["Bedrag"][0] == "-":
+            # Exchanges apply only for amounts first received in other currencies
+            # and subsequently exchanged into EUR.
+            # The exchange rate is found in lines labeled "Valuta Debitering"
+            if row["Omschrijving"] == "Valuta Debitering" and row["Mutatie"] != "EUR":
                 exchanges.append(_process_valuta_exchange_row(row))
         print(f"{exchanges}")
         for row in reversed(list(csv_reader)):
