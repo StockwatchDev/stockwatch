@@ -68,14 +68,21 @@ class CurrencyExchange:  # pylint: disable=too-many-instance-attributes
         return -self.value_from - self.value_trans
 
     def has_been_traced_fully(self) -> bool:
-        "Retrun True if the amount traced to transactions equals the value_to"
+        "Return True if the amount traced to transactions equals the value_to"
         # we'll allow for a little margin
         return abs(self.value_trans_remaining) < ZERO_MARGIN
 
     def can_take_exchange_value(self, the_value: float) -> bool:
-        "Retrun True if the_value fits in value_trans_remaining"
+        "Return True if the_value fits in value_trans_remaining"
+        if self.has_been_traced_fully():
+            return False
+        # the_value must have the same sign as value_trans
+        if the_value * self.value_trans < 0.0:
+            return False
         if the_value < 0.0:
+            # we'll allow for a (positive) little margin
             return self.value_trans_remaining - the_value < ZERO_MARGIN
+        # we'll allow for a (negative) little margin
         return self.value_trans_remaining - the_value > -ZERO_MARGIN
 
 
