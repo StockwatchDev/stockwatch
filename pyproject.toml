@@ -108,7 +108,7 @@ commands =
 [testenv:py310]
 commands =
     poetry run python -m black --check ./src
-    poetry run isort --diff --color ./src
+    poetry run isort --check --diff --color ./src
     poetry run mypy ./src
     poetry run pylint --recursive=y ./src
     poetry run pytest --cov-report xml:coverage.xml --cov-report term-missing --cov=stockwatch tests/
