@@ -1,9 +1,9 @@
 """Module for handling configuration."""
+import sys
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, fields
 from pathlib import Path
 from typing import Any, TypeVar
-import sys
 
 if sys.version_info >= (3, 11):
     import tomllib
