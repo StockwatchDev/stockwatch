@@ -4,7 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field, replace
 from datetime import date, datetime
 from enum import Enum, auto
-from .currencies import AmountInCurrency, AmountInEUR
+from .currencies import Amount
 from .shares import IsinStr
 
 
@@ -35,15 +35,15 @@ class CurrencyExchange:
 
     exchange_datetime: datetime
     exchange_rate: float
-    amount_from: AmountInCurrency
+    amount_from: Amount
     exchange_rate_exact: float = field(init=False)
-    amount_to: AmountInEUR = field(init=False)
-    amount_trans: AmountInCurrency = field(init=False)
+    amount_to: Amount = field(init=False)
+    amount_trans: Amount = field(init=False)
 
     def __post_init__(self) -> None:
         assert self.exchange_rate > 0.0
         assert self.amount_from.value != 0.0
-        self.amount_to = AmountInEUR(-self.amount_from.value_exact / self.exchange_rate)
+        self.amount_to = Amount(-self.amount_from.value_exact / self.exchange_rate)
         self.exchange_rate_exact = -self.amount_from.value / self.amount_to.value
         self.amount_trans = replace(self.amount_from, value_exact=0.0)
 
@@ -53,7 +53,7 @@ class CurrencyExchange:
         return self.exchange_datetime.date()
 
     @property
-    def amount_trans_remaining(self) -> AmountInCurrency:
+    def amount_trans_remaining(self) -> Amount:
         "The part of -value_from that has not yet been traced to a transaction"
         return -self.amount_from - self.amount_trans
 
@@ -62,7 +62,7 @@ class CurrencyExchange:
         # we'll allow for a little margin
         return abs(self.amount_trans_remaining.value) < ZERO_MARGIN
 
-    def can_take_exchange_amount(self, the_amount: AmountInCurrency) -> bool:
+    def can_take_exchange_amount(self, the_amount: Amount) -> bool:
         "Return True if the_value fits in value_trans_remaining"
         if self.has_been_traced_fully():
             return False
@@ -75,11 +75,13 @@ class CurrencyExchange:
         # we'll allow for a (negative) little margin
         return (self.amount_trans_remaining - the_amount).value > -ZERO_MARGIN
 
-    def take_exchange(self, amount: AmountInCurrency) -> AmountInEUR:
+    def take_exchange(self, amount: Amount) -> Amount:
         "Apply the exchange to amount, return the amount in EUR"
         assert self.can_take_exchange_amount(amount)
         self.amount_trans += amount
-        return AmountInEUR(value_exact=amount.value_exact / self.exchange_rate_exact)
+        return Amount(
+            value_exact=amount.value_exact / self.exchange_rate_exact, curr="EUR"
+        )
 
 
 @dataclass(frozen=True, order=True)
