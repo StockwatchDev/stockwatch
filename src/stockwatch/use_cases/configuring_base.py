@@ -1,10 +1,15 @@
 """Module for handling configuration."""
+import sys
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, fields
 from pathlib import Path
 from typing import Any, TypeVar
 
-import tomli as tomllib  # import tomllib in Python 3.11
+if sys.version_info >= (3, 11):
+    import tomllib
+else:
+    import tomli as tomllib
+
 
 TConfig = TypeVar("TConfig", bound="ConfigBase")  # pylint: disable=invalid-name
 TConfigSection = TypeVar(  # pylint: disable=invalid-name

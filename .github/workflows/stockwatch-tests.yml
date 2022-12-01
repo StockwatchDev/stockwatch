@@ -36,7 +36,7 @@ jobs:
         run: poetry install --no-interaction --no-root --only testrunner
 
       - name: Run tests
-        run: poetry run tox
+        run: poetry run tox -e style_and_typing -e py310
 
       - name: Report coverage
         uses: codecov/codecov-action@v3
