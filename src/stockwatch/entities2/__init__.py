@@ -4,4 +4,4 @@ This package has a clean architecture. Hence, this module should not depend on a
 other module and only import Python stuff.
 """
 
-from . import currencies, transactions, shares
+from . import currencies, shares, transactions

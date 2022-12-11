@@ -5,6 +5,7 @@ from dataclasses import dataclass, field, replace
 from datetime import date, datetime
 from enum import Enum, auto
 from typing import NewType
+
 from .currencies import Amount
 
 IsinStr = NewType("IsinStr", str)
