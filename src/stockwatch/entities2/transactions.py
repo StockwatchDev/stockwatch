@@ -4,9 +4,10 @@ from __future__ import annotations
 from dataclasses import dataclass, field, replace
 from datetime import date, datetime
 from enum import Enum, auto
+from typing import NewType
 from .currencies import Amount
-from .shares import IsinStr
 
+IsinStr = NewType("IsinStr", str)
 
 ZERO_MARGIN: float = 0.05
 
@@ -25,26 +26,26 @@ class CurrencyExchange:
 
     Attributes
     ----------
-    exchange_datetime     : the date for which the exchange is registered
-    exchange_rate         : the rate of exchange applied in the transaction
+    exchange_datetime     : the date and time for which the exchange is registered
+    rate                  : the rate of exchange applied in the transaction
     amount_from           : the amount before the exchange, i.e., in a currency other than EUR (usually negative)
-    exchange_rate_exact   : the rate of exchange that is exactly value_to / -value_from (no init)
+    rate_exact            : the rate of exchange that is exactly value_to / -value_from (no init)
     amount_to             : the amount after the exchange, in EUR (no init)
     amount_trans          : the amount that was traced back to transactions, in the same currency as amount_from (no init)
     """
 
     exchange_datetime: datetime
-    exchange_rate: float
+    rate: float
     amount_from: Amount
-    exchange_rate_exact: float = field(init=False)
+    rate_exact: float = field(init=False)
     amount_to: Amount = field(init=False)
     amount_trans: Amount = field(init=False)
 
     def __post_init__(self) -> None:
-        assert self.exchange_rate > 0.0
+        assert self.rate > 0.0
         assert self.amount_from.value != 0.0
-        self.amount_to = Amount(-self.amount_from.value_exact / self.exchange_rate)
-        self.exchange_rate_exact = -self.amount_from.value / self.amount_to.value
+        self.amount_to = Amount(-self.amount_from.value_exact / self.rate)
+        self.rate_exact = -self.amount_from.value / self.amount_to.value
         self.amount_trans = replace(self.amount_from, value_exact=0.0)
 
     @property
@@ -79,9 +80,7 @@ class CurrencyExchange:
         "Apply the exchange to amount, return the amount in EUR"
         assert self.can_take_exchange_amount(amount)
         self.amount_trans += amount
-        return Amount(
-            value_exact=amount.value_exact / self.exchange_rate_exact, curr="EUR"
-        )
+        return Amount(value_exact=amount.value_exact / self.rate_exact, curr="EUR")
 
 
 @dataclass(frozen=True, order=True)
@@ -92,20 +91,18 @@ class ShareTransaction:
     ----------
     transaction_datetime  : the date for which the value of the share position is registered
     isin                  : the ISIN code / Symbol string used to identify a share
-    curr                  : the currency shorthand in which the transaction is done, e.g. EUR
     nr_stocks             : the number of items in the transaction
-    price                 : the price per item, in curr
+    price                 : the price per item, in the currency in which the transaction is done, e.g. USD
     kind                  : the kind of transaction
-    value_in_eur          : the value of the transaction in EUR
+    amount                : the value of the transaction in EUR
     """
 
     transaction_datetime: datetime
     isin: IsinStr
-    curr: str
     nr_stocks: float
-    price: float
+    price: Amount
     kind: ShareTransactionKind
-    value_in_eur: float
+    amount: Amount
 
     @property
     def transaction_date(self) -> date:
