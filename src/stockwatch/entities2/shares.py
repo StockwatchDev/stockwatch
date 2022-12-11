@@ -20,7 +20,6 @@ class SharePosition:  # pylint: disable=too-many-instance-attributes
     value           : the current value of the shares, in EUR
     isin            : the ISIN code / Symbol string used to identify a share
     name            : the name of the share
-    curr            : the currency shorthand in which the stock is traded, e.g. USD
     investment      : the amount in EUR spent in purchasing the shares
     nr_stocks       : the number of shares
     price           : the current price of the shares in the currency in which the stock is traded, e.g. USD
