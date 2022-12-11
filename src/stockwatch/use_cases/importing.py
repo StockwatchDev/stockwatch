@@ -116,12 +116,12 @@ def _process_dividend_transaction_row(
 
 
 def _process_valuta_exchange_row(row: dict[str, str]) -> CurrencyExchange:
-    exchange_rate = float(row["FX"].replace(",", "."))
+    rate = float(row["FX"].replace(",", "."))
     date_time_str = row["Datum"] + ";" + row["Tijd"]
     exchange_datetime = datetime.strptime(date_time_str, "%d-%m-%Y;%H:%M")
     curr_from = row["Mutatie"]
     value_from = round(float(row["Bedrag"].replace(",", ".")), 2)
-    return CurrencyExchange(exchange_datetime, exchange_rate, value_from, curr_from)
+    return CurrencyExchange(exchange_datetime, rate, value_from, curr_from)
 
 
 def _process_transaction_row(

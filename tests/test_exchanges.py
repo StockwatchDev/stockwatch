@@ -12,7 +12,7 @@ from stockwatch.entities import (
 def example_exchange_1() -> CurrencyExchange:
     return CurrencyExchange(
         exchange_datetime=datetime.now() - timedelta(days=7),
-        exchange_rate=1.1095,
+        rate=1.1095,
         value_from=-80.24,
         curr_from="USD",
     )
@@ -22,7 +22,7 @@ def example_exchange_1() -> CurrencyExchange:
 def example_exchange_2() -> CurrencyExchange:
     return CurrencyExchange(
         exchange_datetime=datetime.now() - timedelta(days=7),
-        exchange_rate=1.1095,
+        rate=1.1095,
         value_from=80.24,
         curr_from="USD",
     )
