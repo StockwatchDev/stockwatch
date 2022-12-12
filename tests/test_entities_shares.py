@@ -198,14 +198,14 @@ def test_position_order(
 
 def test_value(example_pfdict_3w_ago: PortfoliosDictionary) -> None:
     spf = to_portfolios(example_pfdict_3w_ago)[0]
-    assert spf.get_position("NL0010408704").value == 1035.0
-    assert spf.value == 2285.76
+    assert spf.get_position("NL0010408704").value.value == 1035.0
+    assert spf.value.value == 2285.76
 
 
 def test_investment(example_pfdict_3w_ago: PortfoliosDictionary) -> None:
     spf = to_portfolios(example_pfdict_3w_ago)[0]
-    assert spf.get_position("NL0010408704").investment == 1000.08
-    assert spf.investment == 1970.08
+    assert spf.get_position("NL0010408704").investment.value == 1000.08
+    assert spf.investment.value == 1970.08
 
 
 def test_contains_get_position(example_pfdict_3w_ago: PortfoliosDictionary) -> None:
@@ -219,25 +219,25 @@ def test_contains_get_position(example_pfdict_3w_ago: PortfoliosDictionary) -> N
 def test_realized_return(example_pfdict_3w_ago: PortfoliosDictionary) -> None:
     spf = to_portfolios(example_pfdict_3w_ago)[0]
     non_existing_isin = "IE00B02KXL92"
-    assert spf.get_position(non_existing_isin).realized == 0.0
-    assert spf.get_position("IE00B441G979").realized == -10.50
-    assert spf.realized == 99.66
+    assert spf.get_position(non_existing_isin).realized.value == 0.0
+    assert spf.get_position("IE00B441G979").realized.value == -10.50
+    assert spf.realized.value == 99.66
 
 
 def test_unrealized_return(example_pfdict_3w_ago: PortfoliosDictionary) -> None:
     spf = to_portfolios(example_pfdict_3w_ago)[0]
     non_existing_isin = "IE00B02KXL92"
-    assert spf.get_position(non_existing_isin).unrealized == 0.0
-    assert spf.get_position("IE00B3RBWM25").unrealized == 280.76
-    assert spf.unrealized == 315.68
+    assert spf.get_position(non_existing_isin).unrealized.value == 0.0
+    assert spf.get_position("IE00B3RBWM25").unrealized.value == 280.76
+    assert spf.unrealized.value == 315.68
 
 
 def test_total_return(example_pfdict_3w_ago: PortfoliosDictionary) -> None:
     spf = to_portfolios(example_pfdict_3w_ago)[0]
     non_existing_isin = "IE00B02KXL92"
-    assert spf.get_position(non_existing_isin).total_return == 0.0
-    assert spf.get_position("IE00B3RBWM25").total_return == 304.42
-    assert spf.total_return == 415.34
+    assert spf.get_position(non_existing_isin).total_return.value == 0.0
+    assert spf.get_position("IE00B3RBWM25").total_return.value == 304.42
+    assert spf.total_return.value == 415.34
 
 
 def test_isins_names(example_pfdict_3w_ago: PortfoliosDictionary) -> None:
@@ -330,11 +330,11 @@ def test_sell_and_buy_transaction(
     isin_sell_2 = example_sell_transaction_2.isin
     isin_buy = example_buy_transaction.isin
     apply_transactions(transactions, portfolios)
-    assert portfolios[date_after][isin_sell_1].investment == 0.0
-    assert portfolios[date_after][isin_sell_1].realized == 122.86
-    assert portfolios[date_after][isin_buy].investment == 2060.0
-    assert portfolios[date_after][isin_sell_2].investment == 808.33
-    assert portfolios[date_after][isin_sell_2].realized == 72.49
+    assert portfolios[date_after][isin_sell_1].investment.value == 0.0
+    assert portfolios[date_after][isin_sell_1].realized.value == 122.86
+    assert portfolios[date_after][isin_buy].investment.value == 2060.0
+    assert portfolios[date_after][isin_sell_2].investment.value == 808.33
+    assert portfolios[date_after][isin_sell_2].realized.value == 72.49
 
     # and test the degenerate cases, that they do not raise an exception
     example_sell_transaction_1 = replace(
@@ -385,7 +385,7 @@ def test_double_buy_transaction(
     date_after = list(example_pfdict_today.keys())[0]
     isin_buy = example_buy_transaction.isin
     apply_transactions(transactions, portfolios)
-    assert portfolios[date_after][isin_buy].investment == 2060.0
+    assert portfolios[date_after][isin_buy].investment.value == 2060.0
 
 
 def test_double_sell_transaction(
@@ -407,8 +407,8 @@ def test_double_sell_transaction(
     date_after = list(example_pfdict_today.keys())[0]
     isin_sell = example_sell_transaction_1.isin
     apply_transactions(transactions, portfolios)
-    assert portfolios[date_after][isin_sell].investment == 0.0
-    assert portfolios[date_after][isin_sell].realized == 122.86
+    assert portfolios[date_after][isin_sell].investment.value == 0.0
+    assert portfolios[date_after][isin_sell].realized.value == 122.86
 
 
 def test_dividend_transaction(
@@ -421,8 +421,8 @@ def test_dividend_transaction(
     date_after = list(example_pfdict_today.keys())[0]
     isin_div = example_dividend_transaction.isin
     apply_transactions(transactions, portfolios)
-    assert portfolios[date_after][isin_div].investment == 970.0
-    assert portfolios[date_after][isin_div].realized == 36.79
+    assert portfolios[date_after][isin_div].investment.value == 970.0
+    assert portfolios[date_after][isin_div].realized.value == 36.79
 
     # and test the degenerate cases, that they do not raise an exception
     example_dividend_transaction = replace(

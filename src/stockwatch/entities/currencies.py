@@ -26,11 +26,35 @@ class Amount:
     def __post_init__(self) -> None:
         object.__setattr__(self, "value", round(self.value_exact, 2))
 
+    def __lt__(self, other: object) -> bool:
+        "Raise error if currencies do not match; return true if self.value < other.value (i.e., the rounded values)"
+        if (not isinstance(other, Amount)) or (self.curr != other.curr):
+            raise NotImplementedError
+        return self.value.__lt__(other.value)
+
+    def __le__(self, other: object) -> bool:
+        "Raise error if currencies do not match; return true if self.value <= other.value (i.e., the rounded values)"
+        if (not isinstance(other, Amount)) or (self.curr != other.curr):
+            raise NotImplementedError
+        return self.value.__le__(other.value)
+
     def __eq__(self, other: object) -> bool:
         "Return true if currencies match and self.value equals other.value (i.e., the rounded values)"
         if not isinstance(other, Amount):
             raise NotImplementedError
         return self.curr == other.curr and self.value == other.value
+
+    def __ge__(self, other: object) -> bool:
+        "Raise error if currencies do not match; return true if self.value >= other.value (i.e., the rounded values)"
+        if (not isinstance(other, Amount)) or (self.curr != other.curr):
+            raise NotImplementedError
+        return self.value.__ge__(other.value)
+
+    def __gt__(self, other: object) -> bool:
+        "Raise error if currencies do not match; return true if self.value > other.value (i.e., the rounded values)"
+        if (not isinstance(other, Amount)) or (self.curr != other.curr):
+            raise NotImplementedError
+        return self.value.__ge__(other.value)
 
     def __add__(self, other: Amount) -> Amount:
         "Return an amount self.value + other.value"

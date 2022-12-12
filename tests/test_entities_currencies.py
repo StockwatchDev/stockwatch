@@ -28,8 +28,20 @@ def test_amount_comparison(
     assert example_amount_1 == Amount(3.3333333333)
     assert example_amount_1 != example_amount_2
     assert example_amount_1 != example_amount_3
+    assert example_amount_1 < example_amount_2
+    assert example_amount_1 <= example_amount_2
+    assert example_amount_2 > example_amount_1
+    assert example_amount_2 >= example_amount_1
     with pytest.raises(NotImplementedError):
         example_amount_1 == 0.0  # pylint: disable=pointless-statement
+    with pytest.raises(NotImplementedError):
+        example_amount_1 < example_amount_3  # pylint: disable=pointless-statement
+    with pytest.raises(NotImplementedError):
+        example_amount_1 <= example_amount_3  # pylint: disable=pointless-statement
+    with pytest.raises(NotImplementedError):
+        example_amount_1 > example_amount_3  # pylint: disable=pointless-statement
+    with pytest.raises(NotImplementedError):
+        example_amount_1 >= example_amount_3  # pylint: disable=pointless-statement
 
 
 def test_amount_operators(

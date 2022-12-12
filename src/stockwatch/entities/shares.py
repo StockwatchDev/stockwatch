@@ -104,12 +104,12 @@ class SharePortfolio:
             object.__setattr__(
                 self,
                 attribute,
-                round(
-                    sum(
+                sum(
+                    (
                         getattr(share_pos, attribute)
                         for share_pos in self.share_positions
                     ),
-                    2,
+                    Amount(0.0),
                 ),
             )
         assert self.is_date_consistent()
