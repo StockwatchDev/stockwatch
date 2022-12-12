@@ -171,7 +171,7 @@ python-versions = "*"
 
 [[package]]
 name = "dash-extensions"
-version = "0.1.7"
+version = "0.1.8"
 description = "Extensions for Plotly Dash."
 category = "main"
 optional = false
@@ -685,7 +685,7 @@ python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "d2ebb30c58f601f82a970a9a76217f5425cfd10e6cbb9e6e6d5efe39e02f2cfa"
+content-hash = "9978c45fe2ec345a67022e0b5e74d0e296afd0cce8bd2b62c403d266443c69bc"
 
 [metadata.files]
 astroid = [
@@ -808,8 +808,8 @@ dash-core-components = [
     {file = "dash_core_components-2.0.0.tar.gz", hash = "sha256:c6733874af975e552f95a1398a16c2ee7df14ce43fa60bb3718a3c6e0b63ffee"},
 ]
 dash-extensions = [
-    {file = "dash_extensions-0.1.7-py3-none-any.whl", hash = "sha256:7dcc7a7ea8434cdd2dc6d4c640b5124daffbf33661bd0a445a7a82adc4b06a10"},
-    {file = "dash_extensions-0.1.7.tar.gz", hash = "sha256:3cdb251c715e90aeb5705c6e73abec1ceb23ba8ce0448cf4ee3161ff1616332b"},
+    {file = "dash_extensions-0.1.8-py3-none-any.whl", hash = "sha256:99d71dfd07571e344718d6079ca5dc47a59d500ab1231b444d9fe72ae50aa6de"},
+    {file = "dash_extensions-0.1.8.tar.gz", hash = "sha256:fd63227b363eaccc2a1061b51261ca1807a3cec15822fc3234dcc8ebf26d0331"},
 ]
 dash-html-components = [
     {file = "dash_html_components-2.0.0-py3-none-any.whl", hash = "sha256:b42cc903713c9706af03b3f2548bda4be7307a7cf89b7d6eae3da872717d1b63"},
