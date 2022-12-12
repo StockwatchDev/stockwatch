@@ -56,7 +56,7 @@ class CurrencyExchange:
 
     @property
     def amount_trans_remaining(self) -> Amount:
-        "The part of -value_from that has not yet been traced to a transaction"
+        "The part of -amount_from that has not yet been traced to a transaction"
         return -self.amount_from - self.amount_trans
 
     def has_been_traced_fully(self) -> bool:
@@ -64,8 +64,10 @@ class CurrencyExchange:
         # we'll allow for a little margin
         return abs(self.amount_trans_remaining.value) < ZERO_MARGIN
 
-    def can_take_exchange_amount(self, the_amount: Amount) -> bool:
+    def can_take_exchange(self, the_amount: Amount) -> bool:
         "Return True if the_value fits in value_trans_remaining"
+        if self.amount_from.curr != the_amount.curr:
+            return False
         if self.has_been_traced_fully():
             return False
         # the_amount must have the same sign as amount_trans_remaining
@@ -79,7 +81,7 @@ class CurrencyExchange:
 
     def take_exchange(self, amount: Amount) -> Amount:
         "Apply the exchange to amount, return the amount in EUR"
-        assert self.can_take_exchange_amount(amount)
+        assert self.can_take_exchange(amount)
         self.amount_trans += amount
         return Amount(value_exact=amount.value_exact / self.rate_exact, curr="EUR")
 

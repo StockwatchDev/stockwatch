@@ -2,7 +2,7 @@
 # pylint: disable=missing-module-docstring
 # pylint: disable=missing-function-docstring
 import pytest
-from stockwatch.entities2.currencies import (
+from stockwatch.entities.currencies import (
     Amount,
 )
 

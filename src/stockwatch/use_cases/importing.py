@@ -4,16 +4,19 @@ import csv
 from datetime import date, datetime, timedelta
 from typing import Any
 
-from stockwatch.entities import (
-    CurrencyExchange,
-    IsinStr,
+from stockwatch.entities.currencies import Amount
+from stockwatch.entities.shares import (
     PortfoliosDictionary,
     SharePortfolio,
     SharePosition,
-    ShareTransaction,
-    ShareTransactionKind,
     apply_transactions,
     to_portfolios,
+)
+from stockwatch.entities.transactions import (
+    CurrencyExchange,
+    IsinStr,
+    ShareTransaction,
+    ShareTransactionKind,
 )
 
 from . import stockdir
@@ -21,26 +24,25 @@ from . import stockdir
 
 def apply_exchange(
     transaction_datetime: datetime,
-    curr: str,
-    value_in_curr: float,
+    amount: Amount,
     exchanges: list[CurrencyExchange],
-) -> float:
+) -> Amount:
     "Return the value in EUR by tracing the currency exchange that fits or 0.0 if there's no fit"
     exchange_options = sorted(
         [
             curr_ex
             for curr_ex in exchanges
-            if curr_ex.curr_from == curr
+            if curr_ex.amount_from.curr == amount.curr
             and curr_ex.exchange_datetime > transaction_datetime
         ]
     )
     if not exchange_options:
         # no currency exchange found
-        return 0.0
+        return Amount(0.0)
     for curr_exch in exchange_options:
-        if curr_exch.can_take_exchange_value(value_in_curr):
-            return curr_exch.take_exchange(value_in_curr)
-    return 0.0
+        if curr_exch.can_take_exchange(amount):
+            return curr_exch.take_exchange(amount)
+    return Amount(0.0)
 
 
 def _process_buy_transaction_row(
@@ -51,16 +53,15 @@ def _process_buy_transaction_row(
     descr = row["Omschrijving"].split()
     key_index = descr.index("Koop")
     nr_stocks = float(descr[key_index + 1].replace(",", "."))
-    price = float(descr[key_index + 3].replace(",", "."))
     curr = row["Mutatie"]
+    price = Amount(float(descr[key_index + 3].replace(",", ".")), curr)
     return ShareTransaction(
         transaction_datetime,
         isin,
-        curr,
         nr_stocks,
         price,
         ShareTransactionKind.BUY,
-        round(nr_stocks * price, 2),
+        nr_stocks * price,
     )
 
 
@@ -73,23 +74,20 @@ def _process_sell_transaction_row(
     descr = row["Omschrijving"].split()
     key_index = descr.index("Verkoop")
     nr_stocks = float(descr[key_index + 1].replace(",", "."))
-    price = float(descr[key_index + 3].replace(",", "."))
-    if (curr := row["Mutatie"]) == "EUR":
-        value_in_eur = round(nr_stocks * price, 2)
+    curr = row["Mutatie"]
+    price = Amount(float(descr[key_index + 3].replace(",", ".")), curr)
+    if curr == "EUR":
+        amount = nr_stocks * price
     else:
-        value_in_curr = round(nr_stocks * price, 2)
-        value_in_eur = apply_exchange(
-            transaction_datetime, curr, value_in_curr, exchanges
-        )
+        amount = apply_exchange(transaction_datetime, nr_stocks * price, exchanges)
 
     return ShareTransaction(
         transaction_datetime,
         isin,
-        curr,
         nr_stocks,
         price,
         ShareTransactionKind.SELL,
-        value_in_eur,
+        amount,
     )
 
 
@@ -99,19 +97,23 @@ def _process_dividend_transaction_row(
     row: dict[str, str],
     exchanges: list[CurrencyExchange],
 ) -> ShareTransaction:
-    amount = float(row["Bedrag"].replace(",", "."))
-    if (curr := row["Mutatie"]) == "EUR":
-        value_in_eur = amount
+    curr = row["Mutatie"]
+    price = Amount(float(row["Bedrag"].replace(",", ".")), curr)
+    if curr == "EUR":
+        amount = price
     else:
-        value_in_eur = apply_exchange(transaction_datetime, curr, amount, exchanges)
+        amount = apply_exchange(
+            transaction_datetime,
+            price,
+            exchanges,
+        )
     return ShareTransaction(
         transaction_datetime,
         isin,
-        curr,
         1,
-        amount,
+        price,
         ShareTransactionKind.DIVIDEND,
-        value_in_eur,
+        amount,
     )
 
 
@@ -119,9 +121,9 @@ def _process_valuta_exchange_row(row: dict[str, str]) -> CurrencyExchange:
     rate = float(row["FX"].replace(",", "."))
     date_time_str = row["Datum"] + ";" + row["Tijd"]
     exchange_datetime = datetime.strptime(date_time_str, "%d-%m-%Y;%H:%M")
-    curr_from = row["Mutatie"]
-    value_from = round(float(row["Bedrag"].replace(",", ".")), 2)
-    return CurrencyExchange(exchange_datetime, rate, value_from, curr_from)
+    curr = row["Mutatie"]
+    amount_from = Amount(float(row["Bedrag"].replace(",", ".")), curr)
+    return CurrencyExchange(exchange_datetime, rate, amount_from)
 
 
 def _process_transaction_row(
@@ -206,19 +208,18 @@ def _to_share_position(
     name = position_row["Product"]
     curr = position_row["Lokale waarde"].split()[0]
     nr_stocks = float(position_row["Aantal"].replace(",", "."))
-    price = round(float(position_row["Slotkoers"].replace(",", ".")), 2)
-    value = round(float(position_row["Waarde in EUR"].replace(",", ".")), 2)
+    price = Amount(float(position_row["Slotkoers"].replace(",", ".")), curr)
+    value = Amount(float(position_row["Waarde in EUR"].replace(",", ".")))
     # investment and realization will be set via transactions
     return SharePosition(
         position_date=position_date,
         value=value,
         isin=isin,
         name=name,
-        curr=curr,
-        investment=0.0,
+        investment=Amount(0.0),
         nr_stocks=nr_stocks,
         price=price,
-        realized=0.0,
+        realized=Amount(0.0),
     )
 
 
@@ -286,8 +287,8 @@ def _determine_index_values(
     index_date: date,
     index_prices: dict[date, float],
 ) -> SharePosition | None:
-    invested = 0.0
-    realized = 0.0
+    invested = Amount(0.0)
+    realized = Amount(0.0)
     nr_stocks = 0.0
 
     for transaction in transactions:
@@ -296,9 +297,9 @@ def _determine_index_values(
         if transaction.kind == ShareTransactionKind.DIVIDEND:
             continue
 
-        if transaction.curr != "EUR":
+        if transaction.price.curr != "EUR":
             print(
-                f"Ignored transaction because the currency '{transaction.curr}'"
+                f"Ignored transaction because the currency '{transaction.price.curr}'"
                 f" is not in Euros"
             )
             continue
@@ -311,14 +312,14 @@ def _determine_index_values(
             continue
 
         value = transaction.nr_stocks * transaction.price
-        index_change = value / index_price
+        index_change = value.value_exact / index_price
 
         if transaction.kind == ShareTransactionKind.BUY:
             nr_stocks += index_change
-            invested += value
+            invested = invested + value
         elif transaction.kind == ShareTransactionKind.SELL:
             nr_stocks -= index_change
-            realized += value
+            realized = realized + value
         else:
             # Ignore the other types for now...
             continue
@@ -326,13 +327,12 @@ def _determine_index_values(
     if price := _get_first_valid_price(index_prices, index_date):
         return SharePosition(
             position_date=index_date,
-            value=nr_stocks * price,
+            value=nr_stocks * Amount(price),
             isin=IsinStr(index_name),
             name=index_name.replace("_", " "),
-            curr="EUR",
-            nr_stocks=nr_stocks,
-            price=price,
             investment=invested,
+            nr_stocks=nr_stocks,
+            price=Amount(price),
             realized=realized,
         )
     return None

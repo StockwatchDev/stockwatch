@@ -4,10 +4,10 @@
 from datetime import date, datetime, timedelta
 from dataclasses import replace
 import pytest
-from stockwatch.entities2.currencies import (
+from stockwatch.entities.currencies import (
     Amount,
 )
-from stockwatch.entities2.shares import (
+from stockwatch.entities.shares import (
     UNKNOWN_POSITION_NAME,
     SharePosition,
     SharePortfolio,
@@ -20,7 +20,7 @@ from stockwatch.entities2.shares import (
     PortfoliosDictionary,
     to_portfolios,
 )
-from stockwatch.entities2.transactions import (
+from stockwatch.entities.transactions import (
     ShareTransactionKind,
     ShareTransaction,
 )
