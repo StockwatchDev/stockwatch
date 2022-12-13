@@ -82,7 +82,7 @@ class CurrencyExchange:
     def take_exchange(self, amount: Amount) -> Amount:
         "Apply the exchange to amount, return the amount in EUR"
         assert self.can_take_exchange(amount)
-        self.amount_trans += amount
+        self.amount_trans = self.amount_trans + amount
         return Amount(value_exact=amount.value_exact / self.rate_exact, curr="EUR")
 
 
