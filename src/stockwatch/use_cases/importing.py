@@ -28,6 +28,8 @@ def apply_exchange(
     exchanges: list[CurrencyExchange],
 ) -> Amount:
     "Return the value in EUR by tracing the currency exchange that fits or 0.0 if there's no fit"
+    if amount.curr == "EUR":
+        return amount
     exchange_options = sorted(
         [
             curr_ex
@@ -76,10 +78,7 @@ def _process_sell_transaction_row(
     nr_stocks = float(descr[key_index + 1].replace(",", "."))
     curr = row["Mutatie"]
     price = Amount(float(descr[key_index + 3].replace(",", ".")), curr)
-    if curr == "EUR":
-        amount = nr_stocks * price
-    else:
-        amount = apply_exchange(transaction_datetime, nr_stocks * price, exchanges)
+    amount = apply_exchange(transaction_datetime, nr_stocks * price, exchanges)
 
     return ShareTransaction(
         transaction_datetime,
@@ -99,14 +98,11 @@ def _process_dividend_transaction_row(
 ) -> ShareTransaction:
     curr = row["Mutatie"]
     price = Amount(float(row["Bedrag"].replace(",", ".")), curr)
-    if curr == "EUR":
-        amount = price
-    else:
-        amount = apply_exchange(
-            transaction_datetime,
-            price,
-            exchanges,
-        )
+    amount = apply_exchange(
+        transaction_datetime,
+        price,
+        exchanges,
+    )
     return ShareTransaction(
         transaction_datetime,
         isin,
