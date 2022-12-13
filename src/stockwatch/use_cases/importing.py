@@ -186,7 +186,6 @@ def process_transactions(isins: set[IsinStr]) -> tuple[ShareTransaction, ...]:
             # The exchange rate is found in lines labeled "Valuta Debitering"
             if row["Omschrijving"] == "Valuta Debitering" and row["Mutatie"] != "EUR":
                 exchanges.append(_process_valuta_exchange_row(row))
-        print(f"{exchanges}")
         for row in reversed(all_transactions):
             # we're only interested in real stock positions (not cash)
             if (isin := IsinStr(row["ISIN"])) in isins:
@@ -198,6 +197,11 @@ def process_transactions(isins: set[IsinStr]) -> tuple[ShareTransaction, ...]:
 
                 if transaction is not None:
                     transactions.append(transaction)
+        unmatched_exchanges = [
+            exch for exch in exchanges if exch.amount_trans_remaining.value != 0.0
+        ]
+        if unmatched_exchanges:
+            print(f"The following exchanges are not matched: {unmatched_exchanges}")
     return tuple(transactions)
 
 
