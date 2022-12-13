@@ -376,8 +376,12 @@ def test_double_buy_transaction(
     example_buy_transaction: ShareTransaction,
 ) -> None:
     portfolios = example_pfdict_3w_ago | example_pfdict_today
-    example_buy_transaction_half_1 = replace(example_buy_transaction, nr_stocks=8.0)
-    example_buy_transaction_half_2 = replace(example_buy_transaction, nr_stocks=8.0)
+    example_buy_transaction_half_1 = replace(
+        example_buy_transaction, nr_stocks=8.0, amount=Amount(8.0 * 64.375)
+    )
+    example_buy_transaction_half_2 = replace(
+        example_buy_transaction, nr_stocks=8.0, amount=Amount(8.0 * 64.375)
+    )
     transactions = (
         example_buy_transaction_half_1,
         example_buy_transaction_half_2,
@@ -395,10 +399,10 @@ def test_double_sell_transaction(
 ) -> None:
     portfolios = example_pfdict_3w_ago | example_pfdict_today
     example_sell_transaction_1_half_1 = replace(
-        example_sell_transaction_1, nr_stocks=18.0
+        example_sell_transaction_1, nr_stocks=18.0, amount=Amount(18.0 * 28.79)
     )
     example_sell_transaction_1_half_2 = replace(
-        example_sell_transaction_1, nr_stocks=18.0
+        example_sell_transaction_1, nr_stocks=18.0, amount=Amount(18.0 * 28.79)
     )
     transactions = (
         example_sell_transaction_1_half_1,
