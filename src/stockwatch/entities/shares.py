@@ -198,7 +198,7 @@ def _get_transaction_result(
 ) -> tuple[Amount, Amount]:
     match transaction.kind:
         case ShareTransactionKind.BUY:
-            investment = transaction.nr_stocks * transaction.price
+            investment = transaction.amount
             realization = Amount(0.0)
         case ShareTransactionKind.SELL:
             investment = Amount(0.0)
@@ -214,10 +214,12 @@ def _get_transaction_result(
             else:
                 buy_price = prev_pos.investment / prev_pos.nr_stocks
                 investment = -transaction.nr_stocks * buy_price
-                realization = transaction.nr_stocks * (transaction.price - buy_price)
+                # we cannot use transaction.price, because that can be in non-EUR currency
+                sell_price = transaction.amount / transaction.nr_stocks
+                realization = transaction.nr_stocks * (sell_price - buy_price)
         case ShareTransactionKind.DIVIDEND:
             investment = Amount(0.0)
-            realization = transaction.nr_stocks * transaction.price
+            realization = transaction.amount
 
     return investment, realization
 
