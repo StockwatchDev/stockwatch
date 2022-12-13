@@ -58,12 +58,12 @@ class Amount:
 
     def __add__(self, other: Amount) -> Amount:
         "Return an amount self.value + other.value"
-        assert self.curr == other.curr
+        assert self.curr == other.curr, f"cannot add {self} to {other}"
         return replace(self, value_exact=self.value_exact + other.value_exact)
 
     def __sub__(self, other: Amount) -> Amount:
         "Return an amount self.value - other.value"
-        assert self.curr == other.curr
+        assert self.curr == other.curr, f"cannot subtract {self} from {other}"
         return replace(self, value_exact=self.value_exact - other.value_exact)
 
     def __neg__(self) -> Amount:
