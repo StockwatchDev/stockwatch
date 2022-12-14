@@ -2,12 +2,20 @@
 import threading
 from dataclasses import dataclass
 from datetime import date, timedelta
+from http import HTTPStatus
 
 import requests
+from requests.api import head
 
 from stockwatch.use_cases.configuring import Config
 
 from . import stockdir
+
+
+def __get_headers() -> dict[str, str]:
+    # Unfortunately we need to fake being an actual browser. User agent is just grapped from a recent
+    # firefox installation.
+    return {"User-Agent": Config.get().degiro_server.user_agent}
 
 
 def login(username: str, password: str, goauth: str | None) -> tuple[int, str] | None:
@@ -25,10 +33,14 @@ def login(username: str, password: str, goauth: str | None) -> tuple[int, str] |
         url += Config.get().degiro_server.ga_ext
         curl_args["oneTimePassword"] = goauth
 
-    res = requests.post(url, json=curl_args, timeout=10)
+    res = requests.post(url, headers=__get_headers(), json=curl_args, timeout=10)
 
     if not res.ok:
-        print("failed wrong password")
+        if res.status_code == HTTPStatus.SERVICE_UNAVAILABLE:
+            print("DeGiro blocks some unsupported user agents")
+            print("Please update the user agent configuration")
+            return None
+        print(f"failed wrong password, return code: {res}")
         return None
 
     data = res.json()
@@ -44,10 +56,10 @@ def login(username: str, password: str, goauth: str | None) -> tuple[int, str] |
         "sessionId": session_id,
     }
 
-    res = requests.get(url, params=curl_args, timeout=10)
+    res = requests.get(url, params=curl_args, headers=__get_headers(), timeout=10)
 
     if not res.ok:
-        print("Failed to obtain account info")
+        print(f"Failed to obtain account info, return code: {res}")
         return None
 
     data = res.json()
@@ -68,8 +80,7 @@ def get_portfolio_at(day: date, account: int, session_id: str) -> str:
         "intAccount": account,
         "toDate": day.strftime("%d/%m/%Y"),
     }
-
-    res = requests.get(url, params=curl_args, timeout=10)
+    res = requests.get(url, params=curl_args, headers=__get_headers(), timeout=10)
 
     if res.ok:
         return str(res.text)
@@ -95,8 +106,7 @@ def get_account_report(
         "fromDate": start_day.strftime("%d/%m/%Y"),
         "toDate": end_day.strftime("%d/%m/%Y"),
     }
-
-    res = requests.get(url, params=curl_args, timeout=10)
+    res = requests.get(url, params=curl_args, headers=__get_headers(), timeout=10)
 
     if res.ok:
         return str(res.text)
