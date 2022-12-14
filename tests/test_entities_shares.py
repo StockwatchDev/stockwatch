@@ -4,12 +4,13 @@
 from datetime import date, datetime, timedelta
 from dataclasses import replace
 import pytest
-from stockwatch.entities import (
+from stockwatch.entities.currencies import (
+    Amount,
+)
+from stockwatch.entities.shares import (
     UNKNOWN_POSITION_NAME,
     SharePosition,
     SharePortfolio,
-    ShareTransactionKind,
-    ShareTransaction,
     earliest_portfolio_date,
     latest_portfolio_date,
     closest_portfolio_after_date,
@@ -19,17 +20,21 @@ from stockwatch.entities import (
     PortfoliosDictionary,
     to_portfolios,
 )
+from stockwatch.entities.transactions import (
+    ShareTransactionKind,
+    ShareTransaction,
+)
 
 
 @pytest.fixture
 def example_sell_transaction_1() -> ShareTransaction:
     return ShareTransaction(
         transaction_datetime=datetime.today() - timedelta(days=9),
-        kind=ShareTransactionKind.SELL,
         isin="NL0010408704",
-        curr="EUR",
         nr_stocks=36.0,
-        price=28.79,
+        price=Amount(28.79),
+        kind=ShareTransactionKind.SELL,
+        amount=Amount(36.0 * 28.79),
     )
 
 
@@ -37,11 +42,11 @@ def example_sell_transaction_1() -> ShareTransaction:
 def example_sell_transaction_2() -> ShareTransaction:
     return ShareTransaction(
         transaction_datetime=datetime.today() - timedelta(days=12),
-        kind=ShareTransactionKind.SELL,
         isin="IE00B3RBWM25",
-        curr="EUR",
         nr_stocks=2.0,
-        price=105.25,
+        price=Amount(105.25),
+        kind=ShareTransactionKind.SELL,
+        amount=Amount(2.0 * 105.25),
     )
 
 
@@ -49,11 +54,11 @@ def example_sell_transaction_2() -> ShareTransaction:
 def example_buy_transaction() -> ShareTransaction:
     return ShareTransaction(
         transaction_datetime=datetime.today() - timedelta(days=7),
-        kind=ShareTransactionKind.BUY,
         isin="IE00B441G979",
-        curr="EUR",
         nr_stocks=16.0,
-        price=64.375,
+        price=Amount(64.375),
+        kind=ShareTransactionKind.BUY,
+        amount=Amount(16.0 * 64.375),
     )
 
 
@@ -61,11 +66,11 @@ def example_buy_transaction() -> ShareTransaction:
 def example_dividend_transaction() -> ShareTransaction:
     return ShareTransaction(
         transaction_datetime=datetime.today() - timedelta(days=7),
-        kind=ShareTransactionKind.DIVIDEND,
         isin="IE00B3RBWM25",
-        curr="EUR",
         nr_stocks=1.0,
-        price=13.13,
+        price=Amount(13.13),
+        kind=ShareTransactionKind.DIVIDEND,
+        amount=Amount(1.0 * 13.13),
     )
 
 
@@ -73,14 +78,13 @@ def example_dividend_transaction() -> ShareTransaction:
 def example_position_1() -> SharePosition:
     return SharePosition(
         datetime.today().date(),
-        1190.72,
+        Amount(1190.72),
         "IE00B441G979",
         "iShares MSCI World EUR Hedged UCITS ETF",
-        "EUR",
-        1030.00,
+        Amount(1030.00),
         16,
-        74.42,
-        -10.50,
+        Amount(74.42),
+        Amount(-10.50),
     )
 
 
@@ -88,14 +92,13 @@ def example_position_1() -> SharePosition:
 def example_position_2() -> SharePosition:
     return SharePosition(
         datetime.today().date(),
-        1060.00,
+        Amount(1060.00),
         "IE00B3RBWM25",
         "Vanguard FTSE All-World UCITS ETF USD Dis",
-        "EUR",
-        970.00,
+        Amount(970.00),
         10,
-        106.00,
-        23.66,
+        Amount(106.00),
+        Amount(23.66),
     )
 
 
@@ -103,14 +106,13 @@ def example_position_2() -> SharePosition:
 def example_position_3() -> SharePosition:
     return SharePosition(
         (datetime.today() - timedelta(days=21)).date(),
-        1035,
+        Amount(1035),
         "NL0010408704",
-        "VanhEck Sustainable World Equal Weight UCITS ETF",
-        "EUR",
-        1000.08,
+        "VanEck Sustainable World Equal Weight UCITS ETF",
+        Amount(1000.08),
         36,
-        28.75,
-        86.50,
+        Amount(28.75),
+        Amount(86.50),
     )
 
 
@@ -118,36 +120,33 @@ def example_position_3() -> SharePosition:
 def example_pfdict_today() -> PortfoliosDictionary:
     sp1 = SharePosition(
         date.today(),
-        0.0,
+        Amount(0.0),
         "NL0010408704",
         "VanEck Sustainable World Equal Weight UCITS ETF",
-        "EUR",
-        1000.08,
+        Amount(1000.08),
         0,
-        1.0,
-        86.50,
+        Amount(1.0),
+        Amount(86.50),
     )
     sp2 = SharePosition(
         date.today(),
-        1190.72,
+        Amount(1190.72),
         "IE00B441G979",
         "iShares MSCI World EUR Hedged UCITS ETF",
-        "EUR",
-        1030.00,
+        Amount(1030.00),
         16,
-        74.42,
-        -10.50,
+        Amount(74.42),
+        Amount(-10.50),
     )
     sp3 = SharePosition(
         date.today(),
-        1060.00,
+        Amount(1060.00),
         "IE00B3RBWM25",
         "Vanguard FTSE All-World UCITS ETF USD Dis",
-        "EUR",
-        970.00,
+        Amount(970.00),
         10,
-        106.00,
-        23.66,
+        Amount(106.00),
+        Amount(23.66),
     )
     return {date.today(): {sp1.isin: sp1, sp2.isin: sp2, sp3.isin: sp3}}
 
@@ -157,36 +156,33 @@ def example_pfdict_3w_ago() -> PortfoliosDictionary:
     the_date = date.today() - timedelta(days=21)
     sp1 = SharePosition(
         the_date,
-        1035.0,
+        Amount(1035.0),
         "NL0010408704",
         "VanEck Sustainable World Equal Weight UCITS ETF",
-        "EUR",
-        1000.08,
+        Amount(1000.08),
         36,
-        28.75,
-        86.50,
+        Amount(28.75),
+        Amount(86.50),
     )
     sp2 = SharePosition(
         the_date,
-        0.0,
+        Amount(0.0),
         "IE00B441G979",
         "iShares MSCI World EUR Hedged UCITS ETF",
-        "EUR",
-        0.0,
+        Amount(0.0),
         0,
-        1.0,
-        -10.50,
+        Amount(1.0),
+        Amount(-10.50),
     )
     sp3 = SharePosition(
         the_date,
-        1250.76,
+        Amount(1250.76),
         "IE00B3RBWM25",
         "Vanguard FTSE All-World UCITS ETF USD Dis",
-        "EUR",
-        970.00,
+        Amount(970.00),
         12,
-        106.00,
-        23.66,
+        Amount(106.00),
+        Amount(23.66),
     )
     return {the_date: {sp1.isin: sp1, sp2.isin: sp2, sp3.isin: sp3}}
 
@@ -202,14 +198,14 @@ def test_position_order(
 
 def test_value(example_pfdict_3w_ago: PortfoliosDictionary) -> None:
     spf = to_portfolios(example_pfdict_3w_ago)[0]
-    assert spf.get_position("NL0010408704").value == 1035.0
-    assert spf.value == 2285.76
+    assert spf.get_position("NL0010408704").value.value == 1035.0
+    assert spf.value.value == 2285.76
 
 
 def test_investment(example_pfdict_3w_ago: PortfoliosDictionary) -> None:
     spf = to_portfolios(example_pfdict_3w_ago)[0]
-    assert spf.get_position("NL0010408704").investment == 1000.08
-    assert spf.investment == 1970.08
+    assert spf.get_position("NL0010408704").investment.value == 1000.08
+    assert spf.investment.value == 1970.08
 
 
 def test_contains_get_position(example_pfdict_3w_ago: PortfoliosDictionary) -> None:
@@ -223,25 +219,25 @@ def test_contains_get_position(example_pfdict_3w_ago: PortfoliosDictionary) -> N
 def test_realized_return(example_pfdict_3w_ago: PortfoliosDictionary) -> None:
     spf = to_portfolios(example_pfdict_3w_ago)[0]
     non_existing_isin = "IE00B02KXL92"
-    assert spf.get_position(non_existing_isin).realized == 0.0
-    assert spf.get_position("IE00B441G979").realized == -10.50
-    assert spf.realized == 99.66
+    assert spf.get_position(non_existing_isin).realized.value == 0.0
+    assert spf.get_position("IE00B441G979").realized.value == -10.50
+    assert spf.realized.value == 99.66
 
 
 def test_unrealized_return(example_pfdict_3w_ago: PortfoliosDictionary) -> None:
     spf = to_portfolios(example_pfdict_3w_ago)[0]
     non_existing_isin = "IE00B02KXL92"
-    assert spf.get_position(non_existing_isin).unrealized == 0.0
-    assert spf.get_position("IE00B3RBWM25").unrealized == 280.76
-    assert spf.unrealized == 315.68
+    assert spf.get_position(non_existing_isin).unrealized.value == 0.0
+    assert spf.get_position("IE00B3RBWM25").unrealized.value == 280.76
+    assert spf.unrealized.value == 315.68
 
 
 def test_total_return(example_pfdict_3w_ago: PortfoliosDictionary) -> None:
     spf = to_portfolios(example_pfdict_3w_ago)[0]
     non_existing_isin = "IE00B02KXL92"
-    assert spf.get_position(non_existing_isin).total_return == 0.0
-    assert spf.get_position("IE00B3RBWM25").total_return == 304.42
-    assert spf.total_return == 415.34
+    assert spf.get_position(non_existing_isin).total_return.value == 0.0
+    assert spf.get_position("IE00B3RBWM25").total_return.value == 304.42
+    assert spf.total_return.value == 415.34
 
 
 def test_isins_names(example_pfdict_3w_ago: PortfoliosDictionary) -> None:
@@ -334,11 +330,11 @@ def test_sell_and_buy_transaction(
     isin_sell_2 = example_sell_transaction_2.isin
     isin_buy = example_buy_transaction.isin
     apply_transactions(transactions, portfolios)
-    assert portfolios[date_after][isin_sell_1].investment == 0.0
-    assert portfolios[date_after][isin_sell_1].realized == 122.86
-    assert portfolios[date_after][isin_buy].investment == 2060.0
-    assert portfolios[date_after][isin_sell_2].investment == 808.33
-    assert portfolios[date_after][isin_sell_2].realized == 72.49
+    assert portfolios[date_after][isin_sell_1].investment.value == 0.0
+    assert portfolios[date_after][isin_sell_1].realized.value == 122.86
+    assert portfolios[date_after][isin_buy].investment.value == 2060.0
+    assert portfolios[date_after][isin_sell_2].investment.value == 808.33
+    assert portfolios[date_after][isin_sell_2].realized.value == 72.49
 
     # and test the degenerate cases, that they do not raise an exception
     example_sell_transaction_1 = replace(
@@ -380,8 +376,12 @@ def test_double_buy_transaction(
     example_buy_transaction: ShareTransaction,
 ) -> None:
     portfolios = example_pfdict_3w_ago | example_pfdict_today
-    example_buy_transaction_half_1 = replace(example_buy_transaction, nr_stocks=8.0)
-    example_buy_transaction_half_2 = replace(example_buy_transaction, nr_stocks=8.0)
+    example_buy_transaction_half_1 = replace(
+        example_buy_transaction, nr_stocks=8.0, amount=Amount(8.0 * 64.375)
+    )
+    example_buy_transaction_half_2 = replace(
+        example_buy_transaction, nr_stocks=8.0, amount=Amount(8.0 * 64.375)
+    )
     transactions = (
         example_buy_transaction_half_1,
         example_buy_transaction_half_2,
@@ -389,7 +389,7 @@ def test_double_buy_transaction(
     date_after = list(example_pfdict_today.keys())[0]
     isin_buy = example_buy_transaction.isin
     apply_transactions(transactions, portfolios)
-    assert portfolios[date_after][isin_buy].investment == 2060.0
+    assert portfolios[date_after][isin_buy].investment.value == 2060.0
 
 
 def test_double_sell_transaction(
@@ -399,10 +399,10 @@ def test_double_sell_transaction(
 ) -> None:
     portfolios = example_pfdict_3w_ago | example_pfdict_today
     example_sell_transaction_1_half_1 = replace(
-        example_sell_transaction_1, nr_stocks=18.0
+        example_sell_transaction_1, nr_stocks=18.0, amount=Amount(18.0 * 28.79)
     )
     example_sell_transaction_1_half_2 = replace(
-        example_sell_transaction_1, nr_stocks=18.0
+        example_sell_transaction_1, nr_stocks=18.0, amount=Amount(18.0 * 28.79)
     )
     transactions = (
         example_sell_transaction_1_half_1,
@@ -411,8 +411,8 @@ def test_double_sell_transaction(
     date_after = list(example_pfdict_today.keys())[0]
     isin_sell = example_sell_transaction_1.isin
     apply_transactions(transactions, portfolios)
-    assert portfolios[date_after][isin_sell].investment == 0.0
-    assert portfolios[date_after][isin_sell].realized == 122.86
+    assert portfolios[date_after][isin_sell].investment.value == 0.0
+    assert portfolios[date_after][isin_sell].realized.value == 122.86
 
 
 def test_dividend_transaction(
@@ -425,8 +425,8 @@ def test_dividend_transaction(
     date_after = list(example_pfdict_today.keys())[0]
     isin_div = example_dividend_transaction.isin
     apply_transactions(transactions, portfolios)
-    assert portfolios[date_after][isin_div].investment == 970.0
-    assert portfolios[date_after][isin_div].realized == 36.79
+    assert portfolios[date_after][isin_div].investment.value == 970.0
+    assert portfolios[date_after][isin_div].realized.value == 36.79
 
     # and test the degenerate cases, that they do not raise an exception
     example_dividend_transaction = replace(

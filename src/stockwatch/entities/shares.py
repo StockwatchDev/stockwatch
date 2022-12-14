@@ -1,54 +1,13 @@
-"""This module contains the business logic for holding a stock portfolio.
-
-This package has a clean architecture. Hence, this module should not depend on any
-other module and only import Python stuff.
-"""
+"""Dataclasses for holding a share portfolio"""
 from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
-from datetime import date, datetime
-from enum import Enum, auto
-from typing import NewType
+from datetime import date
 
-IsinStr = NewType("IsinStr", str)
+from .currencies import Amount
+from .transactions import IsinStr, ShareTransaction, ShareTransactionKind
 
-
-UNKNOWN_POSITION_NAME = "Name Unknown"
-
-
-class ShareTransactionKind(Enum):
-    """Enum with the type of possible transactions."""
-
-    BUY = auto()
-    SELL = auto()
-    DIVIDEND = auto()
-
-
-@dataclass(frozen=True, order=True)
-class ShareTransaction:
-    """For representing a stock shares transaction at a certain date.
-
-    Attributes
-    ----------
-    transaction_datetime  : the date for which the value of the share position is registered
-    isin                  : the ISIN code / Symbol string used to identify a share
-    curr                  : the currency shorthand in which the transaction is done, e.g. EUR
-    nr_stocks             : the number of items in the transaction
-    price                 : the price per item, in curr
-    kind                  : the kind of transaction
-    """
-
-    transaction_datetime: datetime
-    isin: IsinStr
-    curr: str
-    nr_stocks: float
-    price: float
-    kind: ShareTransactionKind
-
-    @property
-    def transaction_date(self) -> date:
-        "Transaction date"
-        return self.transaction_datetime.date()
+UNKNOWN_POSITION_NAME: str = "Name Unknown"
 
 
 @dataclass(frozen=True, order=True)
@@ -61,26 +20,24 @@ class SharePosition:  # pylint: disable=too-many-instance-attributes
     value           : the current value of the shares, in EUR
     isin            : the ISIN code / Symbol string used to identify a share
     name            : the name of the share
-    curr            : the currency shorthand in which the stock is traded, e.g. EUR
     investment      : the amount in EUR spent in purchasing the shares
     nr_stocks       : the number of shares
-    price           : the current price of the shares, in curr
+    price           : the current price of the shares in the currency in which the stock is traded, e.g. USD
     realized        : the realized return in EUR (including trading costs, ex tax)
-    unrealized      : the unrealized return in EUR, i.e., value - investment
-    total_return    : the sum of realized and unrealized return
+    unrealized      : the unrealized return in EUR, i.e., value - investment (no init)
+    total_return    : the sum of realized and unrealized return in EUR (no init)
     """
 
     position_date: date
-    value: float
+    value: Amount
     isin: IsinStr
     name: str
-    curr: str
-    investment: float
+    investment: Amount
     nr_stocks: float
-    price: float
-    realized: float
-    unrealized: float = field(init=False)
-    total_return: float = field(init=False)
+    price: Amount
+    realized: Amount
+    unrealized: Amount = field(init=False)
+    total_return: Amount = field(init=False)
 
     @classmethod
     def empty_position(
@@ -88,27 +45,24 @@ class SharePosition:  # pylint: disable=too-many-instance-attributes
         position_date: date,
         isin: IsinStr,
         name: str = UNKNOWN_POSITION_NAME,
-        realized: float = 0.0,
+        realized: Amount = Amount(0.0),
     ) -> SharePosition:
         """Return an empty position dated the_date with isin the_isin"""
         return SharePosition(
             position_date=position_date,
-            value=0.0,
+            value=Amount(0.0),
             isin=isin,
             name=name,
-            curr="EUR",
-            investment=0.0,
+            investment=Amount(0.0),
             nr_stocks=0.0,
-            price=1.0,
+            price=Amount(1.0),
             realized=realized,
         )
 
     def __post_init__(self) -> None:
         # because frozen=True, we need to use __setattr__ here:
-        object.__setattr__(self, "unrealized", round(self.value - self.investment, 2))
-        object.__setattr__(
-            self, "total_return", round(self.realized + self.unrealized, 2)
-        )
+        object.__setattr__(self, "unrealized", self.value - self.investment)
+        object.__setattr__(self, "total_return", self.realized + self.unrealized)
 
 
 # next line placed here because of SharePosition
@@ -131,11 +85,11 @@ class SharePortfolio:
     """
 
     portfolio_date: date
-    value: float = field(init=False)
-    investment: float = field(init=False)
-    realized: float = field(init=False)
-    unrealized: float = field(init=False)
-    total_return: float = field(init=False)
+    value: Amount = field(init=False)
+    investment: Amount = field(init=False)
+    realized: Amount = field(init=False)
+    unrealized: Amount = field(init=False)
+    total_return: Amount = field(init=False)
     share_positions: tuple[SharePosition, ...]
 
     def __post_init__(self) -> None:
@@ -150,12 +104,12 @@ class SharePortfolio:
             object.__setattr__(
                 self,
                 attribute,
-                round(
-                    sum(
+                sum(
+                    (
                         getattr(share_pos, attribute)
                         for share_pos in self.share_positions
                     ),
-                    2,
+                    Amount(0.0),
                 ),
             )
         assert self.is_date_consistent()
@@ -241,14 +195,14 @@ def closest_portfolio_before_date(
 
 def _get_transaction_result(
     transaction: ShareTransaction, prev_pos: SharePosition | None
-) -> tuple[float, float]:
+) -> tuple[Amount, Amount]:
     match transaction.kind:
         case ShareTransactionKind.BUY:
-            investment = round(transaction.nr_stocks * transaction.price, 2)
-            realization = 0.0
+            investment = transaction.amount
+            realization = Amount(0.0)
         case ShareTransactionKind.SELL:
-            investment = 0.0
-            realization = 0.0
+            investment = Amount(0.0)
+            realization = Amount(0.0)
             if not prev_pos:
                 print(
                     f"Cannot process sell transaction dated {transaction.transaction_date}, no position found to determine buy price"
@@ -259,13 +213,13 @@ def _get_transaction_result(
                 )
             else:
                 buy_price = prev_pos.investment / prev_pos.nr_stocks
-                investment = round(-transaction.nr_stocks * buy_price, 2)
-                realization = round(
-                    transaction.nr_stocks * (transaction.price - buy_price), 2
-                )
+                investment = -transaction.nr_stocks * buy_price
+                # we cannot use transaction.price, because that can be in non-EUR currency
+                sell_price = transaction.amount / transaction.nr_stocks
+                realization = transaction.nr_stocks * (sell_price - buy_price)
         case ShareTransactionKind.DIVIDEND:
-            investment = 0.0
-            realization = round(transaction.nr_stocks * transaction.price, 2)
+            investment = Amount(0.0)
+            realization = transaction.amount
 
     return investment, realization
 
@@ -314,8 +268,8 @@ def apply_transactions(
             if share_pos := portfolio.get(transaction.isin):
                 portfolio[transaction.isin] = replace(
                     share_pos,
-                    investment=round(share_pos.investment + investment, 2),
-                    realized=round(share_pos.realized + realization, 2),
+                    investment=share_pos.investment + investment,
+                    realized=share_pos.realized + realization,
                 )
         # prepare for the next round
         idx_of_first_pf_to_process = idx_of_portfolio_after_transaction
