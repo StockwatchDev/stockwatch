@@ -126,7 +126,7 @@ commands =
 
 [testenv:style]
 commands_pre =
-    poetry install --with linting -v
+    poetry install --with style -v
 commands =
     poetry run python -m black --check ./src
     poetry run isort --check --diff ./src
