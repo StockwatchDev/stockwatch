@@ -14,13 +14,26 @@ dash-extensions = "^0.1.8"
 dash-bootstrap-templates = "^1.0.5"
 requests = "^2.28.1"
 
-[tool.poetry.group.dev.dependencies]
+[tool.poetry.group.testing]
+optional = true
+
+[tool.poetry.group.testing.dependencies]
 pytest = "^7.0"
-black = "^22.10.0"
+pytest-cov = "^4.0.0"
+
+[tool.poetry.group.typing]
+optional = true
+
+[tool.poetry.group.typing.dependencies]
 mypy = ">=0.942"
+
+[tool.poetry.group.linting]
+optional = true
+
+[tool.poetry.group.linting.dependencies]
+black = "^22.10.0"
 isort = "^5.10.1"
 pylint = "^2.15.4"
-pytest-cov = "^4.0.0"
 
 [tool.poetry.group.testrunner.dependencies]
 tox = "^3.24.5"
@@ -98,23 +111,27 @@ legacy_tox_ini = """
 skipsdist = true
 envlist =
     py{310,311}
-    style
+    linting
     typing
 
 [testenv]
 whitelist_externals = poetry
 commands_pre =
-    poetry install -v
+    poetry install --with testing -v
 commands =
     poetry run pytest --cov-report xml:coverage.xml --cov-report term-missing --cov=stockwatch tests/
 
-[testenv:style]
+[testenv:linting]
+commands_pre =
+    poetry install --with linting -v
 commands =
     poetry run python -m black --check ./src
     poetry run isort --check --diff ./src
     poetry run pylint --recursive=y ./src
 
 [testenv:typing]
+commands_pre =
+    poetry install --with typing -v
 commands =
     poetry run mypy ./src
 """
