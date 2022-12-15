@@ -35,6 +35,9 @@ black = "^22.10.0"
 isort = "^5.10.1"
 pylint = "^2.15.4"
 
+[tool.poetry.group.testrunner]
+optional = true
+
 [tool.poetry.group.testrunner.dependencies]
 tox = "^3.24.5"
 
