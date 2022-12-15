@@ -10,6 +10,8 @@ from stockwatch.use_cases.configuring_base import ConfigBase, ConfigSectionBase
 class DeGiroServerConfig(ConfigSectionBase):
     """Config for degiro_server"""
 
+    # pylint: disable=too-many-instance-attributes
+
     country: str
     lang: str
     ga_ext: str
@@ -17,6 +19,7 @@ class DeGiroServerConfig(ConfigSectionBase):
     client_url: str
     portfolio_url: str
     account_url: str
+    user_agent: str
 
 
 @dataclass(frozen=True)
