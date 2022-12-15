@@ -27,10 +27,10 @@ optional = true
 [tool.poetry.group.typing.dependencies]
 mypy = ">=0.942"
 
-[tool.poetry.group.linting]
+[tool.poetry.group.style]
 optional = true
 
-[tool.poetry.group.linting.dependencies]
+[tool.poetry.group.style.dependencies]
 black = "^22.10.0"
 isort = "^5.10.1"
 pylint = "^2.15.4"
