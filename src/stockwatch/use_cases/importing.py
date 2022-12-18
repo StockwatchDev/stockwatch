@@ -79,22 +79,23 @@ def _process_sell_transaction_row(
     nr_stocks = float(descr[key_index + 1].replace(",", "."))
     curr = row["Mutatie"]
     price = Amount(float(descr[key_index + 3].replace(",", ".")), curr)
-    amount = apply_exchange(transaction_datetime, nr_stocks * price, exchanges)
-    # process delistings:
-    # so far only a single example of delisting has been presented
-    # for this one, it holds that the amount related to the sell transaction representing
-    # the delisting is found in a cash_settlement (and that one was in USD)
-    if amount.value == 0.0 and "DELISTING:" in descr:
-        if the_settlement := next(
-            (
-                csh_sttlmnt
-                for csh_sttlmnt in cash_settlements
-                if csh_sttlmnt.isin == isin
+    amount = Amount(0.0)
+    if "DELISTING:" in descr:
+        # process delistings:
+        # so far only a single example of delisting has been presented
+        # for this one, it holds that the amount related to the sell transaction representing
+        # the delisting is found in a cash_settlement (and that one was in USD)
+        for csh_sttlmnt in cash_settlements:
+            if (
+                csh_sttlmnt.isin == isin
                 and csh_sttlmnt.settlement_date == transaction_datetime.date()
-            ),
-            None,
-        ):
-            amount = the_settlement.amount
+            ):
+                amount = csh_sttlmnt.amount
+                break
+        else:
+            print("No cash settlement found for DELISTING: {row}")
+    else:
+        amount = apply_exchange(transaction_datetime, nr_stocks * price, exchanges)
 
     return ShareTransaction(
         transaction_datetime,
