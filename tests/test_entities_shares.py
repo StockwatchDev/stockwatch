@@ -4,7 +4,7 @@
 from datetime import date, datetime, timedelta
 from dataclasses import replace
 import pytest
-from stockwatch.entities.currencies import (
+from stockwatch.entities.money import (
     Amount,
 )
 from stockwatch.entities.shares import (

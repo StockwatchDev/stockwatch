@@ -3,7 +3,7 @@
 # pylint: disable=missing-function-docstring
 import pytest
 from datetime import date, datetime, timedelta
-from stockwatch.entities.currencies import (
+from stockwatch.entities.money import (
     Amount,
 )
 from stockwatch.entities.transactions import (

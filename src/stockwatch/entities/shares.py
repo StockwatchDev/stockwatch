@@ -4,7 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field, replace
 from datetime import date
 
-from .currencies import Amount
+from .money import Amount
 from .transactions import IsinStr, ShareTransaction, ShareTransactionKind
 
 UNKNOWN_POSITION_NAME: str = "Name Unknown"

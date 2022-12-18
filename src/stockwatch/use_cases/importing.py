@@ -4,7 +4,7 @@ import csv
 from datetime import date, datetime, timedelta
 from typing import Any
 
-from stockwatch.entities.currencies import Amount
+from stockwatch.entities.money import Amount, CurrencyExchange
 from stockwatch.entities.shares import (
     PortfoliosDictionary,
     SharePortfolio,
@@ -13,7 +13,6 @@ from stockwatch.entities.shares import (
     to_portfolios,
 )
 from stockwatch.entities.transactions import (
-    CurrencyExchange,
     IsinStr,
     ShareTransaction,
     ShareTransactionKind,
@@ -168,6 +167,7 @@ def process_transactions(isins: set[IsinStr]) -> tuple[ShareTransaction, ...]:
         return tuple()
 
     exchanges: list[CurrencyExchange] = []
+    cash_settlements: list[dict[str, Any]] = []
     transactions: list[ShareTransaction] = []
     with transactions_file.open(mode="r") as csv_file:
         contents = csv_file.readlines()
@@ -182,6 +182,11 @@ def process_transactions(isins: set[IsinStr]) -> tuple[ShareTransaction, ...]:
             # The exchange rate is found in lines labeled "Valuta Debitering"
             if row["Omschrijving"] == "Valuta Debitering" and row["Mutatie"] != "EUR":
                 exchanges.append(_process_valuta_exchange_row(row))
+        # then collect cash settlements
+        for row in reversed(all_transactions):
+            if row["Omschrijving"] == "Valuta Debitering" and row["Mutatie"] != "EUR":
+                cash_settlements.append(_process_cash_settlement_row(row))
+        # finally process dividend and stock transactions
         for row in reversed(all_transactions):
             # we're only interested in real stock positions (not cash)
             if (isin := IsinStr(row["ISIN"])) in isins:
