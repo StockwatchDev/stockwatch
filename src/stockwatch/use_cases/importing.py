@@ -113,6 +113,23 @@ def _process_dividend_transaction_row(
     )
 
 
+def _process_expenses_row(
+    transaction_datetime: datetime,
+    isin: IsinStr,
+    row: dict[str, str],
+) -> ShareTransaction:
+    # Expenses are always in EUR
+    amount = Amount(float(row["Bedrag"].replace(",", ".")))
+    return ShareTransaction(
+        transaction_datetime,
+        isin,
+        1,
+        amount,
+        ShareTransactionKind.EXPENSES,
+        amount,
+    )
+
+
 def _process_valuta_exchange_row(row: dict[str, str]) -> CurrencyExchange:
     rate = float(row["FX"].replace(",", "."))
     date_time_str = row["Datum"] + ";" + row["Tijd"]
@@ -151,6 +168,12 @@ def _process_transaction_row(
             isin=isin,
             row=row,
             exchanges=exchanges,
+        )
+    if "Transactiekosten" in descr:
+        return _process_expenses_row(
+            transaction_datetime=transaction_datetime,
+            isin=isin,
+            row=row,
         )
     return None
 
@@ -389,12 +412,10 @@ def get_portfolios_index_positions() -> tuple[
     # second get the transactions
     transactions = process_transactions(all_isins)
 
-    # TODO: third determine exchange rate and apply to transactions
-
-    # fourth apply transactions to positions to determine investment and returns
+    # third apply transactions to positions to determine investment and returns
     apply_transactions(transactions, spfdict)
 
-    # fifth convert dicts to tuple with shareportfolios
+    # fourth convert dicts to tuple with shareportfolios
     spfs = to_portfolios(spfdict)
 
     # TODO: implement the processing of index prices
