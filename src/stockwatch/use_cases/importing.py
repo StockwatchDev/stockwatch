@@ -13,6 +13,7 @@ from stockwatch.entities.shares import (
     to_portfolios,
 )
 from stockwatch.entities.transactions import (
+    CashSettlement,
     IsinStr,
     ShareTransaction,
     ShareTransactionKind,
@@ -71,6 +72,7 @@ def _process_sell_transaction_row(
     isin: IsinStr,
     row: dict[str, str],
     exchanges: list[CurrencyExchange],
+    cash_settlements: list[CashSettlement],
 ) -> ShareTransaction:
     descr = row["Omschrijving"].split()
     key_index = descr.index("Verkoop")
@@ -78,6 +80,21 @@ def _process_sell_transaction_row(
     curr = row["Mutatie"]
     price = Amount(float(descr[key_index + 3].replace(",", ".")), curr)
     amount = apply_exchange(transaction_datetime, nr_stocks * price, exchanges)
+    # process delistings:
+    # so far only a single example of delisting has been presented
+    # for this one, it holds that the amount related to the sell transaction representing
+    # the delisting is found in a cash_settlement (and that one was in USD)
+    if amount.value == 0.0 and "DELISTING:" in descr:
+        if the_settlement := next(
+            (
+                csh_sttlmnt
+                for csh_sttlmnt in cash_settlements
+                if csh_sttlmnt.isin == isin
+                and csh_sttlmnt.settlement_date == transaction_datetime.date()
+            ),
+            None,
+        ):
+            amount = the_settlement.amount
 
     return ShareTransaction(
         transaction_datetime,
@@ -121,10 +138,29 @@ def _process_valuta_exchange_row(row: dict[str, str]) -> CurrencyExchange:
     return CurrencyExchange(exchange_datetime, rate, amount_from)
 
 
+def _process_cash_settlement_row(
+    row: dict[str, str],
+    exchanges: list[CurrencyExchange],
+) -> CashSettlement:
+    date_time_str = row["Datum"] + ";" + row["Tijd"]
+    settlement_datetime = datetime.strptime(date_time_str, "%d-%m-%Y;%H:%M")
+    isin = IsinStr(row["ISIN"])
+    curr = row["Mutatie"]
+    amount = Amount(float(row["Bedrag"].replace(",", ".")), curr)
+    if curr != "EUR":
+        amount = apply_exchange(
+            settlement_datetime,
+            amount,
+            exchanges,
+        )
+    return CashSettlement(settlement_datetime, isin, amount)
+
+
 def _process_transaction_row(
     isin: IsinStr,
     row: dict[str, str],
     exchanges: list[CurrencyExchange],
+    cash_settlements: list[CashSettlement],
 ) -> ShareTransaction | None:
     date_time_str = row["Datum"] + ";" + row["Tijd"]
     transaction_datetime = datetime.strptime(date_time_str, "%d-%m-%Y;%H:%M")
@@ -143,6 +179,7 @@ def _process_transaction_row(
             isin=isin,
             row=row,
             exchanges=exchanges,
+            cash_settlements=cash_settlements,
         )
     if "Dividend" in descr:
         return _process_dividend_transaction_row(
@@ -167,7 +204,7 @@ def process_transactions(isins: set[IsinStr]) -> tuple[ShareTransaction, ...]:
         return tuple()
 
     exchanges: list[CurrencyExchange] = []
-    cash_settlements: list[dict[str, Any]] = []
+    cash_settlements: list[CashSettlement] = []
     transactions: list[ShareTransaction] = []
     with transactions_file.open(mode="r") as csv_file:
         contents = csv_file.readlines()
@@ -184,8 +221,8 @@ def process_transactions(isins: set[IsinStr]) -> tuple[ShareTransaction, ...]:
                 exchanges.append(_process_valuta_exchange_row(row))
         # then collect cash settlements
         for row in reversed(all_transactions):
-            if row["Omschrijving"] == "Valuta Debitering" and row["Mutatie"] != "EUR":
-                cash_settlements.append(_process_cash_settlement_row(row))
+            if row["Omschrijving"] == "Contante Verrekening Aandelen":
+                cash_settlements.append(_process_cash_settlement_row(row, exchanges))
         # finally process dividend and stock transactions
         for row in reversed(all_transactions):
             # we're only interested in real stock positions (not cash)
@@ -194,6 +231,7 @@ def process_transactions(isins: set[IsinStr]) -> tuple[ShareTransaction, ...]:
                     isin=isin,
                     row=row,
                     exchanges=exchanges,
+                    cash_settlements=cash_settlements,
                 )
 
                 if transaction is not None:
