@@ -25,7 +25,7 @@ class ShareTransaction:
 
     Attributes
     ----------
-    transaction_datetime  : the date for which the value of the share position is registered
+    transaction_datetime  : the date and time for which the value of the share position is registered
     isin                  : the ISIN code / Symbol string used to identify a share
     nr_stocks             : the number of items in the transaction
     price                 : the price per item, in the currency in which the transaction is done, e.g. USD
@@ -44,3 +44,24 @@ class ShareTransaction:
     def transaction_date(self) -> date:
         "Transaction date"
         return self.transaction_datetime.date()
+
+
+@dataclass(frozen=True, order=True)
+class CashSettlement:
+    """For representing a cash settlement of a stock share delisting at a certain date.
+
+    Attributes
+    ----------
+    settlement_datetime   : the date  and time for which the value of the share position is registered
+    isin                  : the ISIN code / Symbol string used to identify a share
+    amount                : the value of the transaction in EUR
+    """
+
+    settlement_datetime: datetime
+    isin: IsinStr
+    amount: Amount
+
+    @property
+    def settlement_date(self) -> date:
+        "Transaction date"
+        return self.settlement_datetime.date()
