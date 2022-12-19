@@ -54,7 +54,7 @@ class CashSettlement:
     ----------
     settlement_datetime   : the date  and time for which the value of the share position is registered
     isin                  : the ISIN code / Symbol string used to identify a share
-    amount                : the value of the transaction in EUR
+    amount                : the value of the transaction
     """
 
     settlement_datetime: datetime
