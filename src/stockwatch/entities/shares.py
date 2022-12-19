@@ -196,13 +196,12 @@ def closest_portfolio_before_date(
 def _get_transaction_result(
     transaction: ShareTransaction, prev_pos: SharePosition | None
 ) -> tuple[Amount, Amount]:
+    investment = Amount(0.0)
+    realization = Amount(0.0)
     match transaction.kind:
         case ShareTransactionKind.BUY:
             investment = transaction.amount
-            realization = Amount(0.0)
         case ShareTransactionKind.SELL:
-            investment = Amount(0.0)
-            realization = Amount(0.0)
             if not prev_pos:
                 print(
                     f"Cannot process sell transaction dated {transaction.transaction_date}, no position found to determine buy price"
@@ -217,8 +216,7 @@ def _get_transaction_result(
                 # we cannot use transaction.price, because that can be in non-EUR currency
                 sell_price = transaction.amount / transaction.nr_stocks
                 realization = transaction.nr_stocks * (sell_price - buy_price)
-        case ShareTransactionKind.DIVIDEND:
-            investment = Amount(0.0)
+        case ShareTransactionKind.DIVIDEND | ShareTransactionKind.EXPENSES:
             realization = transaction.amount
 
     return investment, realization
