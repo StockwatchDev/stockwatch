@@ -17,6 +17,7 @@ class ShareTransactionKind(Enum):
     BUY = auto()
     SELL = auto()
     DIVIDEND = auto()
+    EXPENSES = auto()
 
 
 @dataclass(frozen=True, order=True)
