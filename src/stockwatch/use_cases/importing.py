@@ -4,7 +4,7 @@ import csv
 from datetime import date, datetime, timedelta
 from typing import Any
 
-from stockwatch.entities.currencies import Amount
+from stockwatch.entities.money import Amount, CurrencyExchange
 from stockwatch.entities.shares import (
     PortfoliosDictionary,
     SharePortfolio,
@@ -13,7 +13,7 @@ from stockwatch.entities.shares import (
     to_portfolios,
 )
 from stockwatch.entities.transactions import (
-    CurrencyExchange,
+    CashSettlement,
     IsinStr,
     ShareTransaction,
     ShareTransactionKind,
@@ -64,6 +64,55 @@ def _process_buy_transaction_row(
         price,
         ShareTransactionKind.BUY,
         nr_stocks * price,
+    )
+
+
+def _process_delisting_transaction_row(
+    transaction_datetime: datetime,
+    isin: IsinStr,
+    row: dict[str, str],
+    exchanges: list[CurrencyExchange],
+    cash_settlements: list[CashSettlement],
+) -> ShareTransaction:
+    # we have a delisting-sell row, which unfortunately has no amount sold
+    # (not due to exchanges, but because it is specified as 0)
+    # the amount sold can be found in a cash settlement row
+    # the cash settlement row can be specified in non-EUR, in which case we will apply the corresponding exchange
+
+    # so far only a single example of delisting has been presented
+    # this example is processed correctly
+    # if more examples become available, correctness of the processing needs to be checked further
+    descr = row["Omschrijving"].split()
+    key_index = descr.index("Verkoop")
+    nr_stocks = float(descr[key_index + 1].replace(",", "."))
+    amount = Amount(0.0)
+    # find the cash settlement for this delisting:
+    for csh_sttlmnt in cash_settlements:
+        if (
+            csh_sttlmnt.isin == isin
+            and csh_sttlmnt.settlement_date == transaction_datetime.date()
+        ):
+            amount = csh_sttlmnt.amount
+            break
+    else:
+        print("No cash settlement found for DELISTING: {row}")
+
+    if amount.curr != "EUR" and amount.value_exact != 0.0:
+        amount = apply_exchange(
+            transaction_datetime,
+            amount,
+            exchanges,
+        )
+    # our price is always in EUR
+    price = amount * (1.0 / nr_stocks)
+
+    return ShareTransaction(
+        transaction_datetime,
+        isin,
+        nr_stocks,
+        price,
+        ShareTransactionKind.SELL,
+        amount,
     )
 
 
@@ -139,10 +188,22 @@ def _process_valuta_exchange_row(row: dict[str, str]) -> CurrencyExchange:
     return CurrencyExchange(exchange_datetime, rate, amount_from)
 
 
+def _process_cash_settlement_row(
+    row: dict[str, str],
+) -> CashSettlement:
+    date_time_str = row["Datum"] + ";" + row["Tijd"]
+    settlement_datetime = datetime.strptime(date_time_str, "%d-%m-%Y;%H:%M")
+    isin = IsinStr(row["ISIN"])
+    curr = row["Mutatie"]
+    amount = Amount(float(row["Bedrag"].replace(",", ".")), curr)
+    return CashSettlement(settlement_datetime, isin, amount)
+
+
 def _process_transaction_row(
     isin: IsinStr,
     row: dict[str, str],
     exchanges: list[CurrencyExchange],
+    cash_settlements: list[CashSettlement],
 ) -> ShareTransaction | None:
     date_time_str = row["Datum"] + ";" + row["Tijd"]
     transaction_datetime = datetime.strptime(date_time_str, "%d-%m-%Y;%H:%M")
@@ -156,6 +217,14 @@ def _process_transaction_row(
             row=row,
         )
     if "Verkoop" in descr:
+        if "DELISTING:" in descr:
+            return _process_delisting_transaction_row(
+                transaction_datetime=transaction_datetime,
+                isin=isin,
+                row=row,
+                exchanges=exchanges,
+                cash_settlements=cash_settlements,
+            )
         return _process_sell_transaction_row(
             transaction_datetime=transaction_datetime,
             isin=isin,
@@ -191,6 +260,7 @@ def process_transactions(isins: set[IsinStr]) -> tuple[ShareTransaction, ...]:
         return tuple()
 
     exchanges: list[CurrencyExchange] = []
+    cash_settlements: list[CashSettlement] = []
     transactions: list[ShareTransaction] = []
     with transactions_file.open(mode="r") as csv_file:
         contents = csv_file.readlines()
@@ -198,13 +268,16 @@ def process_transactions(isins: set[IsinStr]) -> tuple[ShareTransaction, ...]:
         # and the balance; modify contents[0] here to include header for amount
         contents[0] = contents[0].replace("Mutatie,,", "Mutatie,Bedrag,")
         all_transactions = list(csv.DictReader(contents))
-        # first collect valuta transactions
+        # first collect valuta transactions and cash settlements
         for row in reversed(all_transactions):
             # Exchanges apply only for amounts first received in other currencies
             # and subsequently exchanged into EUR.
             # The exchange rate is found in lines labeled "Valuta Debitering"
             if row["Omschrijving"] == "Valuta Debitering" and row["Mutatie"] != "EUR":
                 exchanges.append(_process_valuta_exchange_row(row))
+            if row["Omschrijving"] == "Contante Verrekening Aandelen":
+                cash_settlements.append(_process_cash_settlement_row(row))
+        # then process dividend and stock transactions
         for row in reversed(all_transactions):
             # we're only interested in real stock positions (not cash)
             if (isin := IsinStr(row["ISIN"])) in isins:
@@ -212,6 +285,7 @@ def process_transactions(isins: set[IsinStr]) -> tuple[ShareTransaction, ...]:
                     isin=isin,
                     row=row,
                     exchanges=exchanges,
+                    cash_settlements=cash_settlements,
                 )
 
                 if transaction is not None:
