@@ -6,8 +6,8 @@ import plotly.graph_objects as go
 from stockwatch import analysis, entities, use_cases
 from stockwatch.app import ids
 
-_PORTOS: tuple[entities.SharePortfolio, ...] = ()
-_INDICES: list[tuple[entities.SharePosition, ...]] = []
+_PORTOS: tuple[entities.shares.SharePortfolio, ...] = ()
+_INDICES: list[tuple[entities.shares.SharePosition, ...]] = []
 
 
 def _get_layout() -> dash.html.Div:
@@ -101,6 +101,6 @@ def _draw_portfolio_graph_total(_clicks: int) -> dash.dcc.Graph:
     if not _PORTOS:
         return go.Figure()
 
-    index_positions: list[tuple[entities.SharePosition, ...]] = []
+    index_positions: list[tuple[entities.shares.SharePosition, ...]] = []
 
     return analysis.plot_returns(_PORTOS, index_positions)

@@ -6,7 +6,7 @@ application logic, nor any adapters.
 import plotly.graph_objects as go
 
 from .adapters import PositionsData, ReturnsData
-from .entities import SharePortfolio, SharePosition
+from .entities.shares import SharePortfolio, SharePosition
 
 
 def _create_figure() -> go.Figure:

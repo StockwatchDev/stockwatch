@@ -7,7 +7,8 @@ depend on external frameworks and also not contain any business- or application 
 from dataclasses import dataclass, field
 from datetime import date
 
-from .entities import IsinStr, SharePortfolio
+from .entities.shares import SharePortfolio
+from .entities.transactions import IsinStr
 
 
 @dataclass(frozen=True)
@@ -35,11 +36,11 @@ class ReturnsData:
         the_returns: list[float] = []
         for portfolio in sorted_portfolios:
             the_dates.append(portfolio.portfolio_date)
-            the_investments.append(portfolio.investment)
-            the_totals.append(portfolio.value)
-            the_realized_returns.append(portfolio.realized)
-            the_unrealized_returns.append(portfolio.unrealized)
-            the_returns.append(portfolio.total_return)
+            the_investments.append(portfolio.investment.value)
+            the_totals.append(portfolio.value.value)
+            the_realized_returns.append(portfolio.realized.value)
+            the_unrealized_returns.append(portfolio.unrealized.value)
+            the_returns.append(portfolio.total_return.value)
         return cls(
             dates=the_dates,
             investments=the_investments,
@@ -79,13 +80,14 @@ class PositionsData:
         the_isins_and_names.extend(
             sorted(
                 all_isins_and_names.items(),
-                key=lambda x: final_date_portfolio.get_position(x[0]).value,
+                key=lambda x: final_date_portfolio.get_position(x[0]).value.value,
             )
         )
         for (isin, _) in the_isins_and_names:
             # vertical axis to be the value of each position in the portfolio
             values = [
-                share_pf.get_position(isin).value for share_pf in sorted_portfolios
+                share_pf.get_position(isin).value.value
+                for share_pf in sorted_portfolios
             ]
             the_isins_and_values[isin] = values
         return cls(

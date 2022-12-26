@@ -1,5 +1,5 @@
-# pylint: disable=C0114
-# pylint: disable=C0116
+# pylint: disable=missing-module-docstring
+# pylint: disable=missing-function-docstring
 from stockwatch import __version__
 
 
