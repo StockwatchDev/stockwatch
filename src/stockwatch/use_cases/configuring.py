@@ -1,8 +1,6 @@
 """Module for defining configuration."""
 from dataclasses import dataclass
-from pathlib import Path
 
-from stockwatch.config import get_configfile_path
 from stockwatch.use_cases.configuring_base import ConfigBase, ConfigSectionBase
 
 
@@ -29,6 +27,6 @@ class Config(ConfigBase):
     degiro_server: DeGiroServerConfig
 
     @staticmethod
-    def get_configfile_path() -> Path:
-        """Return the fully qualified path for the configfile"""
-        return get_configfile_path() / "stockwatch.toml"
+    def get_app_basename() -> str:
+        """Return the string that describes the application base name"""
+        return "stockwatch"

@@ -33,8 +33,13 @@ class ConfigBase(ABC):
 
     @staticmethod
     @abstractmethod
-    def get_configfile_path() -> Path:
-        """Return the fully qualified path for the configfile"""
+    def get_app_basename() -> str:
+        """Return the string that describes the application base name (e.g. 'stockwatch')"""
+
+    @classmethod
+    def get_configfile_path(cls: type[TConfig]) -> Path:
+        """Return the fully qualified path for the configfile: e.g. ~/.stockwatch/stockwatch-config.toml"""
+        return Path.home() / f".{cls.get_app_basename()}" / "config.toml"
 
     @classmethod
     def get(cls: type[TConfig]) -> TConfig:
@@ -75,11 +80,8 @@ class ConfigBase(ABC):
         """Get the config stored in the toml file"""
         config_stored: dict[str, Any] = {}
         path = cls.get_configfile_path()
-        try:
-            with path.open(mode="rb") as fptr:
-                config_stored = tomllib.load(fptr)
-        except FileNotFoundError:
-            print(f"Error: configfile {path} not found.")
+        with path.open(mode="rb") as fptr:
+            config_stored = tomllib.load(fptr)
         return config_stored
 
     @classmethod
