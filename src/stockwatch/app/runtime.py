@@ -20,7 +20,7 @@ def get_portfolios(
 ) -> tuple[entities.shares.SharePortfolio, ...]:
     """Get the portfolios, filtered by the start and end date."""
     start_idx = 0
-    end_idx = -1
+    end_idx = len(_PORTOS)
 
     if start_date:
         for idx, portfolio in enumerate(_PORTOS):
@@ -34,6 +34,7 @@ def get_portfolios(
                 end_idx = idx
                 break
 
+    print(f"Returining {start_idx=} - {end_idx=}")
     return _PORTOS[start_idx:end_idx]
 
 
@@ -54,3 +55,11 @@ def get_enddate() -> date:
 def get_scrape_thread() -> use_cases.degiro.ScrapeThread:
     """Get the singleton scrape thread."""
     return _SCRAPE_THREAD
+
+
+def clear() -> None:
+    """Clear the existing portfolios and indices."""
+    global _PORTOS  # pylint: disable=global-statement
+    global _INDICES  # pylint: disable=global-statement
+    _PORTOS = ()
+    _INDICES = []
