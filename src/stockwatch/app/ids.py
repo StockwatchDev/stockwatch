@@ -38,8 +38,8 @@ class PlottingId(_BaseDashId):
     END_DATE = "plotting-end-date"
 
     YTD_BTN = "plotting-ytd-button"
+    MTD_BTN = "plotting-mtd-button"
     LY_BTN = "plotting-ly-button"
-    TM_BTN = "plotting-tm-button"
     LM_BTN = "plotting-lm-button"
     CLEAR_BTN = "plotting-clear-button"
 

@@ -31,7 +31,7 @@ def _add_plot_returns_line(
     fig.add_trace(
         go.Scatter(
             x=dates,
-            y=data,
+            y=[i - data[0] for i in data],
             hovertemplate=f"<b>{title}: </b>€%{{y:0.2f}}<extra></extra>",
             name=title,
             line=dict(color=color, width=2.0),
@@ -40,19 +40,6 @@ def _add_plot_returns_line(
             legendgrouptitle_text="Returns",
         )
     )
-    if data[0]:
-        fig.add_trace(
-            go.Scatter(
-                x=dates,
-                y=[i - data[0] for i in data],
-                hovertemplate=f"<b>{title} (period): </b>€%{{y:0.2f}}<extra></extra>",
-                name=title + " (period)",
-                line=dict(dash="dash", color=color, width=2.0),
-                legendrank=2,
-                legendgroup="indexes",
-                legendgrouptitle_text="Returns",
-            )
-        )
 
 
 def plot_returns(

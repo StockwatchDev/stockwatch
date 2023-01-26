@@ -15,10 +15,10 @@ def load_portfolios() -> None:
     _PORTOS, _INDICES = use_cases.get_portfolios_index_positions()
 
 
-def get_portfolios(
+def get_date_filtered_portfolios(
     start_date: date | None, end_date: date | None
 ) -> tuple[entities.shares.SharePortfolio, ...]:
-    """Get the portfolios, filtered by the start and end date."""
+    """Return the portfolios, filtered by the start and end date."""
     start_idx = 0
     end_idx = len(_PORTOS)
 
@@ -34,7 +34,6 @@ def get_portfolios(
                 end_idx = idx
                 break
 
-    print(f"Returining {start_idx=} - {end_idx=}")
     return _PORTOS[start_idx:end_idx]
 
 
