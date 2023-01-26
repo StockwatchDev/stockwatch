@@ -34,6 +34,15 @@ class PlottingId(_BaseDashId):
     GRAPH_RESULT = "plotting-graph-result"
     REFRESH = "plotting-refresh"
 
+    START_DATE = "plotting-start-date"
+    END_DATE = "plotting-end-date"
+
+    YTD_BTN = "plotting-ytd-button"
+    MTD_BTN = "plotting-mtd-button"
+    LY_BTN = "plotting-ly-button"
+    LM_BTN = "plotting-lm-button"
+    ALL_BTN = "plotting-all-button"
+
 
 class HeaderIds(_BaseDashId):
     """The ids for the header items."""
