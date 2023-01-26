@@ -43,7 +43,7 @@ def test_get_dates(
     assert runtime.get_enddate() == example_portfolio_1[-1].portfolio_date
 
 
-def test_get_portfolios(
+def test_get_date_filtered_portfolios(
     monkeypatch, example_portfolio_1: tuple[SharePortfolio, ...]
 ) -> None:
     monkeypatch.setattr(
@@ -52,15 +52,21 @@ def test_get_portfolios(
         lambda: (example_portfolio_1, tuple()),
     )
 
-    assert runtime.get_portfolios(None, None) == tuple()
+    assert runtime.get_date_filtered_portfolios(None, None) == tuple()
 
     runtime.load_portfolios()
 
-    assert runtime.get_portfolios(None, None) == example_portfolio_1
+    assert runtime.get_date_filtered_portfolios(None, None) == example_portfolio_1
     # We can filter out the first portfolio
     start_date = example_portfolio_1[0].portfolio_date + timedelta(days=1)
-    assert runtime.get_portfolios(start_date, None) == example_portfolio_1[1:]
+    assert (
+        runtime.get_date_filtered_portfolios(start_date, None)
+        == example_portfolio_1[1:]
+    )
 
     # And also the last portfolio
     end_date = example_portfolio_1[-1].portfolio_date - timedelta(days=1)
-    assert runtime.get_portfolios(start_date, end_date) == example_portfolio_1[1:-1]
+    assert (
+        runtime.get_date_filtered_portfolios(start_date, end_date)
+        == example_portfolio_1[1:-1]
+    )
