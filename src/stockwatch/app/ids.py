@@ -41,7 +41,7 @@ class PlottingId(_BaseDashId):
     MTD_BTN = "plotting-mtd-button"
     LY_BTN = "plotting-ly-button"
     LM_BTN = "plotting-lm-button"
-    CLEAR_BTN = "plotting-clear-button"
+    ALL_BTN = "plotting-all-button"
 
 
 class HeaderIds(_BaseDashId):

@@ -82,9 +82,9 @@ def _get_layout() -> dash.html.Div:
                             for title, btn_id in (
                                 ("Year to Date", ids.PlottingId.YTD_BTN),
                                 ("Last Year", ids.PlottingId.LY_BTN),
-                                ("This Month", ids.PlottingId.MTD_BTN),
+                                ("Month to Date", ids.PlottingId.MTD_BTN),
                                 ("Last Month", ids.PlottingId.LM_BTN),
-                                ("Clear", ids.PlottingId.CLEAR_BTN),
+                                ("All", ids.PlottingId.ALL_BTN),
                                 ("Refresh", ids.PlottingId.REFRESH),
                             )
                         ],
@@ -156,7 +156,7 @@ layout = _get_layout()
     dash.Input(ids.PlottingId.MTD_BTN, "n_clicks"),
     dash.Input(ids.PlottingId.LM_BTN, "n_clicks"),
     dash.Input(ids.PlottingId.LY_BTN, "n_clicks"),
-    dash.Input(ids.PlottingId.CLEAR_BTN, "n_clicks"),
+    dash.Input(ids.PlottingId.ALL_BTN, "n_clicks"),
 )
 def _update_portfolios(
     refresh_clicks: int, *_other_buttons: list[int]
@@ -204,7 +204,7 @@ def _draw_portfolio_graph_total(
 
 def _get_start_end_date(date_id: ids.PlottingId) -> tuple[date | None, date | None]:
     match date_id:
-        case ids.PlottingId.CLEAR_BTN:
+        case ids.PlottingId.ALL_BTN:
             start_date = None
             end_date = None
         case ids.PlottingId.YTD_BTN:
@@ -242,7 +242,7 @@ def _get_start_end_date(date_id: ids.PlottingId) -> tuple[date | None, date | No
         dash.Input(ids.PlottingId.YTD_BTN, "n_clicks"),
         dash.Input(ids.PlottingId.MTD_BTN, "n_clicks"),
         dash.Input(ids.PlottingId.LM_BTN, "n_clicks"),
-        dash.Input(ids.PlottingId.CLEAR_BTN, "n_clicks"),
+        dash.Input(ids.PlottingId.ALL_BTN, "n_clicks"),
     ],
 )
 def _update_start_end_date(
@@ -260,7 +260,6 @@ def _update_start_end_date(
 def _update_ytd_disabled(_n_clicks: int) -> bool:
     if (requested_start := _get_start_end_date(ids.PlottingId.YTD_BTN)[0]) is None:
         return True
-    print(f"{runtime.get_enddate()} > {requested_start}")
     return requested_start >= runtime.get_enddate()
 
 
