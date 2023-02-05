@@ -15,8 +15,14 @@ def _create_figure() -> go.Figure:
     return go.Figure(
         layout=go.Layout(
             paper_bgcolor="rgba(0,0,0,0)",
-            margin=dict(l=50, r=50, b=50, t=50, pad=4),
-            legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01, bgcolor="white"),
+            margin={"l": 50, "r": 50, "b": 50, "t": 50, "pad": 4},
+            legend={
+                "yanchor": "top",
+                "y": 0.99,
+                "xanchor": "left",
+                "x": 0.01,
+                "bgcolor": "white",
+            },
         ),
     )
 
@@ -34,7 +40,7 @@ def _add_plot_returns_line(
             y=[i - data[0] for i in data],
             hovertemplate=f"<b>{title}: </b>€%{{y:0.2f}}<extra></extra>",
             name=title,
-            line=dict(color=color, width=2.0),
+            line={"color": color, "width": 2.0},
             legendrank=2,
             legendgroup="indexes",
             legendgrouptitle_text="Returns",
@@ -60,7 +66,7 @@ def plot_returns(
             name="Investments",
             mode="none",
             fill="tozeroy",
-            line=dict(width=0.5),
+            line={"width": 0.5},
             legendrank=2,
             legendgroup="portfolio",
             legendgrouptitle_text="Portfolio",
@@ -74,7 +80,7 @@ def plot_returns(
             name="Totals",
             mode="none",
             fill="tonexty",
-            line=dict(width=0.5),
+            line={"width": 0.5},
             legendrank=3,
             legendgroup="portfolio",
             legendgrouptitle_text="Portfolio",
@@ -99,7 +105,7 @@ def plot_returns(
                     y=[p.value - p.investment for p in index],
                     hovertemplate=f"<b>{index_name}: </b>€%{{y:0.2f}}<extra></extra>",
                     name=index_name,
-                    line=dict(width=2.0),
+                    line={"width": 2.0},
                     legendrank=1,
                     legendgroup="indexes",
                     legendgrouptitle_text="Indexes",
@@ -128,7 +134,7 @@ def plot_positions(share_portfolios: tuple[SharePortfolio, ...]) -> go.Figure:
                 hovertemplate=hovertemplate,
                 name=isin,
                 mode="lines",
-                line=dict(width=0.5),
+                line={"width": 0.5},
                 stackgroup="one",
             )
         )
