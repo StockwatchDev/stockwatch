@@ -33,7 +33,7 @@ optional = true
 [tool.poetry.group.style.dependencies]
 black = "^22.10"
 isort = "^5.12"
-pylint = "^2.15"
+pylint = "^2.16"
 
 [tool.poetry.group.testrunner]
 optional = true
