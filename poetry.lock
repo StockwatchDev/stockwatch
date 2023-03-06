@@ -76,14 +76,14 @@ uvloop = ["uvloop (>=0.15.2)"]
 
 [[package]]
 name = "cachelib"
-version = "0.10.2"
+version = "0.9.0"
 description = "A collection of cache libraries in the same API interface."
 category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "cachelib-0.10.2-py3-none-any.whl", hash = "sha256:42d49f2fad9310dd946d7be73d46776bcd4d5fde4f49ad210cfdd447fbdfc346"},
-    {file = "cachelib-0.10.2.tar.gz", hash = "sha256:593faeee62a7c037d50fc835617a01b887503f972fb52b188ae7e50e9cb69740"},
+    {file = "cachelib-0.9.0-py3-none-any.whl", hash = "sha256:811ceeb1209d2fe51cd2b62810bd1eccf70feba5c52641532498be5c675493b3"},
+    {file = "cachelib-0.9.0.tar.gz", hash = "sha256:38222cc7c1b79a23606de5c2607f4925779e37cdcea1c2ad21b8bae94b5425a5"},
 ]
 
 [[package]]
@@ -369,21 +369,21 @@ files = [
 
 [[package]]
 name = "dash-extensions"
-version = "0.1.11"
+version = "0.1.13"
 description = "Extensions for Plotly Dash."
 category = "main"
 optional = false
-python-versions = ">=3.7,<4"
+python-versions = ">=3.8,<4"
 files = [
-    {file = "dash_extensions-0.1.11-py3-none-any.whl", hash = "sha256:bd24b0e939a9ba1e35d110b6251ce79b4e137c690135add0260b773b3be339b9"},
-    {file = "dash_extensions-0.1.11.tar.gz", hash = "sha256:b36fcf6fd74d87cafdbabc9568c3ae0097712ccee8f7d59be8e916b51d40b106"},
+    {file = "dash_extensions-0.1.13-py3-none-any.whl", hash = "sha256:8369db7362513896116495080b425a748e49bfa9197723d101789a86b6c88434"},
+    {file = "dash_extensions-0.1.13.tar.gz", hash = "sha256:8a8da362f83c583350517e883f88514cae0c46c6d075f39579b0fdd1750f5792"},
 ]
 
 [package.dependencies]
-dash = ">=2.7.0"
-Flask-Caching = "2.0.1"
+dash = ">=2.8.1"
+Flask-Caching = "2.0.2"
 jsbeautifier = ">=1.14.3,<2.0.0"
-more-itertools = ">=8.12.0,<9.0.0"
+more-itertools = ">=9.0.0,<10.0.0"
 
 [package.extras]
 mantine = ["dash-mantine-components (>=0.11.0,<0.12.0)"]
@@ -506,18 +506,18 @@ dotenv = ["python-dotenv"]
 
 [[package]]
 name = "flask-caching"
-version = "2.0.1"
+version = "2.0.2"
 description = "Adds caching support to Flask applications."
 category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "Flask-Caching-2.0.1.tar.gz", hash = "sha256:10df200a03f032af60077befe41779dd94898b67c82040d34e87210b71ba2638"},
-    {file = "Flask_Caching-2.0.1-py3-none-any.whl", hash = "sha256:703df847cbe904d8ddffd5f5fb320e236a31cb7bebac4a93d6b1701dd16dbf37"},
+    {file = "Flask-Caching-2.0.2.tar.gz", hash = "sha256:24b60c552d59a9605cc1b6a42c56cdb39a82a28dab4532bbedb9222ae54ecb4e"},
+    {file = "Flask_Caching-2.0.2-py3-none-any.whl", hash = "sha256:19571f2570e9b8dd9dd9d2f49d7cbee69c14ebe8cc001100b1eb98c379dd80ad"},
 ]
 
 [package.dependencies]
-cachelib = ">=0.9.0"
+cachelib = ">=0.9.0,<0.10.0"
 Flask = "<3"
 
 [[package]]
@@ -727,14 +727,14 @@ files = [
 
 [[package]]
 name = "more-itertools"
-version = "8.14.0"
+version = "9.1.0"
 description = "More routines for operating on iterables, beyond itertools"
 category = "main"
 optional = false
-python-versions = ">=3.5"
+python-versions = ">=3.7"
 files = [
-    {file = "more-itertools-8.14.0.tar.gz", hash = "sha256:c09443cd3d5438b8dafccd867a6bc1cb0894389e90cb53d227456b0b0bccb750"},
-    {file = "more_itertools-8.14.0-py3-none-any.whl", hash = "sha256:1bc4f91ee5b1b31ac7ceacc17c09befe6a40a503907baf9c839c229b5095cfd2"},
+    {file = "more-itertools-9.1.0.tar.gz", hash = "sha256:cabaa341ad0389ea83c17a94566a53ae4c9d07349861ecb14dc6d0345cf9ac5d"},
+    {file = "more_itertools-9.1.0-py3-none-any.whl", hash = "sha256:d2bc7f02446e86a68911e58ded76d6561eea00cddfb2a91e7019bbb586c799f3"},
 ]
 
 [[package]]
@@ -1260,4 +1260,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "4065de3fdf4e6148f2aa75688ec6d3f0eaa12eeda8f00689dcb301be27256bea"
+content-hash = "429d65717ade23a5f82149c0bf10c8ba54735a67fdde48b90af199cf85364dc8"
