@@ -319,14 +319,14 @@ testing = ["beautifulsoup4 (>=4.8.2)", "cryptography (<3.4)", "lxml (>=4.6.2)", 
 
 [[package]]
 name = "dash-bootstrap-components"
-version = "1.3.1"
+version = "1.4.0"
 description = "Bootstrap themed components for use in Plotly Dash"
 category = "main"
 optional = false
 python-versions = ">=3.7, <4"
 files = [
-    {file = "dash-bootstrap-components-1.3.1.tar.gz", hash = "sha256:a4f4b61ae786248f23cfc89aab5b2953d602f0934ff4485fe1d56d60d829532d"},
-    {file = "dash_bootstrap_components-1.3.1-py3-none-any.whl", hash = "sha256:abb52d9318be2c0a8477d2253b3d101fb6da9fdde509249643edb21dd34cbbf2"},
+    {file = "dash-bootstrap-components-1.4.0.tar.gz", hash = "sha256:1844774299a6773035a4b0c1e4ffeab525bee30b8a7df4029d422fad12c1d159"},
+    {file = "dash_bootstrap_components-1.4.0-py3-none-any.whl", hash = "sha256:5a82ca0105ac57be1e8fae2c7e729227a7ccbf9dfacf6a1b1d9114d38e65b334"},
 ]
 
 [package.dependencies]
@@ -1260,4 +1260,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "429d65717ade23a5f82149c0bf10c8ba54735a67fdde48b90af199cf85364dc8"
+content-hash = "cd7e433703538bb97bbedf93d4104133420bcd9931f80047dc322cd102fb3477"
