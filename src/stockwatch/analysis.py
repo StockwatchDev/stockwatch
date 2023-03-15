@@ -121,7 +121,7 @@ def plot_positions(share_portfolios: tuple[SharePortfolio, ...]) -> go.Figure:
     positions_data = PositionsData.from_portfolios(share_portfolios)
 
     fig = _create_figure()
-    for (isin, name) in positions_data.isins_and_names:
+    for isin, name in positions_data.isins_and_names:
         hovertemplate = (
             f"<b>{name} - {isin}</b><br>value €%{{y:0.2f}}<br>"
             f"date: %{{x}}<extra></extra>"
