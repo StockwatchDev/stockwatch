@@ -83,7 +83,7 @@ class PositionsData:
                 key=lambda x: final_date_portfolio.get_position(x[0]).value.value,
             )
         )
-        for (isin, _) in the_isins_and_names:
+        for isin, _ in the_isins_and_names:
             # vertical axis to be the value of each position in the portfolio
             values = [
                 share_pf.get_position(isin).value.value

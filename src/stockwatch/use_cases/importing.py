@@ -476,9 +476,9 @@ def process_index_prices() -> dict[str, dict[date, float]]:
     return ret_val
 
 
-def get_portfolios_index_positions() -> tuple[
-    tuple[SharePortfolio, ...], list[tuple[SharePosition, ...]]
-]:
+def get_portfolios_index_positions() -> (
+    tuple[tuple[SharePortfolio, ...], list[tuple[SharePosition, ...]]]
+):
     """Return all portfolios and equivalent index positions."""
     # first get the positions (investment and returns both equal 0.0)
     all_isins, spfdict = process_portfolios()

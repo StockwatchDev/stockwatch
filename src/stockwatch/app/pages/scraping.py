@@ -15,7 +15,7 @@ layout = dash.dash.html.Div()
 
 def init_layout() -> None:
     """Initialze the layout for the scraping page."""
-    global layout  # pylint: disable=global-statement, invalid-name
+    global layout  # pylint: disable=global-statement
     layout = dash.html.Div(
         [
             dbc.Container(
