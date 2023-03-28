@@ -1,9 +1,6 @@
 """Module for defining configuration."""
-from dataclasses import dataclass
-from pathlib import Path
-
-from stockwatch.config import get_configfile_path
-from stockwatch.use_cases.configuring_base import ConfigBase, ConfigSectionBase
+from application_settings import ConfigBase, ConfigSectionBase
+from pydantic.dataclasses import dataclass
 
 
 @dataclass(frozen=True)
@@ -12,23 +9,22 @@ class DeGiroServerConfig(ConfigSectionBase):
 
     # pylint: disable=too-many-instance-attributes
 
-    country: str
-    lang: str
-    ga_ext: str
-    login_url: str
-    client_url: str
-    portfolio_url: str
-    account_url: str
-    user_agent: str
+    country: str = "Netherlands"
+    lang: str = "nl"
+    ga_ext: str = "/totp"
+    login_url: str = "https://trader.degiro.nl/login/secure/login"
+    client_url: str = "https://trader.degiro.nl/pa/secure/client"
+    portfolio_url: str = (
+        "https://trader.degiro.nl/reporting/secure/v3/positionReport/csv"
+    )
+    account_url: str = (
+        "https://trader.degiro.nl/reporting/secure/v3/cashAccountReport/csv"
+    )
+    user_agent: str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:107.0) Gecko/20100101 Firefox/107.0"
 
 
 @dataclass(frozen=True)
 class Config(ConfigBase):
-    """Config sections for stockwatch"""
+    """Config for stockwatch"""
 
-    degiro_server: DeGiroServerConfig
-
-    @staticmethod
-    def get_configfile_path() -> Path:
-        """Return the fully qualified path for the configfile"""
-        return get_configfile_path() / "stockwatch.toml"
+    degiro_server: DeGiroServerConfig = DeGiroServerConfig()
