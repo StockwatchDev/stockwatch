@@ -317,14 +317,14 @@ toml = ["tomli"]
 
 [[package]]
 name = "dash"
-version = "2.9.1"
+version = "2.9.3"
 description = "A Python framework for building reactive web-apps. Developed by Plotly."
 category = "main"
 optional = false
 python-versions = ">=3.6"
 files = [
-    {file = "dash-2.9.1-py3-none-any.whl", hash = "sha256:714c9ee2a972b0157b4d3f7dc111b3d77d49916d7e851c0c8318d0030706b2e9"},
-    {file = "dash-2.9.1.tar.gz", hash = "sha256:92838be734ffb4b42a09bbc1b721a5a47b019606a02a76f8e1f0f578dead9786"},
+    {file = "dash-2.9.3-py3-none-any.whl", hash = "sha256:a749ae1ea9de3fe7b785353a818ec9b629d39c6b7e02462954203bd1e296fd0e"},
+    {file = "dash-2.9.3.tar.gz", hash = "sha256:47392f8d6455dc989a697407eb5941f3bad80604df985ab1ac9d4244568ffb34"},
 ]
 
 [package.dependencies]
@@ -1306,4 +1306,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "d48a6aa5edf7cdc411d0d256779ddac5ac2cba68d8e669022ac267e90e3ea118"
+content-hash = "036c59e03ff5d2afa5c271f839cede7fc0243397ffcaf3022b9a060da59f8cdf"
