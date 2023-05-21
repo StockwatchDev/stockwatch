@@ -6,7 +6,7 @@ from http import HTTPStatus
 
 import requests
 
-from stockwatch.use_cases.configuring import Config
+from stockwatch.use_cases.configuring import StockwatchConfig
 
 from . import stockdir
 
@@ -14,14 +14,14 @@ from . import stockdir
 def _get_headers() -> dict[str, str]:
     # Unfortunately we need to fake being an actual browser. User agent is just grapped from a recent
     # firefox installation.
-    return {"User-Agent": Config.get().degiro_server.user_agent}
+    return {"User-Agent": StockwatchConfig.get().degiro_server.user_agent}
 
 
 def login(username: str, password: str, goauth: str | None) -> tuple[int, str] | None:
     """Login into the degiro site. Obtain a `intAccount` and `sessionId`, return None
     if the login failed.
     """
-    url: str = Config.get().degiro_server.login_url
+    url: str = StockwatchConfig.get().degiro_server.login_url
     curl_args: dict[str, str | dict[str, str]] = {
         "username": username,
         "password": password,
@@ -29,7 +29,7 @@ def login(username: str, password: str, goauth: str | None) -> tuple[int, str] |
     }
 
     if goauth:
-        url += Config.get().degiro_server.ga_ext
+        url += StockwatchConfig.get().degiro_server.ga_ext
         curl_args["oneTimePassword"] = goauth
 
     res = requests.post(url, headers=_get_headers(), json=curl_args, timeout=10)
@@ -50,7 +50,7 @@ def login(username: str, password: str, goauth: str | None) -> tuple[int, str] |
     session_id = str(session_id)
 
     # Let's also get the intAccount number.
-    url = Config.get().degiro_server.client_url
+    url = StockwatchConfig.get().degiro_server.client_url
     curl_args = {
         "sessionId": session_id,
     }
@@ -71,11 +71,11 @@ def get_portfolio_at(day: date, account: int, session_id: str) -> str:
     The method raises a RuntimeError if an error occurred while connecting
     to the DeGiro website.
     """
-    url = Config.get().degiro_server.portfolio_url
+    url = StockwatchConfig.get().degiro_server.portfolio_url
     curl_args: dict[str, str | int] = {
         "sessionId": session_id,
-        "country": Config.get().degiro_server.country,
-        "lang": Config.get().degiro_server.lang,
+        "country": StockwatchConfig.get().degiro_server.country,
+        "lang": StockwatchConfig.get().degiro_server.lang,
         "intAccount": account,
         "toDate": day.strftime("%d/%m/%Y"),
     }
@@ -96,11 +96,11 @@ def get_account_report(
     DeGiro website.
     """
 
-    url = Config.get().degiro_server.account_url
+    url = StockwatchConfig.get().degiro_server.account_url
     curl_args: dict[str, str | int] = {
         "sessionId": session_id,
-        "country": Config.get().degiro_server.country,
-        "lang": Config.get().degiro_server.lang,
+        "country": StockwatchConfig.get().degiro_server.country,
+        "lang": StockwatchConfig.get().degiro_server.lang,
         "intAccount": account,
         "fromDate": start_day.strftime("%d/%m/%Y"),
         "toDate": end_day.strftime("%d/%m/%Y"),
