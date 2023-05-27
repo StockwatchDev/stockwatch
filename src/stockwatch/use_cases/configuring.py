@@ -1,4 +1,6 @@
 """Module for defining configuration."""
+from pathlib import Path
+
 from application_settings import ConfigBase, ConfigSectionBase
 from pydantic.dataclasses import dataclass
 
@@ -24,7 +26,17 @@ class DeGiroServerConfig(ConfigSectionBase):
 
 
 @dataclass(frozen=True)
-class Config(ConfigBase):
+class StockwatchConfig(ConfigBase):
     """Config for stockwatch"""
 
     degiro_server: DeGiroServerConfig = DeGiroServerConfig()
+
+    @classmethod
+    def default_filepath(cls) -> Path | None:
+        """
+        Return the fully qualified default path for the config/settingsfile: e.g. ~/.example/config.toml.
+        If you prefer to not have a default path then overwrite this method and return None.
+        """
+        # this effectively implies that we are not using config files... so be it for now
+        # new version of application_config should resolve this
+        return None
