@@ -41,7 +41,7 @@ pylint = "^2.17"
 optional = true
 
 [tool.poetry.group.testrunner.dependencies]
-tox = "^4.4.7"
+tox = "^4.5.2"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
