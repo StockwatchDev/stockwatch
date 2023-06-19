@@ -6,7 +6,7 @@ authors = ["Stockwatchdevs <stockwatchdevs@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-plotly = "^5.13"
+plotly = "^5.15"
 dash = "^2.10.2"
 application_settings = "^0.2"
 types-requests = "^2.30.0"
