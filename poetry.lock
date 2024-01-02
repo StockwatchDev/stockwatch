@@ -2,20 +2,21 @@
 
 [[package]]
 name = "application-settings"
-version = "0.2.0"
+version = "0.3.0"
 description = "For providing a python application with configuration and/or settings"
 optional = false
 python-versions = ">=3.9,<4.0"
 files = [
-    {file = "application_settings-0.2.0-py3-none-any.whl", hash = "sha256:38b90d88360474829ac582db618a143f2bd79fd8b10bebd991233bfcbe682d69"},
-    {file = "application_settings-0.2.0.tar.gz", hash = "sha256:6fd60c4e912af8697ff37b734b7be1250adf3949c6c86a666f9a9611caf07107"},
+    {file = "application_settings-0.3.0-py3-none-any.whl", hash = "sha256:08ad5546f0943fc196799a07ff359760befe82cf488e0b60068e416ea8b7416f"},
+    {file = "application_settings-0.3.0.tar.gz", hash = "sha256:12299d9584e26a7c2ee2de087d7baf6285963dc91f454fb9ecf1ed45ac4b8399"},
 ]
 
 [package.dependencies]
-pathvalidate = ">=2.5,<3.0"
+pathvalidate = ">=2.5,<4.0"
 pydantic = ">=1.10,<2.0"
 tomli = {version = ">=2.0,<3.0", markers = "python_version < \"3.11\""}
 tomli-w = ">=1.0,<2.0"
+typing-extensions = {version = ">=4.5.0,<5.0.0", markers = "python_version < \"3.11\""}
 
 [[package]]
 name = "astroid"
@@ -1316,4 +1317,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "a3e1fc94858a07b477c026297be438f1bc5157e023fc1b3672a763456981b0fd"
+content-hash = "456f871ac5a62b6efe4ea55c5a5bca4be3f6a1c5313ab0c2acf42bab2d1316b2"
