@@ -4,15 +4,62 @@ import pytest
 
 from stockwatch import use_cases
 from stockwatch.app import runtime
-from stockwatch.entities.shares import SharePortfolio
+from stockwatch.entities.money import Amount
+from stockwatch.entities.shares import SharePortfolio, SharePosition
 
 
 @pytest.fixture
-def example_portfolio_1() -> tuple[SharePortfolio, SharePortfolio, SharePortfolio]:
+def example_position_1() -> SharePosition:
+    return SharePosition(
+        date.today() - timedelta(days=21),
+        Amount(1190.72),
+        "IE00B441G979",
+        "iShares MSCI World EUR Hedged UCITS ETF",
+        Amount(1030.00),
+        16,
+        Amount(74.42),
+        Amount(-10.50),
+    )
+
+
+@pytest.fixture
+def example_position_2() -> SharePosition:
+    return SharePosition(
+        date.today() - timedelta(days=10),
+        Amount(1060.00),
+        "IE00B3RBWM25",
+        "Vanguard FTSE All-World UCITS ETF USD Dis",
+        Amount(970.00),
+        10,
+        Amount(106.00),
+        Amount(23.66),
+    )
+
+
+@pytest.fixture
+def example_position_3() -> SharePosition:
+    return SharePosition(
+        date.today() - timedelta(days=2),
+        Amount(1035),
+        "NL0010408704",
+        "VanEck Sustainable World Equal Weight UCITS ETF",
+        Amount(1000.08),
+        36,
+        Amount(28.75),
+        Amount(86.50),
+    )
+
+
+@pytest.fixture
+def example_portfolio_1(
+    example_position_1: SharePortfolio,
+    example_position_2: SharePortfolio,
+    example_position_3: SharePortfolio,
+) -> tuple[SharePortfolio, SharePortfolio, SharePortfolio]:
     return (
-        SharePortfolio(portfolio_date=date(2020, 5, 31), share_positions=tuple()),
-        SharePortfolio(portfolio_date=date(2021, 5, 31), share_positions=tuple()),
-        SharePortfolio(portfolio_date=date(2022, 5, 31), share_positions=tuple()),
+        SharePortfolio(share_positions=(example_position_1,)),
+        SharePortfolio(share_positions=(example_position_2,)),
+        SharePortfolio(share_positions=(example_position_3,)),
     )
 
 

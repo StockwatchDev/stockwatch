@@ -345,7 +345,7 @@ def process_portfolios() -> tuple[set[IsinStr], PortfoliosDictionary]:
                 if isin := IsinStr(row["Symbool/ISIN"]):
                     isins_in_file.add(isin)
                     the_position = _to_share_position(file_date, row)
-                    if not isin in all_isins:
+                    if isin not in all_isins:
                         # create empty positions for all previous portfolios
                         for spf_date, previous_spf in share_portfolio_data.items():
                             previous_spf[isin] = SharePosition.empty_position(

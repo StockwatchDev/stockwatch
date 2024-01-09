@@ -84,7 +84,7 @@ class SharePortfolio:
     share_positions : the collection of share positions
     """
 
-    portfolio_date: date
+    portfolio_date: date = field(init=False)
     value: Amount = field(init=False)
     investment: Amount = field(init=False)
     realized: Amount = field(init=False)
@@ -93,7 +93,14 @@ class SharePortfolio:
     share_positions: tuple[SharePosition, ...]
 
     def __post_init__(self) -> None:
+        the_date: date
+        if self.share_positions:
+            the_date = self.share_positions[0].position_date
+        else:
+            the_date = date.today()
+            print("No share positions added, this is useless and will not work.")
         # because frozen=True, we need to use __setattr__ here:
+        object.__setattr__(self, "portfolio_date", the_date)
         for attribute in (
             "value",
             "investment",
@@ -151,8 +158,8 @@ def to_portfolios(
         # sort them to have a defined order
         # sorting order is defined by SharePosition attribute order
         # first by date (equal for all in the list), then by value
-        SharePortfolio(spf_date, tuple(sorted(sps_dict.values())))
-        for spf_date, sps_dict in spf_dict.items()
+        SharePortfolio(tuple(sorted(sps_dict.values())))
+        for _, sps_dict in spf_dict.items()
     ]
     return tuple(sorted(sps_list))
 
