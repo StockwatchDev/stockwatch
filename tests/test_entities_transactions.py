@@ -25,10 +25,13 @@ def example_buy_transaction() -> ShareTransaction:
     )
 
 
+the_sell_datetime = datetime.today() - timedelta(days=9)
+
+
 @pytest.fixture
 def example_sell_transaction_1() -> ShareTransaction:
     return ShareTransaction(
-        transaction_datetime=datetime.today() - timedelta(days=9),
+        transaction_datetime=the_sell_datetime,
         isin="NL0010408704",
         nr_stocks=36.0,
         price=Amount(28.79),
@@ -40,7 +43,7 @@ def example_sell_transaction_1() -> ShareTransaction:
 @pytest.fixture
 def example_sell_transaction_2() -> ShareTransaction:
     return ShareTransaction(
-        transaction_datetime=datetime.today() - timedelta(days=9),
+        transaction_datetime=the_sell_datetime,
         isin="NL0010408704",
         nr_stocks=36.0,
         price=Amount(28.79),
