@@ -1,15 +1,15 @@
 # pylint: disable=redefined-outer-name
 # pylint: disable=missing-module-docstring
 # pylint: disable=missing-function-docstring
-import pytest
 from datetime import date, datetime, timedelta
-from stockwatch.entities.money import (
-    Amount,
-)
+
+import pytest
+
+from stockwatch.entities.money import Amount
 from stockwatch.entities.transactions import (
-    ShareTransactionKind,
-    ShareTransaction,
     CashSettlement,
+    ShareTransaction,
+    ShareTransactionKind,
 )
 
 

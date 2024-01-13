@@ -1,29 +1,26 @@
 # pylint: disable=redefined-outer-name
 # pylint: disable=missing-module-docstring
 # pylint: disable=missing-function-docstring
-from datetime import date, datetime, timedelta
 from dataclasses import replace
+from datetime import date, datetime, timedelta
+
 import pytest
-from stockwatch.entities.money import (
-    Amount,
-)
+
+from stockwatch.entities.money import Amount
 from stockwatch.entities.shares import (
     UNKNOWN_POSITION_NAME,
-    SharePosition,
+    PortfoliosDictionary,
     SharePortfolio,
-    earliest_portfolio_date,
-    latest_portfolio_date,
+    SharePosition,
+    apply_transactions,
     closest_portfolio_after_date,
     closest_portfolio_before_date,
+    earliest_portfolio_date,
     get_all_isins,
-    apply_transactions,
-    PortfoliosDictionary,
+    latest_portfolio_date,
     to_portfolios,
 )
-from stockwatch.entities.transactions import (
-    ShareTransactionKind,
-    ShareTransaction,
-)
+from stockwatch.entities.transactions import ShareTransaction, ShareTransactionKind
 
 
 @pytest.fixture
