@@ -14,6 +14,18 @@ from stockwatch.entities.transactions import (
 
 
 @pytest.fixture
+def example_buy_transaction() -> ShareTransaction:
+    return ShareTransaction(
+        transaction_datetime=datetime.today() - timedelta(days=7),
+        isin="IE00B441G979",
+        nr_stocks=16.0,
+        price=Amount(64.375),
+        kind=ShareTransactionKind.BUY,
+        amount=Amount(16.0 * 64.375),
+    )
+
+
+@pytest.fixture
 def example_sell_transaction_1() -> ShareTransaction:
     return ShareTransaction(
         transaction_datetime=datetime.today() - timedelta(days=9),
@@ -22,6 +34,18 @@ def example_sell_transaction_1() -> ShareTransaction:
         price=Amount(28.79),
         kind=ShareTransactionKind.SELL,
         amount=Amount(36.0 * 28.79),
+    )
+
+
+@pytest.fixture
+def example_sell_transaction_2() -> ShareTransaction:
+    return ShareTransaction(
+        transaction_datetime=datetime.today() - timedelta(days=9),
+        isin="NL0010408704",
+        nr_stocks=36.0,
+        price=Amount(28.79),
+        kind=ShareTransactionKind.SELL,
+        amount=Amount(31.0 * 28.79),
     )
 
 
@@ -40,6 +64,15 @@ def test_transaction_date(
     assert example_sell_transaction_1.transaction_date == date.today() - timedelta(
         days=9
     )
+
+
+def test_transaction_sorting(
+    example_buy_transaction: ShareTransaction,
+    example_sell_transaction_1: ShareTransaction,
+    example_sell_transaction_2: ShareTransaction,
+) -> None:
+    assert example_buy_transaction > example_sell_transaction_1
+    assert example_sell_transaction_1 > example_sell_transaction_2
 
 
 def test_settlement_date(
