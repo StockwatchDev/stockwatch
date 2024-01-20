@@ -1,7 +1,7 @@
 """Dataclasses for share transactions"""
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date, datetime
 from enum import Enum, auto
 from typing import NewType
@@ -38,7 +38,7 @@ class ShareTransaction:
     isin: IsinStr
     nr_stocks: float
     price: Amount
-    kind: ShareTransactionKind
+    kind: ShareTransactionKind = field(compare=False)
     amount: Amount
 
     @property

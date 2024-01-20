@@ -2,11 +2,10 @@
 # pylint: disable=missing-module-docstring
 # pylint: disable=missing-function-docstring
 from datetime import date, datetime, timedelta
+
 import pytest
-from stockwatch.entities.money import (
-    Amount,
-    CurrencyExchange,
-)
+
+from stockwatch.entities.money import Amount, CurrencyExchange
 
 
 @pytest.fixture
