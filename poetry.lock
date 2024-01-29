@@ -422,13 +422,13 @@ files = [
 
 [[package]]
 name = "dash-extensions"
-version = "1.0.7"
+version = "1.0.8"
 description = "Extensions for Plotly Dash."
 optional = false
 python-versions = ">=3.8,<4"
 files = [
-    {file = "dash_extensions-1.0.7-py3-none-any.whl", hash = "sha256:a582f79debd6d1332b4382b575d77a9cfca220860ef9b17c24541e7e6d77d8eb"},
-    {file = "dash_extensions-1.0.7.tar.gz", hash = "sha256:46c4ec7c7d3b42db63032005f7d258435bc0092d0fec6f6ce000be68befeb102"},
+    {file = "dash_extensions-1.0.8-py3-none-any.whl", hash = "sha256:783de8b56442e5ae9d7461be229ab2949838b4738063ab28abf336876d2acfe6"},
+    {file = "dash_extensions-1.0.8.tar.gz", hash = "sha256:a461bdc3b3c300cdb525cb264b201691d086b7e19355db8b458bf9e23dbda259"},
 ]
 
 [package.dependencies]
@@ -1337,4 +1337,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "33646299e9f60de4a10834b40feb2fac4dc352b85853c867d718312f83fea02d"
+content-hash = "f9aa038e34f5c828f15feeac56210342fa8c69f877e12f851409a035aaeb9663"
