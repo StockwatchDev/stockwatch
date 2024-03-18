@@ -33,7 +33,7 @@ mypy = ">=0.942"
 optional = true
 
 [tool.poetry.group.style.dependencies]
-black = "^23.3"
+black = "^24.3"
 isort = "^5.13"
 pylint = "^3.0"
 
