@@ -6,6 +6,7 @@ to methods provided by analysis and use_cases.
 This package has a clean architecture. This module should not contain any business- or
 application logic, nor any adapters.
 """
+
 import dash_bootstrap_components as dbc
 from dash import Dash, Input, Output, callback, html
 
@@ -16,14 +17,16 @@ from .ids import HeaderIds, PageIds
 @callback(Output(HeaderIds.CONTENT, "children"), Input(HeaderIds.LOCATION, "pathname"))
 def _switch_page(pathname: str) -> html.Div:
     match pathname:
-        case PageIds.PLOTS:
-            return pages.plots.layout
+        case PageIds.PORTFOLIO:
+            return pages.portfolio.layout
         case PageIds.SCRAPING:
             return pages.scraping.layout
         case PageIds.ABOUT:
             return pages.about.layout
+        case PageIds.RETURNS:
+            return pages.returns.layout
         case _:
-            return pages.plots.layout
+            return pages.portfolio.layout
 
 
 def run_blocking() -> None:
@@ -40,7 +43,8 @@ def run_blocking() -> None:
         [
             pages.index.layout,
             pages.scraping.layout,
-            pages.plots.layout,
+            pages.portfolio.layout,
+            pages.returns.layout,
             pages.about.layout,
         ],
     )

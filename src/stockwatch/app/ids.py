@@ -1,4 +1,5 @@
 """ The module with all the specified ids used for the Dash application."""
+
 import enum
 
 
@@ -27,27 +28,38 @@ class ScrapingId(_BaseDashId):
     LOGIN_FAIL = "scraping-loginfail"
 
 
-class PlottingId(_BaseDashId):
-    """The ids for plotting."""
+class PortfolioId(_BaseDashId):
+    """The ids for portfolio plotting."""
 
-    GRAPH_TOTAL = "plotting-graph-total"
-    GRAPH_RESULT = "plotting-graph-result"
-    REFRESH = "plotting-refresh"
+    GRAPH_TOTAL = "portfolio-graph-total"
+    GRAPH_RESULT = "portfolio-graph-result"
+    REFRESH = "portfolio-refresh"
 
-    START_DATE = "plotting-start-date"
-    END_DATE = "plotting-end-date"
+    START_DATE = "portfolio-start-date"
+    END_DATE = "portfolio-end-date"
 
-    YTD_BTN = "plotting-ytd-button"
-    MTD_BTN = "plotting-mtd-button"
-    LY_BTN = "plotting-ly-button"
-    LM_BTN = "plotting-lm-button"
-    ALL_BTN = "plotting-all-button"
+    YTD_BTN = "portfolio-ytd-button"
+    MTD_BTN = "portfolio-mtd-button"
+    LY_BTN = "portfolio-ly-button"
+    LM_BTN = "portfolio-lm-button"
+    ALL_BTN = "portfolio-all-button"
+
+
+class ReturnsId(_BaseDashId):
+    """The ids for returns plots."""
+
+    GRAPH_COMPARISON = "returns-graph-comparison"
+    REFRESH = "returns-refresh"
+
+    START_DATE = "returns-start-date"
+    END_DATE = "returns-end-date"
 
 
 class HeaderIds(_BaseDashId):
     """The ids for the header items."""
 
-    PLOTS = "header-plots"
+    PORTFOLIO = "header-portfolio"
+    RETURNS = "header-returns"
     SCRAPING = "header-scraping"
     ABOUT = "header-about"
     LOCATION = "header-location"
@@ -57,6 +69,7 @@ class HeaderIds(_BaseDashId):
 class PageIds(_BaseDashId):
     """The pages link."""
 
-    PLOTS = "/plots"
+    PORTFOLIO = "/portfolio"
+    RETURNS = "/returns"
     SCRAPING = "/scraping"
     ABOUT = "/about"

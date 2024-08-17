@@ -1,4 +1,5 @@
 """All dash specific callbacks and layout related to the plots page."""
+
 # pylint: disable=duplicate-code
 from datetime import date, timedelta
 
@@ -29,7 +30,7 @@ def _get_layout() -> dash.html.Div:
                             ),
                             dbc.Col(
                                 dash.dcc.DatePickerSingle(
-                                    id=ids.PlottingId.START_DATE,
+                                    id=ids.PortfolioId.START_DATE,
                                     min_date_allowed=date(2008, 1, 1),
                                     max_date_allowed=date.today(),
                                     initial_visible_month=date.today(),
@@ -49,7 +50,7 @@ def _get_layout() -> dash.html.Div:
                             ),
                             dbc.Col(
                                 dash.dcc.DatePickerSingle(
-                                    id=ids.PlottingId.END_DATE,
+                                    id=ids.PortfolioId.END_DATE,
                                     min_date_allowed=date(2008, 1, 1),
                                     max_date_allowed=date.today(),
                                     initial_visible_month=date.today(),
@@ -74,18 +75,18 @@ def _get_layout() -> dash.html.Div:
                                     n_clicks=0,
                                     id=btn_id,
                                     color="dark",
-                                    outline=btn_id is ids.PlottingId.REFRESH,
+                                    outline=btn_id is ids.PortfolioId.REFRESH,
                                 ),
                                 width=1,
                                 className="d-grid gap-2",
                             )
                             for title, btn_id in (
-                                ("Year to Date", ids.PlottingId.YTD_BTN),
-                                ("Last Year", ids.PlottingId.LY_BTN),
-                                ("Month to Date", ids.PlottingId.MTD_BTN),
-                                ("Last Month", ids.PlottingId.LM_BTN),
-                                ("All", ids.PlottingId.ALL_BTN),
-                                ("Refresh", ids.PlottingId.REFRESH),
+                                ("Year to Date", ids.PortfolioId.YTD_BTN),
+                                ("Last Year", ids.PortfolioId.LY_BTN),
+                                ("Month to Date", ids.PortfolioId.MTD_BTN),
+                                ("Last Month", ids.PortfolioId.LM_BTN),
+                                ("All", ids.PortfolioId.ALL_BTN),
+                                ("Refresh", ids.PortfolioId.REFRESH),
                             )
                         ],
                         justify="start",
@@ -98,7 +99,7 @@ def _get_layout() -> dash.html.Div:
                     dbc.Row(
                         dbc.Col(
                             _create_graph_card(
-                                "Portfolio", ids.PlottingId.GRAPH_RESULT
+                                "Portfolio", ids.PortfolioId.GRAPH_RESULT
                             ),
                             width=10,
                         ),
@@ -106,7 +107,7 @@ def _get_layout() -> dash.html.Div:
                     ),
                     dbc.Row(
                         dbc.Col(
-                            _create_graph_card("Totals", ids.PlottingId.GRAPH_TOTAL),
+                            _create_graph_card("Totals", ids.PortfolioId.GRAPH_TOTAL),
                             width=10,
                         ),
                         justify="center",
@@ -118,7 +119,7 @@ def _get_layout() -> dash.html.Div:
     )
 
 
-def _create_graph_card(title: str, graph_id: ids.PlottingId) -> dbc.Card:
+def _create_graph_card(title: str, graph_id: ids.PortfolioId) -> dbc.Card:
     return dbc.Card(
         [
             dbc.CardHeader(
@@ -149,14 +150,14 @@ layout = _get_layout()
 
 
 @dash.callback(
-    dash.Output(ids.PlottingId.REFRESH, "n_clicks"),
-    dash.State(ids.PlottingId.REFRESH, "n_clicks"),
-    dash.Input(ids.HeaderIds.PLOTS, "n_clicks"),
-    dash.Input(ids.PlottingId.YTD_BTN, "n_clicks"),
-    dash.Input(ids.PlottingId.MTD_BTN, "n_clicks"),
-    dash.Input(ids.PlottingId.LM_BTN, "n_clicks"),
-    dash.Input(ids.PlottingId.LY_BTN, "n_clicks"),
-    dash.Input(ids.PlottingId.ALL_BTN, "n_clicks"),
+    dash.Output(ids.PortfolioId.REFRESH, "n_clicks"),
+    dash.State(ids.PortfolioId.REFRESH, "n_clicks"),
+    dash.Input(ids.HeaderIds.PORTFOLIO, "n_clicks"),
+    dash.Input(ids.PortfolioId.YTD_BTN, "n_clicks"),
+    dash.Input(ids.PortfolioId.MTD_BTN, "n_clicks"),
+    dash.Input(ids.PortfolioId.LM_BTN, "n_clicks"),
+    dash.Input(ids.PortfolioId.LY_BTN, "n_clicks"),
+    dash.Input(ids.PortfolioId.ALL_BTN, "n_clicks"),
 )
 def _update_portfolios(
     refresh_clicks: int, *_other_buttons: list[int]
@@ -166,10 +167,10 @@ def _update_portfolios(
 
 
 @dash.callback(
-    dash.Output(ids.PlottingId.GRAPH_RESULT, "figure"),
-    dash.State(ids.PlottingId.START_DATE, "date"),
-    dash.State(ids.PlottingId.END_DATE, "date"),
-    dash.Input(ids.PlottingId.REFRESH, "n_clicks"),
+    dash.Output(ids.PortfolioId.GRAPH_RESULT, "figure"),
+    dash.State(ids.PortfolioId.START_DATE, "date"),
+    dash.State(ids.PortfolioId.END_DATE, "date"),
+    dash.Input(ids.PortfolioId.REFRESH, "n_clicks"),
 )
 def _draw_portfolio_graph(
     start_date_str: str | None, end_date_str: str | None, _clicks: int
@@ -183,10 +184,10 @@ def _draw_portfolio_graph(
 
 
 @dash.callback(
-    dash.Output(ids.PlottingId.GRAPH_TOTAL, "figure"),
-    dash.State(ids.PlottingId.START_DATE, "date"),
-    dash.State(ids.PlottingId.END_DATE, "date"),
-    dash.Input(ids.PlottingId.REFRESH, "n_clicks"),
+    dash.Output(ids.PortfolioId.GRAPH_TOTAL, "figure"),
+    dash.State(ids.PortfolioId.START_DATE, "date"),
+    dash.State(ids.PortfolioId.END_DATE, "date"),
+    dash.Input(ids.PortfolioId.REFRESH, "n_clicks"),
 )
 def _draw_portfolio_graph_total(
     start_date_str: str | None, end_date_str: str | None, _clicks: int
@@ -202,18 +203,18 @@ def _draw_portfolio_graph_total(
     return analysis.plot_returns(portos, index_positions)
 
 
-def _get_start_end_date(date_id: ids.PlottingId) -> tuple[date | None, date | None]:
+def _get_start_end_date(date_id: ids.PortfolioId) -> tuple[date | None, date | None]:
     match date_id:
-        case ids.PlottingId.ALL_BTN:
+        case ids.PortfolioId.ALL_BTN:
             start_date = None
             end_date = None
-        case ids.PlottingId.YTD_BTN:
+        case ids.PortfolioId.YTD_BTN:
             end_date = date.today()
             start_date = date(year=end_date.year, month=1, day=1)
-        case ids.PlottingId.MTD_BTN:
+        case ids.PortfolioId.MTD_BTN:
             end_date = date.today()
             start_date = date(year=end_date.year, month=end_date.month, day=1)
-        case ids.PlottingId.LY_BTN:
+        case ids.PortfolioId.LY_BTN:
             today = date.today()
             start_date = date(year=today.year - 1, month=1, day=1)
             end_date = date(
@@ -221,7 +222,7 @@ def _get_start_end_date(date_id: ids.PlottingId) -> tuple[date | None, date | No
                 month=12,
                 day=31,
             )
-        case ids.PlottingId.LM_BTN:
+        case ids.PortfolioId.LM_BTN:
             today = date.today()
             end_date = today - timedelta(days=today.day)
             start_date = date(year=end_date.year, month=end_date.month, day=1)
@@ -234,15 +235,15 @@ def _get_start_end_date(date_id: ids.PlottingId) -> tuple[date | None, date | No
 
 @dash.callback(
     [
-        dash.Output(ids.PlottingId.START_DATE, "date"),
-        dash.Output(ids.PlottingId.END_DATE, "date"),
+        dash.Output(ids.PortfolioId.START_DATE, "date"),
+        dash.Output(ids.PortfolioId.END_DATE, "date"),
     ],
     [
-        dash.Input(ids.PlottingId.LY_BTN, "n_clicks"),
-        dash.Input(ids.PlottingId.YTD_BTN, "n_clicks"),
-        dash.Input(ids.PlottingId.MTD_BTN, "n_clicks"),
-        dash.Input(ids.PlottingId.LM_BTN, "n_clicks"),
-        dash.Input(ids.PlottingId.ALL_BTN, "n_clicks"),
+        dash.Input(ids.PortfolioId.LY_BTN, "n_clicks"),
+        dash.Input(ids.PortfolioId.YTD_BTN, "n_clicks"),
+        dash.Input(ids.PortfolioId.MTD_BTN, "n_clicks"),
+        dash.Input(ids.PortfolioId.LM_BTN, "n_clicks"),
+        dash.Input(ids.PortfolioId.ALL_BTN, "n_clicks"),
     ],
 )
 def _update_start_end_date(
@@ -254,50 +255,50 @@ def _update_start_end_date(
 
 
 @dash.callback(
-    dash.Output(ids.PlottingId.YTD_BTN, "disabled"),
-    dash.Input(ids.PlottingId.REFRESH, "n_clicks"),
+    dash.Output(ids.PortfolioId.YTD_BTN, "disabled"),
+    dash.Input(ids.PortfolioId.REFRESH, "n_clicks"),
 )
 def _update_ytd_disabled(_n_clicks: int) -> bool:
-    if (requested_start := _get_start_end_date(ids.PlottingId.YTD_BTN)[0]) is None:
+    if (requested_start := _get_start_end_date(ids.PortfolioId.YTD_BTN)[0]) is None:
         return True
     return requested_start >= runtime.get_enddate()
 
 
 @dash.callback(
-    dash.Output(ids.PlottingId.MTD_BTN, "disabled"),
-    dash.Input(ids.PlottingId.REFRESH, "n_clicks"),
+    dash.Output(ids.PortfolioId.MTD_BTN, "disabled"),
+    dash.Input(ids.PortfolioId.REFRESH, "n_clicks"),
 )
 def _update_mtd_disabled(_n_clicks: int) -> bool:
-    if (requested_start := _get_start_end_date(ids.PlottingId.MTD_BTN)[0]) is None:
+    if (requested_start := _get_start_end_date(ids.PortfolioId.MTD_BTN)[0]) is None:
         return True
     return requested_start >= runtime.get_enddate()
 
 
 @dash.callback(
-    dash.Output(ids.PlottingId.LY_BTN, "disabled"),
-    dash.Input(ids.PlottingId.REFRESH, "n_clicks"),
+    dash.Output(ids.PortfolioId.LY_BTN, "disabled"),
+    dash.Input(ids.PortfolioId.REFRESH, "n_clicks"),
 )
 def _update_ly_disabled(_n_clicks: int) -> bool:
-    if (requested_start := _get_start_end_date(ids.PlottingId.LY_BTN)[0]) is None:
+    if (requested_start := _get_start_end_date(ids.PortfolioId.LY_BTN)[0]) is None:
         return True
     return requested_start >= runtime.get_enddate()
 
 
 @dash.callback(
-    dash.Output(ids.PlottingId.LM_BTN, "disabled"),
-    dash.Input(ids.PlottingId.REFRESH, "n_clicks"),
+    dash.Output(ids.PortfolioId.LM_BTN, "disabled"),
+    dash.Input(ids.PortfolioId.REFRESH, "n_clicks"),
 )
 def _update_lm_disabled(_n_clicks: int) -> bool:
-    if (requested_start := _get_start_end_date(ids.PlottingId.LM_BTN)[0]) is None:
+    if (requested_start := _get_start_end_date(ids.PortfolioId.LM_BTN)[0]) is None:
         return True
     return requested_start >= runtime.get_enddate()
 
 
 @dash.callback(
-    dash.Output(ids.PlottingId.START_DATE, "min_date_allowed"),
-    dash.Output(ids.PlottingId.START_DATE, "max_date_allowed"),
-    dash.Input(ids.PlottingId.END_DATE, "date"),
-    dash.Input(ids.PlottingId.REFRESH, "n_clicks"),
+    dash.Output(ids.PortfolioId.START_DATE, "min_date_allowed"),
+    dash.Output(ids.PortfolioId.START_DATE, "max_date_allowed"),
+    dash.Input(ids.PortfolioId.END_DATE, "date"),
+    dash.Input(ids.PortfolioId.REFRESH, "n_clicks"),
 )
 def _update_allowed_start_date(end_date_str: str, _n_clicks: int) -> tuple[date, date]:
     min_date = runtime.get_startdate()
@@ -311,10 +312,10 @@ def _update_allowed_start_date(end_date_str: str, _n_clicks: int) -> tuple[date,
 
 
 @dash.callback(
-    dash.Output(ids.PlottingId.END_DATE, "min_date_allowed"),
-    dash.Output(ids.PlottingId.END_DATE, "max_date_allowed"),
-    dash.Input(ids.PlottingId.START_DATE, "date"),
-    dash.Input(ids.PlottingId.REFRESH, "n_clicks"),
+    dash.Output(ids.PortfolioId.END_DATE, "min_date_allowed"),
+    dash.Output(ids.PortfolioId.END_DATE, "max_date_allowed"),
+    dash.Input(ids.PortfolioId.START_DATE, "date"),
+    dash.Input(ids.PortfolioId.REFRESH, "n_clicks"),
 )
 def _update_allowed_end_date(start_date_str: str, _n_clicks: int) -> tuple[date, date]:
     min_date = runtime.get_startdate() + timedelta(days=1)

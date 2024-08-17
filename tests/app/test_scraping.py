@@ -137,6 +137,6 @@ def test_update_progress_finished(monkeypatch) -> None:
             ret = scraping.update_progress_finished(random.randint(0, 1000))
 
             if created and finished:
-                assert ret == PageIds.PLOTS
+                assert ret == PageIds.PORTFOLIO
             else:
                 assert ret == dash.no_update

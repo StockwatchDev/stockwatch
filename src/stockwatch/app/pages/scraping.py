@@ -1,4 +1,5 @@
 """Dash app callbacks for importing/scraping data from DeGiro."""
+
 from collections import namedtuple
 from datetime import date
 
@@ -355,4 +356,4 @@ def update_progress_finished(_iter: int) -> str | dash._callback.NoUpdate:
         return dash.no_update
     if not runtime.get_scrape_thread().finished:
         return dash.no_update
-    return PageIds.PLOTS
+    return PageIds.PORTFOLIO

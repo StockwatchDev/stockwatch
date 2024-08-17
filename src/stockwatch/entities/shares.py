@@ -59,6 +59,11 @@ class SharePosition:  # pylint: disable=too-many-instance-attributes
             realized=realized,
         )
 
+    @property
+    def is_empty(self) -> bool:
+        """Return True for an empty position (nr_stocks == 0)"""
+        return self.nr_stocks == 0.0
+
     def __post_init__(self) -> None:
         # because frozen=True, we need to use __setattr__ here:
         object.__setattr__(self, "unrealized", self.value - self.investment)

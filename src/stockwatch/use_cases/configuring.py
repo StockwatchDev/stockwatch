@@ -17,10 +17,10 @@ class DeGiroServerConfig(ConfigSectionBase):
     login_url: str = "https://trader.degiro.nl/login/secure/login"
     client_url: str = "https://trader.degiro.nl/pa/secure/client"
     portfolio_url: str = (
-        "https://trader.degiro.nl/reporting/secure/v3/positionReport/csv"
+        "https://trader.degiro.nl/portfolio-reports/secure/v3/positionReport/csv"
     )
     account_url: str = (
-        "https://trader.degiro.nl/reporting/secure/v3/cashAccountReport/csv"
+        "https://trader.degiro.nl/portfolio-reports/secure/v3/cashAccountReport/csv"
     )
     user_agent: str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:107.0) Gecko/20100101 Firefox/107.0"
 

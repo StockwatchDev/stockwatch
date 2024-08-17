@@ -3,6 +3,7 @@
 This package has a clean architecture. Hence, this module should not depend on any
 other module and only import Python stuff.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
@@ -85,9 +86,13 @@ class Amount:
         "Return an amount self.value_exact * factor"
         return replace(self, value_exact=(self.value_exact * factor))
 
-    def __truediv__(self, divisor: float) -> Amount:
+    def __truediv__(self, divisor: float | int | Amount) -> Amount:
         "Return an amount self.value_exact * (1.0/divisor)"
-        return replace(self, value_exact=(self.value_exact * (1.0 / divisor)))
+        if isinstance(divisor, (float, int)):
+            return replace(self, value_exact=(self.value_exact * (1.0 / divisor)))
+        assert isinstance(divisor, Amount)
+        assert self.curr == divisor.curr, f"cannot divide {self} by {divisor}"
+        return replace(self, value_exact=(self.value_exact / divisor.value_exact))
 
 
 @dataclass(frozen=False, order=True)
