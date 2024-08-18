@@ -9,7 +9,11 @@ import datetime
 import plotly.graph_objects as go
 
 from .adapters import PositionsData, ReturnsData
-from .entities.shares import SharePortfolio, SharePosition
+from .entities.shares import SharePortfolio, SharePosition, get_all_isins
+
+
+_SECONDS_IN_DAY = 60 * 60 * 24
+_MARKET_DAYS_PER_YEAR = 260
 
 
 def _create_figure() -> go.Figure:
@@ -145,23 +149,33 @@ def plot_positions(share_portfolios: tuple[SharePortfolio, ...]) -> go.Figure:
 def plot_returns_comparison(
     share_portfolios: tuple[SharePortfolio, ...],
     _indices: list[tuple[SharePosition, ...]] | None = None,
+    start_date: datetime.date = datetime.date.today() - datetime.timedelta(weeks=52),
     end_date: datetime.date = datetime.date.today(),
+    period_1: datetime.timedelta = datetime.timedelta(weeks=52),
+    period_2: datetime.timedelta = datetime.timedelta(weeks=4),
 ) -> go.Figure:
     """Plot the returns of a portfolio."""
-    start_date = end_date - datetime.timedelta(weeks=52)
-    start_date_long = start_date - datetime.timedelta(weeks=52)
-    start_date_short = start_date - datetime.timedelta(weeks=4)
+    long_period = max(period_1, period_2)
+    weeks_long_period = long_period.total_seconds() / (_SECONDS_IN_DAY * 7)
+    short_period = min(period_1, period_2)
+    weeks_short_period = short_period.total_seconds() / (_SECONDS_IN_DAY * 7)
+    start_date_long = start_date - long_period - datetime.timedelta(days=1)
+
+    _all_isins = get_all_isins(share_portfolios, start_date, end_date)
 
     long_pf_it = iter(share_portfolios)
-    while next(long_pf_it).portfolio_date < start_date_long:
+    while (start_date_long_act := next(long_pf_it).portfolio_date) < start_date_long:
         pass
 
+    start_date_act = start_date_long_act + long_period
+    start_date_short_act = start_date_act - short_period
+
     short_pf_it = iter(share_portfolios)
-    while next(short_pf_it).portfolio_date < start_date_short:
+    while next(short_pf_it).portfolio_date < start_date_short_act:
         pass
 
     current_pf_it = iter(share_portfolios)
-    while next(current_pf_it).portfolio_date < start_date:
+    while next(current_pf_it).portfolio_date < start_date_act:
         pass
 
     fig_dict = {"data": [], "layout": {}, "frames": []}
@@ -173,12 +187,14 @@ def plot_returns_comparison(
                     "args": [
                         None,
                         {
-                            "frame": {"duration": 1, "redraw": False},
+                            "frame": {"duration": 500, "redraw": False},
                             "fromcurrent": True,
                             "transition": {
-                                "duration": 50,
-                                "easing": "quadratic-in-out",
+                                "duration": 400,
+                                "easing": "linear",
                             },
+                            "easing": "linear",
+                            "mode": "next",
                         },
                     ],
                     "label": "Play",
@@ -214,7 +230,7 @@ def plot_returns_comparison(
         "xanchor": "left",
         "currentvalue": {
             "font": {"size": 20},
-            "prefix": "Date:",
+            "prefix": "Date: ",
             "visible": True,
             "xanchor": "right",
         },
@@ -228,16 +244,20 @@ def plot_returns_comparison(
 
     for pf in share_portfolios:
         if pf.portfolio_date >= end_date:
-            max_marker_size = max([i.value.value for i in pf.share_positions])
+            max_marker_size = max(
+                [i.value.value for i in pf.share_positions if i.isin in _all_isins]
+            )
             break
     else:
         max_marker_size = max(
-            i.value.value for i in share_portfolios[-1].share_positions
+            i.value.value
+            for i in share_portfolios[-1].share_positions
+            if i.isin in _all_isins
         )
 
     size_ref = 2 * max_marker_size / (60**2)
 
-    min_x, min_y, max_x, max_y = (
+    min_long, min_short, max_long, max_short = (
         float("inf"),
         float("inf"),
         float("-inf"),
@@ -251,43 +271,73 @@ def plot_returns_comparison(
         if current_pf is None or current_pf.portfolio_date > end_date:
             break
 
-        frame = {"data": [], "name": f"{current_pf.portfolio_date}"}
-        for current_pos in current_pf.share_positions:
-            long_pos = long_pf.get_position(current_pos.isin)
-            if long_pos.is_empty:
-                continue
-            short_pos = short_pf.get_position(current_pos.isin)
-            if short_pos.is_empty:
-                continue
+        if current_pf.portfolio_date.weekday() in (5, 6):
+            continue
 
-            short_val = (
-                100.0
-                * (current_pos.price.value_exact - short_pos.price.value_exact)
-                / short_pos.price.value_exact
-            )
-            min_y = min(min_y, short_val)
-            max_y = max(max_y, short_val)
-            long_val = (
-                100.0
-                * (current_pos.price.value_exact - long_pos.price.value_exact)
-                / long_pos.price.value_exact
-            )
-            min_x = min(min_x, long_val)
-            max_x = max(max_x, long_val)
+        frame = {"data": [], "name": f"{current_pf.portfolio_date}"}
+        # for current_pos in current_pf.share_positions:
+        for isin in _all_isins:
+            current_pos = current_pf.get_position(isin)
+            long_pos = long_pf.get_position(current_pos.isin)
+            short_pos = short_pf.get_position(current_pos.isin)
+
+            if current_pos.is_empty or long_pos.is_empty or short_pos.is_empty:
+                short_val = -10000.0
+                long_val = -10000.0
+                marker_size = 40
+                marker_opacity = 0.0
+            else:
+                # investment-based:
+                short_investment = current_pos.investment + short_pos.unrealized
+                short_val = (
+                    100.0
+                    * 52
+                    * (current_pos.value.value_exact - short_investment.value_exact)
+                    / (short_investment.value_exact * weeks_short_period)
+                )
+                # market-based:
+                # short_val = (
+                #     100.0
+                #     * 52
+                #     * (current_pos.price.value_exact - short_pos.price.value_exact)
+                #     / (short_pos.price.value_exact * weeks_short_period)
+                # )
+                min_short = min(min_short, short_val)
+                max_short = max(max_short, short_val)
+                # investment-based:
+                long_investment = current_pos.investment + long_pos.unrealized
+                long_val = (
+                    100.0
+                    * 52
+                    * (current_pos.value.value_exact - long_investment.value_exact)
+                    / (long_investment.value_exact * weeks_long_period)
+                )
+                # market-based:
+                # long_val = (
+                #     100.0
+                #     * 52
+                #     * (current_pos.price.value_exact - long_pos.price.value_exact)
+                #     / (long_pos.price.value_exact * weeks_long_period)
+                # )
+                min_long = min(min_long, long_val)
+                max_long = max(max_long, long_val)
+                marker_size = current_pos.value.value_exact
+                marker_opacity = 0.6
 
             hovertemplate = (
-                f"<b>{current_pos.name} - {current_pos.isin}</b><br>returns short: %{{y:0.2f}}<br>"
-                f"returns long: %{{x:0.2f}}<extra></extra>"
+                f"<b>{current_pos.name} - {current_pos.isin}</b><br>returns short: %{{x:0.2f}}<br>"
+                f"returns long: %{{y:0.2f}}<extra></extra>"
             )
             data_dict = {
-                "x": [long_val],
-                "y": [short_val],
+                "y": [long_val],
+                "x": [short_val],
                 "mode": "markers",
                 "marker": {
-                    "size": [current_pos.value.value_exact],
+                    "size": [marker_size],
                     "sizemode": "area",
                     "sizeref": size_ref,
                     "sizemin": 4,
+                    "opacity": [marker_opacity],
                 },
                 "name": current_pos.isin,
                 "hovertemplate": hovertemplate,
@@ -310,87 +360,23 @@ def plot_returns_comparison(
         }
         sliders_dict["steps"].append(slider_step)
 
-    fig_dict["layout"]["sliders"] = [sliders_dict]
-
-    # short = []
-    # long = []
-    # marker_sizes = []
-    # names = []
-    # isins = []
-    # long_portfolio = None
-    # short_portfolio = None
-    # current_portfolio = share_portfolios[-1]
-
-    # for portfolio in share_portfolios:
-    #     if portfolio.portfolio_date == start_date_long:
-    #         long_portfolio = portfolio
-
-    #     if portfolio.portfolio_date == start_date_short:
-    #         short_portfolio = portfolio
-
-    # if long_portfolio is None or short_portfolio is None:
-    #     return go.Figure()
-
-    # for long_pos in long_portfolio.share_positions:
-    #     short_pos = short_portfolio.get_position(long_pos.isin)
-    #     current_pos = current_portfolio.get_position(long_pos.isin)
-
-    #     if short_pos.is_empty or current_pos.is_empty:
-    #         continue
-
-    #     short_val = (
-    #         100.0
-    #         * (current_pos.price.value_exact - short_pos.price.value_exact)
-    #         / short_pos.price.value_exact
-    #     )
-    #     long_val = (
-    #         100.0
-    #         * (current_pos.price.value_exact - long_pos.price.value_exact)
-    #         / long_pos.price.value_exact
-    #     )
-
-    #     marker_sizes.append(current_pos.value.value_exact)
-    #     short.append(short_val)
-    #     long.append(long_val)
-    #     isins.append(long_pos.isin)
-    #     names.append(long_pos.name)
-
-    # size_ref = 2 * max(marker_sizes) / (60**2)
-
-    # # make data
-    # for x, y, marker_size, isin, name in zip(long, short, marker_sizes, isins, names):
-    #     hovertemplate = (
-    #         f"<b>{name} - {isin}</b><br>returns short: %{{y:0.2f}}<br>"
-    #         f"returns long: %{{x:0.2f}}<extra></extra>"
-    #     )
-    #     data_dict = {
-    #         "x": [x],
-    #         "y": [y],
-    #         "mode": "markers",
-    #         "marker": {
-    #             "size": [marker_size],
-    #             "sizemode": "area",
-    #             "sizeref": size_ref,
-    #             "sizemin": 4,
-    #         },
-    #         "name": isin,
-    #         "hovertemplate": hovertemplate,
-    #     }
-
+    # set the data for the initial display to that of the initial frame
     fig_dict["data"] = fig_dict["frames"][0]["data"].copy()
 
     # fill in most of layout
+    fig_dict["layout"]["sliders"] = [sliders_dict]
+    fig_dict["layout"]["yaxis_scaleanchor"] = "x"
+    long_range_extra = 0.05 * (max_long - min_long)
+    short_range_extra = 0.05 * (max_short - min_short)
     fig_dict["layout"]["xaxis"] = {
-        "title": "Returns [%] in 52 weeks",
-        "range": [min_x - 1, max_x + 1],
+        "title": f"Annualized returns [%] in {short_period.days} days",
+        "range": [min_short - short_range_extra, max_short + short_range_extra],
     }
     fig_dict["layout"]["yaxis"] = {
-        "title": "Returns [%] in 4 weeks",
-        "range": [min_y - 1, max_y + 1],
+        "title": f"Annualized returns [%] in {long_period.days} days",
+        "range": [min_long - long_range_extra, max_long + long_range_extra],
     }
 
     fig = go.Figure(fig_dict)
 
     return fig
-
-    # fig.add_trace(

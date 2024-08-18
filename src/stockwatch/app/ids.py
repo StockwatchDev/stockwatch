@@ -54,6 +54,9 @@ class ReturnsId(_BaseDashId):
     START_DATE = "returns-start-date"
     END_DATE = "returns-end-date"
 
+    PERIOD_ONE = "returns-period-one"
+    PERIOD_TWO = "returns-period-two"
+
 
 class HeaderIds(_BaseDashId):
     """The ids for the header items."""

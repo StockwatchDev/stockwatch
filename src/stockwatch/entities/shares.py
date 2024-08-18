@@ -1,4 +1,5 @@
 """Dataclasses for holding a share portfolio"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
@@ -279,9 +280,20 @@ def apply_transactions(
         idx_of_portfolio_after_transaction = -1
 
 
-def get_all_isins(portfolios: tuple[SharePortfolio, ...]) -> set[IsinStr]:
-    """Get all the ISIN's present in the portfolios."""
+def get_all_isins(
+    portfolios: tuple[SharePortfolio, ...],
+    start_date: date | None = None,
+    end_date: date | None = None,
+) -> set[IsinStr]:
+    """Get all the ISIN's present in the portfolios with date in [start_date, end_date]."""
+    _sorted_portfolios = sorted(portfolios)
+    _start_date = start_date or _sorted_portfolios[0].portfolio_date
+    _end_date = end_date or _sorted_portfolios[-1].portfolio_date
     ret_val: set[IsinStr] = set()
-    for porto in portfolios:
+    for porto in _sorted_portfolios:
+        if porto.portfolio_date < _start_date:
+            continue
+        if porto.portfolio_date > _end_date:
+            break
         ret_val.update(porto.all_isins())
     return ret_val
