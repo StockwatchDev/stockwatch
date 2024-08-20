@@ -1,4 +1,5 @@
 """Runtime data used for displaying the Stockwatch site."""
+
 from datetime import date
 
 from stockwatch import entities, use_cases

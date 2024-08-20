@@ -5,43 +5,43 @@ description = "An application for visualizing and analyzing a stock portfolio"
 authors = ["Stockwatchdevs <stockwatchdevs@gmail.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.10"
-plotly = "^5.18"
-dash = "^2.10.2"
-application_settings = "^0.3"
-types-requests = "^2.31.0"
-dash-bootstrap-components = "^1.5.0"
-dash-extensions = "^1.0.7"
-dash-bootstrap-templates = "^1.1.2"
-pydantic = "^1.10"
-requests = "^2.31.0"
+python = ">=3.10,<4"
+plotly = ">=5.18"
+dash = ">=2.10.2"
+application_settings = ">=0.3"
+dash-bootstrap-components = ">=1.5.0"
+dash-extensions = ">=1.0.7"
+dash-bootstrap-templates = ">=1.1.2"
+pydantic = ">=2.0"
+requests = ">=2.31.0"
 
 [tool.poetry.group.testing]
 optional = true
 
 [tool.poetry.group.testing.dependencies]
-pytest = "^7.4"
-pytest-cov = "^4.1.0"
+pytest = ">=7.4"
+pytest-cov = ">=4.1.0"
 
 [tool.poetry.group.typing]
 optional = true
 
 [tool.poetry.group.typing.dependencies]
 mypy = ">=0.942"
+types-requests = ">=2.31.0"
 
 [tool.poetry.group.style]
 optional = true
 
 [tool.poetry.group.style.dependencies]
-black = "^23.3"
-isort = "^5.13"
-pylint = "^3.0"
+black = ">=23.3"
+isort = ">=5.13"
+pylint = ">=3.0"
 
 [tool.poetry.group.testrunner]
 optional = true
 
 [tool.poetry.group.testrunner.dependencies]
-tox = "^4.11.4"
+tox = ">=4.11.4"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

@@ -6,6 +6,7 @@ to methods provided by analysis and use_cases.
 This package has a clean architecture. This module should not contain any business- or
 application logic, nor any adapters.
 """
+
 import dash_bootstrap_components as dbc
 from dash import Dash, Input, Output, callback, html
 

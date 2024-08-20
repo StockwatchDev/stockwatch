@@ -1,5 +1,6 @@
 """Here are all the use cases related to importing data from the DeGiro exported
 files."""
+
 import csv
 from datetime import date, datetime, timedelta
 from typing import Any

@@ -1,4 +1,5 @@
 """Analysis application for stock data obtain from DeGiro."""
+
 import argparse
 
 from .app import run_blocking
