@@ -12,7 +12,7 @@ class DeGiroServerConfig(ConfigSectionBase):
 
     # pylint: disable=too-many-instance-attributes
 
-    country: str = "Netherlands"
+    country: str = "NL"
     lang: str = "nl"
     ga_ext: str = "/totp"
     login_url: str = "https://trader.degiro.nl/login/secure/login"
@@ -29,10 +29,22 @@ class DeGiroServerConfig(ConfigSectionBase):
 
 
 @dataclass(frozen=True)
+class DashServerConfig(ConfigSectionBase):
+    """Config for dash server"""
+
+    debug: bool = True
+    """"Whether or not to run the server in debug mode; defaults to True"""
+
+    use_reloader: bool = True
+    """"Whether or not to apply reloading when code changes; defaults to True"""
+
+
+@dataclass(frozen=True)
 class StockwatchConfig(ConfigBase):
     """Config for stockwatch"""
 
     degiro_server: DeGiroServerConfig = DeGiroServerConfig()
+    dash_server: DashServerConfig = DashServerConfig()
 
     @classmethod
     def default_filepath(cls) -> Path | None:
