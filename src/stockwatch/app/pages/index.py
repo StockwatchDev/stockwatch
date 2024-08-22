@@ -1,4 +1,5 @@
 """Dash app callbacks for the index/home page."""
+
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 

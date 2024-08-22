@@ -1,4 +1,5 @@
 """All dash specific callbacks and layout related to the plots page."""
+
 # pylint: disable=duplicate-code
 from datetime import date, timedelta
 

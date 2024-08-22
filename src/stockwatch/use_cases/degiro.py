@@ -1,4 +1,5 @@
 """The use cases related to getting data from the DeGiro website."""
+
 import threading
 from dataclasses import dataclass
 from datetime import date, timedelta

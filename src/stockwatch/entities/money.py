@@ -3,6 +3,7 @@
 This package has a clean architecture. Hence, this module should not depend on any
 other module and only import Python stuff.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field, replace

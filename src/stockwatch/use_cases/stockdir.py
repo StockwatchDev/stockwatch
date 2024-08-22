@@ -1,4 +1,5 @@
 """Use cases related to the STOCKDIR folder."""
+
 import argparse
 import copy
 import os

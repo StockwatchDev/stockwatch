@@ -1,4 +1,5 @@
 """ The module with all the specified ids used for the Dash application."""
+
 import enum
 
 

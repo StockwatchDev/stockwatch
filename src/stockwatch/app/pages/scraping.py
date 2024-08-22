@@ -1,4 +1,5 @@
 """Dash app callbacks for importing/scraping data from DeGiro."""
+
 from collections import namedtuple
 from datetime import date
 

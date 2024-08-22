@@ -1,4 +1,5 @@
 """Module for defining configuration."""
+
 from pathlib import Path
 
 from application_settings import ConfigBase, ConfigSectionBase
@@ -11,18 +12,31 @@ class DeGiroServerConfig(ConfigSectionBase):
 
     # pylint: disable=too-many-instance-attributes
 
-    country: str = "Netherlands"
+    country: str = "NL"
     lang: str = "nl"
     ga_ext: str = "/totp"
     login_url: str = "https://trader.degiro.nl/login/secure/login"
     client_url: str = "https://trader.degiro.nl/pa/secure/client"
     portfolio_url: str = (
-        "https://trader.degiro.nl/reporting/secure/v3/positionReport/csv"
+        "https://trader.degiro.nl/portfolio-reports/secure/v3/positionReport/csv"
     )
     account_url: str = (
-        "https://trader.degiro.nl/reporting/secure/v3/cashAccountReport/csv"
+        "https://trader.degiro.nl/portfolio-reports/secure/v3/cashAccountReport/csv"
     )
-    user_agent: str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:107.0) Gecko/20100101 Firefox/107.0"
+    user_agent: str = (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:107.0) Gecko/20100101 Firefox/107.0"
+    )
+
+
+@dataclass(frozen=True)
+class DashServerConfig(ConfigSectionBase):
+    """Config for dash server"""
+
+    debug: bool = True
+    """"Whether or not to run the server in debug mode; defaults to True"""
+
+    use_reloader: bool = True
+    """"Whether or not to apply reloading when code changes; defaults to True"""
 
 
 @dataclass(frozen=True)
@@ -30,6 +44,7 @@ class StockwatchConfig(ConfigBase):
     """Config for stockwatch"""
 
     degiro_server: DeGiroServerConfig = DeGiroServerConfig()
+    dash_server: DashServerConfig = DashServerConfig()
 
     @classmethod
     def default_filepath(cls) -> Path | None:

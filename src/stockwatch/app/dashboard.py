@@ -6,11 +6,13 @@ to methods provided by analysis and use_cases.
 This package has a clean architecture. This module should not contain any business- or
 application logic, nor any adapters.
 """
+
 import dash_bootstrap_components as dbc
 from dash import Dash, Input, Output, callback, html
 
 from . import pages
 from .ids import HeaderIds, PageIds
+from stockwatch.use_cases.configuring import DashServerConfig
 
 
 @callback(Output(HeaderIds.CONTENT, "children"), Input(HeaderIds.LOCATION, "pathname"))
@@ -45,4 +47,10 @@ def run_blocking() -> None:
         ],
     )
 
-    app.run_server(debug=True)
+    # Dash uses werkzeug and the reloader functionality causes the application to be
+    # started twice, see https://stackoverflow.com/questions/25504149/why-does-running-the-flask-dev-server-run-itself-twice
+    # Disable reloading via the config if you want to prevent that
+    app.run_server(
+        debug=DashServerConfig.get().debug,
+        use_reloader=DashServerConfig.get().use_reloader,
+    )

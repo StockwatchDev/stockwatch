@@ -3,6 +3,7 @@
 This package has a clean architecture. This module should not contain any business- or
 application logic, nor any adapters.
 """
+
 import datetime
 
 import plotly.graph_objects as go
