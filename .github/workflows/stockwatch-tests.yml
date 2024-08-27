@@ -39,7 +39,7 @@ jobs:
         run: poetry run tox -e style -e typing -e py310
 
       - name: Report coverage
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           files: ./coverage.xml
           flags: unittests
