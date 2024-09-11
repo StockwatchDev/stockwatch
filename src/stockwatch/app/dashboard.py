@@ -50,7 +50,7 @@ def run_blocking() -> None:
     # Dash uses werkzeug and the reloader functionality causes the application to be
     # started twice, see https://stackoverflow.com/questions/25504149/why-does-running-the-flask-dev-server-run-itself-twice
     # Disable reloading via the config if you want to prevent that
-    app.run_server(
+    app.run(
         debug=DashServerConfig.get().debug,
         use_reloader=DashServerConfig.get().use_reloader,
     )
