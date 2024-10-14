@@ -13,21 +13,21 @@ files = [
 
 [[package]]
 name = "application-settings"
-version = "0.4.0"
+version = "0.5.0"
 description = "For providing a python application with configuration and/or settings"
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "application_settings-0.4.0-py3-none-any.whl", hash = "sha256:a8741897c4748109d900fd54d50af858bec0a0ffb7b5762f73ee056728382c86"},
-    {file = "application_settings-0.4.0.tar.gz", hash = "sha256:ac927c8e448ebcde4c262e36cee6730a0d0cef16ac7655a8e754d7f4f6bb209c"},
+    {file = "application_settings-0.5.0-py3-none-any.whl", hash = "sha256:cef62e89da8c44604b12515c7ac22fb23b9c95e317e87ee93a4273b1b0d084c6"},
+    {file = "application_settings-0.5.0.tar.gz", hash = "sha256:86891a52ac0661d0b6b17b727e902ebcd3beb14ed8d9eb7394def0c427e585ee"},
 ]
 
 [package.dependencies]
+attributes-doc = ">=0.3.0"
 loguru = ">=0.7.0"
 pathvalidate = ">=2.5"
 pydantic = ">=2.0"
-tomli = {version = ">=2.0", markers = "python_version < \"3.11\""}
-tomli-w = ">=1.0"
+tomlkit = ">=0.12"
 typing-extensions = {version = ">=4.5.0", markers = "python_version < \"3.12\""}
 
 [[package]]
@@ -43,6 +43,17 @@ files = [
 
 [package.dependencies]
 typing-extensions = {version = ">=4.0.0", markers = "python_version < \"3.11\""}
+
+[[package]]
+name = "attributes-doc"
+version = "0.4.0"
+description = "PEP 224 implementation"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "attributes-doc-0.4.0.tar.gz", hash = "sha256:b1576c94a714e9fc2c65c47cf10d0c8e1a5f7c4f5ae7f69006be108d95cbfbfb"},
+    {file = "attributes_doc-0.4.0-py2.py3-none-any.whl", hash = "sha256:4c3007d9e58f3a6cb4b9c614c4d4ce2d92161581f28e594ddd8241cc3a113bdd"},
+]
 
 [[package]]
 name = "black"
@@ -1343,17 +1354,6 @@ python-versions = ">=3.7"
 files = [
     {file = "tomli-2.0.1-py3-none-any.whl", hash = "sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc"},
     {file = "tomli-2.0.1.tar.gz", hash = "sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f"},
-]
-
-[[package]]
-name = "tomli-w"
-version = "1.0.0"
-description = "A lil' TOML writer"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "tomli_w-1.0.0-py3-none-any.whl", hash = "sha256:9f2a07e8be30a0729e533ec968016807069991ae2fd921a78d42f429ae5f4463"},
-    {file = "tomli_w-1.0.0.tar.gz", hash = "sha256:f463434305e0336248cac9c2dc8076b707d8a12d019dd349f5c1e382dd1ae1b9"},
 ]
 
 [[package]]
